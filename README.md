@@ -1,8 +1,8 @@
-# React Boilerplate
+# Visual Search API
 
 [![Dependency Status][daviddm-img]][daviddm-url]
 
-Boilerplate to create a greatly optimized React PWA, managing state with Redux, and using a Express server making it ready to support other services.
+Greatly optimized React PWA, managing state with Redux, and using a Express server making it ready to support other services.
 
 ## Features
 

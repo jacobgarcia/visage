@@ -1,15 +1,16 @@
 module.exports = {
   apps: [
     {
-      name: 'react-boilerplate',
+      name: 'visual-search',
       script: './server.js',
-      ignore_watch: ['src', 'node_modules', 'dist'],
+      watch: ['config', 'router', 'server'],
+      ignore_watch: ['src', 'node_modules'],
       env: {
-        NODE_ENV: 'development',
+        NODE_ENV: 'development'
       },
       env_production: {
-        NODE_ENV: 'production',
-      },
-    },
-  ],
+        NODE_ENV: 'production'
+      }
+    }
+  ]
 }

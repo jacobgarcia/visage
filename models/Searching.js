@@ -9,4 +9,8 @@ const schema = new Schema({
   user: { type: Schema.Types.ObjectId, ref: 'User', required: true }
 })
 
+schema.virtual('success').get(() => {
+  return `${this.response.status}`
+})
+
 module.exports = mongoose.model('Searching', schema)

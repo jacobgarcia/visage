@@ -8,19 +8,7 @@ const schema = new Schema({
   surname: String,
   username: String,
   company: String,
-  password: String,
-  indexings: [Object],
-  searches: [Object],
-  searchRate: Object,
-  indexRate: Object,
-  indexStatus: String,
-  apiKey: Object,
-  status: Boolean,
-  indexLimit: Number,
-  searchLimit: Number,
-  aceptanceRate: Number,
-  items: [Object],
-  photo: String
+  password: String
 })
 
 module.exports = mongoose.model('User', schema)

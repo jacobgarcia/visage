@@ -26,7 +26,10 @@ const schema = new Schema({
   indexLimit: Number,
   searchLimit: Number,
   aceptanceRate: Number,
-  photo: String
+  photo: String,
+  indexings: { type: [Indexing], default: [] },
+  searches: { type: [Searching], default: [] },
+  items: { type: [Item], default: [] }
 })
 
 schema.virtual('fullname').get(() => {

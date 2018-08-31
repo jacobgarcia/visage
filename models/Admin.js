@@ -11,4 +11,8 @@ const schema = new Schema({
   password: String
 })
 
-module.exports = mongoose.model('User', schema)
+schema.virtual('fullname').get(() => {
+  return `${this.name} ${this.surname}`
+})
+
+module.exports = mongoose.model('Admin', schema)

@@ -6,7 +6,16 @@ const router = new express.Router()
 const crypto = require('crypto')
 const mime = require('mime')
 
-router.route('/images').get((req, res) => {
+router
+  .route('/images')
+  .get((req, res) => {
+    return res.status(200).json({ success: true })
+  })
+  .post((req, res) => {
+    return res.status(200).json({ success: true })
+  })
+
+router.route('/image/:id').delete((req, res) => {
   return res.status(200).json({ success: true })
 })
 

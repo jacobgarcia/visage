@@ -5,7 +5,7 @@ const Schema = mongoose.Schema
 const Rate = new Schema({
   min: Number,
   max: Number,
-  cost: { type: Number, defualt: 0 }
+  cost: { type: Number, default: 0 }
 })
 
 const schema = new Schema({

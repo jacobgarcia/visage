@@ -5,7 +5,9 @@ const Schema = mongoose.Schema
 const schema = new Schema({
   timestamp: { type: Number, default: Date.now },
   response: Object,
-  request: Object,
+  request: {
+    body: Object
+  },
   user: { type: Schema.Types.ObjectId, ref: 'User', required: true }
 })
 

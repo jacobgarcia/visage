@@ -66,3 +66,6 @@ package-lock.json
 
 # Coma separated values
 *.csv
+
+# Uploads
+static/uploads/

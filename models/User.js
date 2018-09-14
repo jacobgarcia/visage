@@ -1,6 +1,11 @@
 /* eslint-env node */
+const path = require('path')
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
+
+const { IndexingSchema } = require(path.resolve('models/Indexing'))
+const { SearchingSchema } = require(path.resolve('models/Searching'))
+const { ItemSchema } = require(path.resolve('models/Item'))
 
 const Rate = new Schema({
   min: Number,
@@ -27,9 +32,9 @@ const schema = new Schema({
   searchLimit: Number,
   aceptanceRate: Number,
   photo: String,
-  indexings: { type: [Indexing], default: [] },
-  searches: { type: [Searching], default: [] },
-  items: { type: [Item], default: [] }
+  indexings: { type: [IndexingSchema], default: [] },
+  searches: { type: [SearchingSchema], default: [] },
+  items: { type: [ItemSchema], default: [] }
 })
 
 schema.virtual('fullname').get(() => {

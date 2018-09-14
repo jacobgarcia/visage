@@ -14,3 +14,4 @@ schema.virtual('success').get(() => {
 })
 
 module.exports = mongoose.model('Searching', schema)
+module.exports.SearchingSchema = mongoose.model('Searching', schema).schema

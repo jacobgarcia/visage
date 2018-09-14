@@ -10,3 +10,4 @@ const schema = new Schema({
 })
 
 module.exports = mongoose.model('Item', schema)
+module.exports.ItemSchema = mongoose.model('Item', schema).schema

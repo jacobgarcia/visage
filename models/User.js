@@ -32,7 +32,10 @@ const schema = new Schema({
   searchLimit: Number,
   aceptanceRate: Number,
   photo: String,
-  indexings: { type: [IndexingSchema], default: [] },
+  indexings: {
+    type: [{ type: Schema.Types.ObjectId, ref: 'Indexing' }],
+    default: []
+  },
   searches: { type: [SearchingSchema], default: [] },
   items: { type: [ItemSchema], default: [] }
 })

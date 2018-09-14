@@ -130,11 +130,16 @@ router.route('/images/search').post(upload.single('image'), (req, res) => {
     response,
     request,
     user: req._user._id
-  }).save(error => {
+  }).save((error, indexing) => {
     if (error) {
       console.log('Could not create indexing object', error)
       return res.status(500).json({ error: { message: 'Could not create indexing object' } })
     }
+    // Add Indexing object to User
+    User.findOneAndUpdate(
+      { username: req._user.username },
+      { $push: { indexings: indexing._id } }
+    ).exec(error)
     // Then return response from internal server
     return res.status(200).json(response)
   })

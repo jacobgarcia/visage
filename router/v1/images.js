@@ -9,6 +9,7 @@ const mime = require('mime')
 const multer = require('multer')
 const jwt = require('jsonwebtoken')
 const AWS = require('aws-sdk')
+const s3 = new AWS.S3()
 
 const config = require(path.resolve('config'))
 
@@ -149,10 +150,15 @@ router.route('/images/search').post(upload.single('image'), (req, res) => {
 
 router.route('/images/index').post(upload.array('images'), (req, res) => {
   if (!req.files) return res.status(400).json({ error: { message: 'Could not get files info' } })
-  const s3 = new AWS.S3()
+  const indexedImages = []
 
   req.files.map(photo => {
-    const imagePath = `/static/uploads/temp/${photo.filename}`
+    const url = `/static/uploads/temp/${photo.filename}`
+    const indexedImage = {
+      url,
+      name: photo.filename
+    }
+    indexedImages.push(indexedImage)
 
     // Upload image to S3
     fs.readFile(photo.path, (error, data) => {
@@ -215,15 +221,49 @@ router.route('/images/index').post(upload.array('images'), (req, res) => {
     // Add Indexing object to User
     User.findOneAndUpdate(
       { username: req._user.username },
-      { $push: { indexings: indexing._id } }
+      { $push: { indexings: indexing._id, indexedImages } }
     ).exec(error)
     // Then return response from internal server
     return res.status(200).json(response)
   })
 })
 
-router.route('/image/:id').delete((req, res) => {
-  return res.status(200).json({ success: true })
+router.route('/images/:id').delete((req, res) => {
+  const { id } = req.params
+
+  // Remove object from database
+  User.findOneAndUpdate(
+    { username: req._user.username },
+    { $pull: { indexedImages: { name: id } } }
+  ).exec(error => {
+    if (error) {
+      console.log('Could not delete indexed image', error)
+      return res.status(500).json({ error: { message: 'Could not delete indexed image' } })
+    }
+
+    // Remove object from S3
+    s3.deleteObject(
+      {
+        Bucket: 'visualsearchqbo',
+        Key: req._user.username + '/' + id
+      },
+      error => {
+        if (error) {
+          console.log('Could not delete indexed image from S3', error)
+          return res
+            .status(500)
+            .json({ error: { message: 'Could not delete indexed image from S3' } })
+        }
+      }
+    )
+  })
+  // Call internal service
+  const response = {
+    success: true,
+    status: 200
+  }
+
+  return res.status(200).json(response)
 })
 
 module.exports = router

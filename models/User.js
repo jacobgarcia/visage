@@ -13,6 +13,13 @@ const Rate = new Schema({
   cost: { type: Number, default: 0 }
 })
 
+const IndexedImage = new Schema({
+  url: String,
+  name: String,
+  category: String,
+  tags: [String]
+})
+
 const schema = new Schema({
   email: { type: String, required: true, unique: true, index: true },
   name: String,
@@ -37,7 +44,8 @@ const schema = new Schema({
     default: []
   },
   searches: { type: [SearchingSchema], default: [] },
-  items: { type: [ItemSchema], default: [] }
+  items: { type: [ItemSchema], default: [] },
+  indexedImages: { type: [IndexedImage], default: [] }
 })
 
 schema.virtual('fullname').get(() => {

@@ -2,10 +2,25 @@
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
+const Item = new Schema({
+  id: Number,
+  sku: Number,
+  similarity: Number
+})
+
 const schema = new Schema({
   timestamp: { type: Number, default: Date.now },
-  response: Object,
-  request: Object,
+  response: {
+    success: Boolean,
+    status: Number,
+    items: { type: [Item], default: [] }
+  },
+  request: {
+    route: Object,
+    file: Object,
+    token: String,
+    headers: Object
+  },
   user: { type: Schema.Types.ObjectId, ref: 'User', required: true }
 })
 

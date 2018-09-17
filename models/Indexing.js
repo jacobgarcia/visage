@@ -2,22 +2,16 @@
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
-const Item = new Schema({
-  id: Number,
-  sku: Number,
-  similarity: Number
-})
-
 const schema = new Schema({
   timestamp: { type: Number, default: Date.now },
   response: {
     success: Boolean,
     status: Number,
-    items: { type: [Item], default: [] }
+    count: Number
   },
   request: {
     route: Object,
-    file: Object,
+    files: Object,
     token: String,
     headers: Object
   },
@@ -29,4 +23,4 @@ schema.virtual('success').get(() => {
 })
 
 module.exports = mongoose.model('Indexing', schema)
-module.exports.IndexingSchema = mongoose.model('Indexing', schema).schema
+module.exports.SearchingSchema = mongoose.model('Indexing', schema).schema

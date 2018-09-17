@@ -1,4 +1,5 @@
 /* eslint-env node */
+const fs = require('fs')
 const express = require('express')
 const path = require('path')
 const winston = require('winston')
@@ -7,6 +8,7 @@ const crypto = require('crypto')
 const mime = require('mime')
 const multer = require('multer')
 const jwt = require('jsonwebtoken')
+const AWS = require('aws-sdk')
 
 const config = require(path.resolve('config'))
 
@@ -14,7 +16,7 @@ const User = require(path.resolve('models/User'))
 const Indexing = require(path.resolve('models/Indexing'))
 
 const storage = multer.diskStorage({
-  destination: (req, file, callback) => callback(null, 'static/uploads'),
+  destination: (req, file, callback) => callback(null, 'static/uploads/temp'),
   filename: (req, file, callback) => {
     crypto.pseudoRandomBytes(16, (error, raw) => {
       callback(null, raw.toString('hex') + Date.now() + '.' + mime.getExtension(file.mimetype))
@@ -126,6 +128,81 @@ router.route('/images/search').post(upload.single('image'), (req, res) => {
   }
 
   // Create new Indexing object
+  return new Searching({
+    response,
+    request,
+    user: req._user._id
+  }).save((error, indexing) => {
+    if (error) {
+      console.log('Could not create searching object', error)
+      return res.status(500).json({ error: { message: 'Could not create searching object' } })
+    }
+    // Add Indexing object to User
+    User.findOneAndUpdate(
+      { username: req._user.username },
+      { $push: { searches: indexing._id } }
+    ).exec(error)
+    // Then return response from internal server
+    return res.status(200).json(response)
+  })
+})
+
+router.route('/images/index').post(upload.array('images'), (req, res) => {
+  if (!req.files) return res.status(400).json({ error: { message: 'Could not get files info' } })
+  const s3 = new AWS.S3()
+
+  req.files.map(photo => {
+    const imagePath = `/static/uploads/temp/${photo.filename}`
+
+    // Upload image to S3
+    fs.readFile(photo.path, (error, data) => {
+      if (error) {
+        console.error(error)
+        return res.status(500).json({
+          success: false,
+          message: 'Could not read uploaded file'
+        })
+      }
+
+      const base64data = Buffer.from(data, 'binary')
+
+      return s3.putObject(
+        {
+          Bucket: 'visualsearchqbo',
+          Key: req._user.username + '/' + photo.filename,
+          Body: base64data,
+          ACL: 'public-read'
+        },
+        error => {
+          if (error) {
+            console.error(error)
+            return res.status(500).json({
+              success: false,
+              message: 'Could not put object to S3 bucket'
+            })
+          }
+        }
+      )
+    })
+  })
+
+  // Call internal Flask service to process petition
+  const response = {
+    success: true,
+    status: 200,
+    count: 13
+  }
+
+  // After getting response from internal server service, create a new Indexing Object
+  // First create the request custom Object
+  const request = {
+    route: req.route,
+    files: req.files,
+    token: req._token,
+    headers: req.headers
+  }
+
+  // Create new Searching object
   return new Indexing({
     response,
     request,
@@ -143,18 +220,6 @@ router.route('/images/search').post(upload.single('image'), (req, res) => {
     // Then return response from internal server
     return res.status(200).json(response)
   })
-})
-
-router.route('/images/index').post(upload.single('image'), (req, res) => {
-  if (!req.file) return res.status(400).json({ error: { message: 'Could not get file info' } })
-  const imagePath = `/static/uploads/temp/${req.file.filename}`
-
-  // Call internal Flask service to process petition
-  const response = {
-    success: true,
-    status: 200
-  }
-  return res.status(200).json(response)
 })
 
 router.route('/image/:id').delete((req, res) => {

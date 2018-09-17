@@ -23,6 +23,7 @@
   },
   "pre-commit": "precommit",
   "dependencies": {
+    "aws-sdk": "^2.316.0",
     "axios": "^0.18.0",
     "dotenv": "^6.0.0",
     "express": "^4.16.3",

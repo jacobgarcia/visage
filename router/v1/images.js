@@ -145,8 +145,16 @@ router.route('/images/search').post(upload.single('image'), (req, res) => {
   })
 })
 
-router.route('/image').post((req, res) => {
-  return res.status(200).json({ success: true })
+router.route('/images/index').post(upload.single('image'), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: { message: 'Could not get file info' } })
+  const imagePath = `/static/uploads/temp/${req.file.filename}`
+
+  // Call internal Flask service to process petition
+  const response = {
+    success: true,
+    status: 200
+  }
+  return res.status(200).json(response)
 })
 
 router.route('/image/:id').delete((req, res) => {

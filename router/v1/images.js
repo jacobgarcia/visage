@@ -296,13 +296,49 @@ router.route('/stats/petitions').get((req, res) => {
 router.route('/stats/users/purchases').get((req, res) => {
   // Find all users
   User.find({})
-    .select('searches indexings searchRates indexRates')
+    .lean()
+    .select('searches indexings searchRates indexRates username email company')
     .exec((error, users) => {
       if (error) {
         console.log('Could not fetch users', error)
         return res.status(500).json({ error: { message: 'Could not fetch users' } })
       }
 
+      users.map(user => {
+        let indexingCost = 0,
+          searchingCost = 0
+
+        const indexing = user.indexings.length,
+          searching = user.searches.length
+
+        user.indexRates.map(rate => {
+          if (indexing >= rate.min && indexing <= rate.max) {
+            indexingCost += indexing * rate.cost
+          } else {
+            indexing -= rate.max
+            indexingCost += indexing * rate.cost
+          }
+        })
+
+        user.searchRates.map(rate => {
+          if (searching >= rate.min && searching <= rate.max) {
+            searchingCost += searching * rate.cost
+          } else {
+            searching -= rate.max
+            searchingCost += searching * rate.cost
+          }
+        })
+
+        user.indexingCost = indexingCost
+        user.searchingCost = searchingCost
+        user.billing = indexingCost + searchingCost
+        return user
+      })
+
+      // Finally sort users by billing
+      users.sort(($0, $1) => {
+        $0.billing - $1.billing
+      })
       return res.status(200).json({ users })
     })
 })

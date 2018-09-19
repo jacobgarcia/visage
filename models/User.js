@@ -27,8 +27,8 @@ const schema = new Schema({
   username: { type: String, required: true, unique: true, index: true },
   company: String,
   password: { type: String, required: true },
-  searchRates: { type: [Rate], default: [] },
-  indexRates: { type: [Rate], default: [] },
+  searchRates: { type: [Rate], default: [{ min: 1, max: 1000, cost: 1 }] },
+  indexRates: { type: [Rate], default: [{ min: 1, max: 1000, cost: 1 }] },
   indexStatus: String,
   apiKey: {
     value: String,

@@ -43,7 +43,10 @@ const schema = new Schema({
     type: [{ type: Schema.Types.ObjectId, ref: 'Indexing' }],
     default: []
   },
-  searches: { type: [SearchingSchema], default: [] },
+  searches: {
+    type: [{ type: Schema.Types.ObjectId, ref: 'Searching' }],
+    default: []
+  },
   items: { type: [ItemSchema], default: [] },
   indexedImages: { type: [IndexedImage], default: [] }
 })

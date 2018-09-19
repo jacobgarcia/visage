@@ -15,6 +15,7 @@ const config = require(path.resolve('config'))
 
 const User = require(path.resolve('models/User'))
 const Indexing = require(path.resolve('models/Indexing'))
+const Searching = require(path.resolve('models/Searching'))
 
 const storage = multer.diskStorage({
   destination: (req, file, callback) => callback(null, 'static/uploads/temp'),
@@ -133,7 +134,7 @@ router.route('/images/search').post(upload.single('image'), (req, res) => {
     response,
     request,
     user: req._user._id
-  }).save((error, indexing) => {
+  }).save((error, search) => {
     if (error) {
       console.log('Could not create searching object', error)
       return res.status(500).json({ error: { message: 'Could not create searching object' } })
@@ -141,7 +142,7 @@ router.route('/images/search').post(upload.single('image'), (req, res) => {
     // Add Indexing object to User
     User.findOneAndUpdate(
       { username: req._user.username },
-      { $push: { searches: indexing._id } }
+      { $push: { searches: search._id } }
     ).exec(error)
     // Then return response from internal server
     return res.status(200).json(response)
@@ -264,6 +265,46 @@ router.route('/images/:id').delete((req, res) => {
   }
 
   return res.status(200).json(response)
+})
+
+//ENDPOINTS FOR ADMIN PANEL
+router.route('/stats/petitions').get((req, res) => {
+  Indexing.find({})
+    .select('id')
+    .exec((error, indexings) => {
+      if (error) {
+        console.log('Could not fetch indexings', error)
+        return res.status(500).json({ error: { message: 'Could not fetch indexings' } })
+      }
+      Searching.find({})
+        .select('id')
+        .exec((error, searchings) => {
+          if (error) {
+            console.log('Could not fetch searches', error)
+            return res.status(500).json({ error: { message: 'Could not fetch searches' } })
+          }
+          const petitions = {
+            indexings: indexings.length,
+            searches: searchings.length,
+            total: indexings.length + searchings.length
+          }
+          return res.status(200).json({ petitions })
+        })
+    })
+})
+
+router.route('/stats/users/purchases').get((req, res) => {
+  // Find all users
+  User.find({})
+    .select('searches indexings searchRates indexRates')
+    .exec((error, users) => {
+      if (error) {
+        console.log('Could not fetch users', error)
+        return res.status(500).json({ error: { message: 'Could not fetch users' } })
+      }
+
+      return res.status(200).json({ users })
+    })
 })
 
 module.exports = router

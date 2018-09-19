@@ -293,7 +293,7 @@ router.route('/stats/petitions').get((req, res) => {
     })
 })
 
-router.route('/stats/users/purchases').get((req, res) => {
+router.route('/stats/users/billing').get((req, res) => {
   // Find all users
   User.find({})
     .lean()

@@ -8,6 +8,7 @@ const crypto = require('crypto')
 const mime = require('mime')
 const multer = require('multer')
 const jwt = require('jsonwebtoken')
+const request = require('request')
 const AWS = require('aws-sdk')
 const s3 = new AWS.S3()
 
@@ -27,6 +28,7 @@ const storage = multer.diskStorage({
 })
 
 const upload = multer({ storage })
+const serviceUrl = 'https://621ac109.ngrok.io'
 
 router.route('/token/generate').post((req, res) => {
   // const { _id } = req._user
@@ -150,8 +152,11 @@ router.route('/images/search').post(upload.single('image'), (req, res) => {
 })
 
 router.route('/images/index').post(upload.array('images'), (req, res) => {
-  if (!req.files) return res.status(400).json({ error: { message: 'Could not get files info' } })
+  const { id, sku } = req.body
   const indexedImages = []
+
+  if (!id || !sku) return res.status(400).json({ error: { message: 'Malformed request' } })
+  if (!req.files) return res.status(400).json({ error: { message: 'Could not get files info' } })
 
   req.files.map(photo => {
     const url = `/static/uploads/temp/${photo.filename}`
@@ -194,6 +199,23 @@ router.route('/images/index').post(upload.array('images'), (req, res) => {
   })
 
   // Call internal Flask service to process petition
+  const formData = {
+    id,
+    sku,
+    img: {
+      value: fs.createReadStream(url),
+      options: {
+        filename: photo.filename
+      }
+    }
+  }
+  request.post({ url: serviceUrl, formData }, (error, response) => {
+    if (error) {
+      console.log('Could not index image', error)
+      return res.status(500).json({ error: { message: 'Could not index image' } })
+    }
+    console.log(response)
+  })
   const response = {
     success: true,
     status: 200,

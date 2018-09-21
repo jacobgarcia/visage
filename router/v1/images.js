@@ -28,7 +28,7 @@ const storage = multer.diskStorage({
 })
 
 const upload = multer({ storage })
-const serviceUrl = 'https://babce749.ngrok.io'
+const serviceUrl = 'http://localhost:5000'
 
 router.route('/token/generate').post((req, res) => {
   // const { _id } = req._user

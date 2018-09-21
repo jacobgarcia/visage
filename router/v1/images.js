@@ -57,6 +57,27 @@ router.route('/token/generate').post((req, res) => {
   })
 })
 
+// TODO: Validate with hasAccess
+router.route('/token/revoke/:username').post((req, res) => {
+  const { username } = req.params
+  User.findOne({ username }).exec((error, user) => {
+    if (error) {
+      console.error('Could not find user', error)
+      return res.status(500).json({ error: { message: 'Could not find user' } })
+    }
+    user.apiKey.active = false
+    user.save(error => {
+      if (error) {
+        console.error('Could not update user information', error)
+        return res.status(500).json({ error: { message: 'Could not update user information' } })
+      }
+    })
+    return res
+      .status(200)
+      .json({ success: true, message: 'Revoked API token for user ' + username })
+  })
+})
+
 router.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*')
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept')

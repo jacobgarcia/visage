@@ -28,7 +28,7 @@ const storage = multer.diskStorage({
 })
 
 const upload = multer({ storage })
-const serviceUrl = 'https://621ac109.ngrok.io'
+const serviceUrl = 'https://babce749.ngrok.io'
 
 router.route('/token/generate').post((req, res) => {
   // const { _id } = req._user
@@ -96,158 +96,150 @@ router.route('/images/search').post(upload.single('image'), (req, res) => {
   const imagePath = `/static/uploads/temp/${req.file.filename}`
 
   // Call internal Flask service to process petition
-  const response = {
-    success: true,
-    status: 200,
-    items: [
-      {
-        id: '123',
-        sku: 01120000,
-        similarity: 72
-      },
-      {
-        id: '101',
-        sku: 02210000,
-        similarity: 66
-      },
-      {
-        id: '98',
-        sku: 09120000,
-        similarity: 62
-      },
-      {
-        id: '204',
-        sku: 01120002,
-        similarity: 60
+  const formData = {
+    image: {
+      value: fs.createReadStream(process.env.PWD + imagePath),
+      options: {
+        filename: req.file.filename
       }
-    ]
-  }
-  // After getting response from internal server service, create a new Indexing Object
-  // First create the request custom Object
-  const request = {
-    route: req.route,
-    file: req.file,
-    token: req._token,
-    headers: req.headers
-  }
-
-  // Create new Indexing object
-  return new Searching({
-    response,
-    request,
-    user: req._user._id
-  }).save((error, search) => {
-    if (error) {
-      console.log('Could not create searching object', error)
-      return res.status(500).json({ error: { message: 'Could not create searching object' } })
     }
-    // Add Indexing object to User
-    User.findOneAndUpdate(
-      { username: req._user.username },
-      { $push: { searches: search._id } }
-    ).exec(error)
-    // Then return response from internal server
-    return res.status(200).json(response)
+  }
+  request.post({ url: serviceUrl + '/v1/images/search', formData }, (error, resp) => {
+    if (error) {
+      console.log('Could not index image', error)
+      return res.status(500).json({ error: { message: 'Could not index image' } })
+    }
+
+    const response = {
+      success: resp.statusCode === 200 ? true : false,
+      status: resp.statusCode,
+      items: JSON.parse(resp.body).hits
+    }
+    // After getting response from internal server service, create a new Indexing Object
+    // First create the request custom Object
+    const request = {
+      route: req.route,
+      file: req.file,
+      token: req._token,
+      headers: req.headers
+    }
+
+    // Create new Indexing object
+    return new Searching({
+      response,
+      request,
+      user: req._user._id
+    }).save((error, search) => {
+      if (error) {
+        console.log('Could not create searching object', error)
+        return res.status(500).json({ error: { message: 'Could not create searching object' } })
+      }
+      // Add Indexing object to User
+      User.findOneAndUpdate(
+        { username: req._user.username },
+        { $push: { searches: search._id } }
+      ).exec(error)
+      // Then return response from internal server
+      return res.status(200).json(response)
+    })
   })
 })
 
-router.route('/images/index').post(upload.array('images'), (req, res) => {
+router.route('/images/index').post(upload.single('image'), (req, res) => {
   const { id, sku } = req.body
   const indexedImages = []
-
+  const photo = req.file
   if (!id || !sku) return res.status(400).json({ error: { message: 'Malformed request' } })
-  if (!req.files) return res.status(400).json({ error: { message: 'Could not get files info' } })
+  if (!req.file) return res.status(400).json({ error: { message: 'Could not get files info' } })
+  const url = `/static/uploads/temp/${photo.filename}`
 
-  req.files.map(photo => {
-    const url = `/static/uploads/temp/${photo.filename}`
-    const indexedImage = {
-      url,
-      name: photo.filename
+  const indexedImage = {
+    url,
+    name: photo.filename
+  }
+  indexedImages.push(indexedImage)
+
+  // Upload image to S3
+  fs.readFile(photo.path, (error, data) => {
+    if (error) {
+      console.error(error)
+      return res.status(500).json({
+        success: false,
+        message: 'Could not read uploaded file'
+      })
     }
-    indexedImages.push(indexedImage)
 
-    // Upload image to S3
-    fs.readFile(photo.path, (error, data) => {
-      if (error) {
-        console.error(error)
-        return res.status(500).json({
-          success: false,
-          message: 'Could not read uploaded file'
-        })
-      }
-
-      const base64data = Buffer.from(data, 'binary')
-
-      return s3.putObject(
-        {
-          Bucket: 'visualsearchqbo',
-          Key: req._user.username + '/' + photo.filename,
-          Body: base64data,
-          ACL: 'public-read'
-        },
-        error => {
-          if (error) {
-            console.error(error)
-            return res.status(500).json({
-              success: false,
-              message: 'Could not put object to S3 bucket'
-            })
-          }
+    const base64data = Buffer.from(data, 'binary')
+    return s3.putObject(
+      {
+        Bucket: 'visualsearchqbo',
+        Key: req._user.username + '/' + photo.filename,
+        Body: base64data,
+        ACL: 'public-read'
+      },
+      error => {
+        if (error) {
+          console.error(error)
+          return res.status(500).json({
+            success: false,
+            message: 'Could not put object to S3 bucket'
+          })
         }
-      )
-    })
+      }
+    )
   })
 
   // Call internal Flask service to process petition
   const formData = {
     id,
     sku,
-    img: {
-      value: fs.createReadStream(url),
+    image: {
+      value: fs.createReadStream(process.env.PWD + url),
       options: {
         filename: photo.filename
       }
     }
   }
-  request.post({ url: serviceUrl, formData }, (error, response) => {
+  request.post({ url: serviceUrl + '/v1/images/index', formData }, (error, resp) => {
     if (error) {
-      console.log('Could not index image', error)
+      console.error('Could not index image', error)
       return res.status(500).json({ error: { message: 'Could not index image' } })
     }
-    console.log(response)
-  })
-  const response = {
-    success: true,
-    status: 200,
-    count: 13
-  }
 
-  // After getting response from internal server service, create a new Indexing Object
-  // First create the request custom Object
-  const request = {
-    route: req.route,
-    files: req.files,
-    token: req._token,
-    headers: req.headers
-  }
-
-  // Create new Searching object
-  return new Indexing({
-    response,
-    request,
-    user: req._user._id
-  }).save((error, indexing) => {
-    if (error) {
-      console.log('Could not create indexing object', error)
-      return res.status(500).json({ error: { message: 'Could not create indexing object' } })
+    const response = {
+      success: JSON.parse(resp.body).success,
+      status: 200 || resp.statusCode,
+      count: 1,
+      features: JSON.parse(resp.body).features
     }
-    // Add Indexing object to User
-    User.findOneAndUpdate(
-      { username: req._user.username },
-      { $push: { indexings: indexing._id, indexedImages } }
-    ).exec(error)
-    // Then return response from internal server
-    return res.status(200).json(response)
+
+    // After getting response from internal server service, create a new Indexing Object
+    // First create the request custom Object
+    const request = {
+      route: req.route,
+      files: req.files,
+      token: req._token,
+      headers: req.headers
+    }
+
+    // Create new Searching object
+    return new Indexing({
+      response,
+      request,
+      user: req._user._id
+    }).save((error, indexing) => {
+      if (error) {
+        console.log('Could not create indexing object', error)
+        return res.status(500).json({ error: { message: 'Could not create indexing object' } })
+      }
+      // Add Indexing object to User
+      User.findOneAndUpdate(
+        { username: req._user.username },
+        { $push: { indexings: indexing._id, indexedImages } }
+      ).exec(error)
+      // Then return response from internal server
+      return res.status(200).json(response)
+    })
   })
 })
 
@@ -281,12 +273,21 @@ router.route('/images/:id').delete((req, res) => {
     )
   })
   // Call internal service
-  const response = {
-    success: true,
-    status: 200
+  const formData = {
+    id
   }
+  request.delete({ url: serviceUrl + '/v1/images/delete', formData }, (error, resp) => {
+    if (error) {
+      console.error('Could not index image', error)
+      return res.status(500).json({ error: { message: 'Could not index image' } })
+    }
+    const response = {
+      success: JSON.parse(resp.body).success.deleted > 0,
+      status: resp.statusCode
+    }
 
-  return res.status(200).json(response)
+    return res.status(200).json(response)
+  })
 })
 
 //ENDPOINTS FOR ADMIN PANEL

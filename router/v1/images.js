@@ -95,7 +95,7 @@ router.use((req, res, next) => {
     }
     req._user = decoded
     User.findOne({ username: req._user.username }).exec((error, user) => {
-      if (error) {
+      if (error || !user) {
         console.log('Could not found a token for a valid user')
         return res
           .status(500)

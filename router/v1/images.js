@@ -30,9 +30,8 @@ const storage = multer.diskStorage({
 const upload = multer({ storage })
 const serviceUrl = 'http://localhost:5000'
 
-router.route('/token/generate').post((req, res) => {
-  // const { _id } = req._user
-  const username = 'mariogarcia'
+router.route('/token/generate/:username').post((req, res) => {
+  const { username } = req.params
   User.findOne({ username }).exec((error, user) => {
     if (error || !user) {
       console.log('Failed to get user information', error)

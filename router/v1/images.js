@@ -192,7 +192,7 @@ router.route('/images/index').post(upload.single('image'), (req, res) => {
     const base64data = Buffer.from(data, 'binary')
     return s3.putObject(
       {
-        Bucket: 'visualsearchqbo',
+        Bucket: 'visual-search-qbo',
         Key: req._user.username + '/' + photo.filename,
         Body: base64data,
         ACL: 'public-read'
@@ -279,7 +279,7 @@ router.route('/images/:id').delete((req, res) => {
     // Remove object from S3
     s3.deleteObject(
       {
-        Bucket: 'visualsearchqbo',
+        Bucket: 'visual-search-qbo',
         Key: req._user.username + '/' + id
       },
       error => {

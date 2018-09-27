@@ -165,7 +165,92 @@ router.route('/images/search').post(upload.single('image'), (req, res) => {
   })
 })
 
-router.route('/images/index').post(upload.single('image'), (req, res) => {
+router.route('/images/index/batch').post(upload.single('image'), (req, res) => {
+  const { id, sku } = req.body
+  const photo = req.file
+  if (!id || !sku || !photo)
+    return res.status(400).json({ error: { message: 'Malformed Request' } })
+
+  // Upload image to S3
+  fs.readFile(photo.path, (error, data) => {
+    if (error) {
+      console.error(error)
+      return res.status(500).json({
+        success: false,
+        message: 'Could not read uploaded file'
+      })
+    }
+
+    const base64data = Buffer.from(data, 'binary')
+    const key = req._user.username + '/' + photo.filename
+    return s3.putObject(
+      {
+        Bucket: 'visual-search-qbo',
+        Key: key,
+        Body: base64data,
+        ACL: 'public-read'
+      },
+      error => {
+        if (error) {
+          console.error(error)
+          return res.status(500).json({
+            success: false,
+            message: 'Could not put object to S3 bucket'
+          })
+        }
+
+        // Put the image to the toIndex on User
+        const indexedImage = {
+          name: photo.filename,
+          id,
+          sku,
+          key
+        }
+        return User.findOneAndUpdate(
+          { username: req._user.username },
+          { $push: { toIndex: indexedImage } }
+        ).exec(error => {
+          if (error) {
+            console.error('Could not batch image', error)
+            return res.status(500).json({ error: { message: 'Could not batch image' } })
+          }
+          // Then return response from internal server
+          return res.status(200).json({ success: true, message: 'Batched image' })
+        })
+      }
+    )
+  })
+})
+
+router.route('/images/index/action').post((req, res) => {
+  User.findOne({ username: req._user.username }).exec((error, user) => {
+    if (error) {
+      console.error('Could not get user information', error)
+      return res.status(500).json({ error: { message: 'Could not get user information' } })
+    }
+    user.toIndex.map(image => {
+      const { id, sku, key } = image
+      const indexedImages = []
+      const file = fs.createWriteStream('/static/uploads/temp/' + key)
+
+      // Get Object from S3
+      s3.getObject(
+        {
+          Bucket: 'visual-search-qbo',
+          Key: key
+        },
+        (error, data) => {
+          if (error) console.error('Could not get object from S3', error)
+          console.log(data.Body.toString())
+        }
+      )
+        .createReadStream()
+        .pipe(file)
+    })
+  })
+})
+
+router.route('/images/index').post((req, res) => {
   const { id, sku } = req.body
   const indexedImages = []
   const photo = req.file

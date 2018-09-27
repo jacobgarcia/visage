@@ -16,8 +16,10 @@ const Rate = new Schema({
 const IndexedImage = new Schema({
   url: String,
   name: String,
-  category: String,
-  tags: [String]
+  id: Number,
+  sku: Number,
+  key: String,
+  timestamp: { type: Number, default: Date.now }
 })
 
 const schema = new Schema({
@@ -41,6 +43,10 @@ const schema = new Schema({
   photo: String,
   indexings: {
     type: [{ type: Schema.Types.ObjectId, ref: 'Indexing' }],
+    default: []
+  },
+  toIndex: {
+    type: [IndexedImage],
     default: []
   },
   searches: {

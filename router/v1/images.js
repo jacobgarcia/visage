@@ -231,7 +231,9 @@ router.route('/images/index/action').post((req, res) => {
     user.toIndex.map(image => {
       const { id, sku, key } = image
       const indexedImages = []
-      const file = fs.createWriteStream('/static/uploads/temp/' + key)
+      const file = fs.createWriteStream(
+        process.env.PWD + '/static/uploads/temp/' + key.substr(key.lastIndexOf('/') + 1)
+      )
 
       // Get Object from S3
       s3.getObject(

@@ -622,8 +622,7 @@ router.route('/users/:username').delete((req, res) => {
       console.error('Could not delete user')
       return res.status(500).json({ error: { message: 'Could not delete user' } })
     }
-    if (!user) return res.status(404).json({ success: false, message: 'User not found' })
-    return res.status(200).json({ success: true, message: 'Successfully deleted user', user })
+    return res.status(200).json({ success: true, message: 'Successfully deleted user' })
   })
 })
 
@@ -672,4 +671,49 @@ router.route('/admins').get((req, res) => {
       return res.status(200).json({ admins })
     })
 })
+
+// Edit admin
+router.route('/admins/:adminname').put((req, res) => {
+  const { name, surname, username, email } = req.body
+  const { adminname } = req.params
+  if (!name || !surname || !username || !email)
+    return res.status(400).json({ error: { message: 'Malformed request' } })
+  Admin.findOneAndUpdate(
+    { username: adminname },
+    { $set: { name, surname, username, email } }
+  ).exec((error, admin) => {
+    if (error) {
+      console.error('Could not update admin information')
+      return res.status(500).json({ error: { message: 'Could not update admin information' } })
+    }
+    if (!admin)
+      return res.status(404).json({ success: false, message: 'Admin specified not found' })
+    return res
+      .status(200)
+      .json({ success: true, message: 'Successfully updated admin information', admin })
+  })
+})
+
+router.route('/admins/:username').delete((req, res) => {
+  const { username } = req.params
+  Admin.findOneAndDelete({ username }).exec((error, admin) => {
+    if (error) {
+      console.error('Could not delete admin')
+      return res.status(500).json({ error: { message: 'Could not delete admin' } })
+    }
+    return res.status(200).json({ success: true, message: 'Successfully deleted admin' })
+  })
+})
+
+router.route('/admins/:username/deactivate').patch((req, res) => {
+  const { username } = req.params
+  Admin.findOneAndUpdate({ username }, { $set: { active: false } }).exec((error, admin) => {
+    if (error) {
+      console.error('Could not deactivate admin')
+      return res.status(500).json({ error: { message: 'Could not deactivate admin' } })
+    }
+    return res.status(200).json({ success: true, message: 'Successfully deactivated admin', admin })
+  })
+})
+
 module.exports = router

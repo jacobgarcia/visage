@@ -10,7 +10,8 @@ const schema = new Schema({
   company: String,
   password: String,
   services: [String],
-  superAdmin: Boolean
+  superAdmin: Boolean,
+  active: Boolean
 })
 
 schema.virtual('fullname').get(() => {

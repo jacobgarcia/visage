@@ -18,6 +18,7 @@ const config = require(path.resolve('config'))
 const User = require(path.resolve('models/User'))
 const Indexing = require(path.resolve('models/Indexing'))
 const Searching = require(path.resolve('models/Searching'))
+const Admin = require(path.resolve('models/Admin'))
 
 const storage = multer.diskStorage({
   destination: (req, file, callback) => callback(null, 'static/uploads/temp'),
@@ -658,5 +659,17 @@ router.route('/users/export').get((req, res) => {
       return res.status(200).download('static/users.csv')
     })
   })
+})
+
+router.route('/admins').get((req, res) => {
+  Admin.find({})
+    .select('name surname username email superAdmin services')
+    .exec((error, admins) => {
+      if (error) {
+        console.error('Could not get admins', error)
+        return res.status(500).json({ error: { message: 'Could not get admins' } })
+      }
+      return res.status(200).json({ admins })
+    })
 })
 module.exports = router

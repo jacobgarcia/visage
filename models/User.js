@@ -31,7 +31,7 @@ const schema = new Schema({
   password: { type: String, required: true },
   searchRates: { type: [Rate], default: [{ min: 1, max: 1000, cost: 1 }] },
   indexRates: { type: [Rate], default: [{ min: 1, max: 1000, cost: 1 }] },
-  indexStatus: String,
+  isIndexing: { type: Boolean, default: false },
   apiKey: {
     value: String,
     active: Boolean

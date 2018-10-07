@@ -11,6 +11,7 @@ const jwt = require('jsonwebtoken')
 const request = require('request')
 const AWS = require('aws-sdk')
 const s3 = new AWS.S3()
+const Json2csvParser = require('json2csv').Parser
 
 const config = require(path.resolve('config'))
 
@@ -29,6 +30,29 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage })
 const serviceUrl = 'http://localhost:5000'
+
+const fields = [
+  {
+    label: 'Username',
+    value: 'username'
+  },
+  {
+    label: 'Name',
+    value: 'name'
+  },
+  {
+    label: 'Surname',
+    value: 'surname'
+  },
+  {
+    label: 'Company',
+    value: 'company'
+  },
+  {
+    label: 'Email',
+    value: 'email'
+  }
+]
 
 router.route('/token/generate/:username').post((req, res) => {
   const { username } = req.params
@@ -96,9 +120,8 @@ router.use((req, res, next) => {
     req._user = decoded
     User.findOne({ username: req._user.username }).exec((error, user) => {
       if (error || !user) {
-        console.log('Could not found a token for a valid user')
         return res
-          .status(500)
+          .status(401)
           .json({ error: { message: 'Could not found a token for a valid user' } })
       }
       if (!user.apiKey.active)
@@ -165,6 +188,7 @@ router.route('/images/search').post(upload.single('image'), (req, res) => {
   })
 })
 
+// This method uploads the image to S3 and adds it to an toIndex array
 router.route('/images/index/batch').post(upload.single('image'), (req, res) => {
   const { id, sku } = req.body
   const photo = req.file
@@ -222,20 +246,30 @@ router.route('/images/index/batch').post(upload.single('image'), (req, res) => {
   })
 })
 
-router.route('/images/index/action').post((req, res) => {
-  User.findOne({ username: req._user.username }).exec((error, user) => {
+// Index images getting objects from S3
+router.route('/images/index/action/:username').post((req, res) => {
+  // Specific username to index right now images
+  const { username } = req.params
+  const count = 0
+  User.findOneAndUpdate({ username }, { $set: { isIndexing: true } }).exec((error, user) => {
     if (error) {
       console.error('Could not get user information', error)
       return res.status(500).json({ error: { message: 'Could not get user information' } })
     }
+    if (!user) return res.status(404).json({ error: { message: 'User has not been found' } })
+    if (user.toIndex.length === 0)
+      return res.status(200).json({ success: false, message: 'Nothing to index' })
+    // Iterate over the batch of images
     user.toIndex.map(image => {
       const { id, sku, key } = image
       const indexedImages = []
+      indexedImages.push(image)
+      // Create temp file from s3
       const file = fs.createWriteStream(
         process.env.PWD + '/static/uploads/temp/' + key.substr(key.lastIndexOf('/') + 1)
       )
 
-      // Get Object from S3
+      // Get Object from S3 and pipe the output to the temp file
       s3.getObject(
         {
           Bucket: 'visual-search-qbo',
@@ -248,10 +282,78 @@ router.route('/images/index/action').post((req, res) => {
       )
         .createReadStream()
         .pipe(file)
+
+      // Create formData object to send to the service
+      const formData = {
+        id,
+        sku,
+        image: {
+          value: fs.createReadStream(
+            process.env.PWD + '/static/uploads/temp/' + key.substr(key.lastIndexOf('/') + 1)
+          ),
+          options: {
+            filename: image.filename
+          }
+        }
+      }
+
+      // Call internal Flask service to process petition
+      request.post({ url: serviceUrl + '/v1/images/index', formData }, (error, resp) => {
+        if (error) {
+          console.error('Could not index image', error)
+          return
+        }
+        if (resp.statusCode === 200) count += 1
+        // Build response object
+        const response = {
+          success: JSON.parse(resp.body).success,
+          status: resp.statusCode,
+          features: JSON.parse(resp.body).features
+        }
+
+        // After getting response from internal server service, create a new Indexing Object
+        // First create the request custom Object
+        const request = {
+          route: req.route,
+          files: req.files,
+          token: req._token,
+          headers: req.headers
+        }
+
+        // Create new Searching object
+        return new Indexing({
+          response,
+          request,
+          user
+        }).save((error, indexing) => {
+          if (error) {
+            console.log('Could not create indexing object', error)
+            return
+          }
+          // Add Indexing object to User and move toIndex object to IndexedImages
+          // Remove item form the toIndex batch
+          User.findOneAndUpdate(
+            { username },
+            { $push: { indexings: indexing._id, indexedImages }, $pull: { toIndex: image } }
+          ).exec(error => {
+            if (error) {
+              console.error('Could not update user information')
+            }
+          })
+        })
+      })
+      User.findOneAndUpdate({ username }, { $set: { isIndexing: false } }).exec((error, user) => {
+        if (error) {
+          console.error('Could not update user information')
+          return res.status(500).json({ error: { message: 'Could not update user information' } })
+        }
+        return res.status(200).json({ success: true, count, user })
+      })
     })
   })
 })
 
+// Old method. This will be deprecated with a batch process
 router.route('/images/index').post((req, res) => {
   const { id, sku } = req.body
   const indexedImages = []
@@ -350,6 +452,7 @@ router.route('/images/index').post((req, res) => {
   })
 })
 
+// Delete image from the indexed images
 router.route('/images/:id').delete((req, res) => {
   const { id } = req.params
 
@@ -397,7 +500,8 @@ router.route('/images/:id').delete((req, res) => {
   })
 })
 
-//ENDPOINTS FOR ADMIN PANEL
+/***** ENDPOINTS FOR ADMIN PANEL ******/
+// Statistics endpoint for dashboard
 router.route('/stats/petitions').get((req, res) => {
   Indexing.find({})
     .select('id')
@@ -424,6 +528,7 @@ router.route('/stats/petitions').get((req, res) => {
 })
 
 // TODO: Add hasAccess flag
+// Statistics endpoint for dashboard
 router.route('/stats/users/billing').get((req, res) => {
   // Find all users
   User.find({})
@@ -474,9 +579,10 @@ router.route('/stats/users/billing').get((req, res) => {
     })
 })
 
+// Get all users information
 router.route('/users').get((req, res) => {
   User.find({})
-    .select('username fullname company email indexStatus')
+    .select('username name surname company email isIndexing')
     .exec((error, users) => {
       if (error) {
         console.log('Could not fetch users', error)
@@ -487,4 +593,70 @@ router.route('/users').get((req, res) => {
     })
 })
 
+// Edit user
+router.route('/users/:user').put((req, res) => {
+  const { name, surname, company, username, email } = req.body
+  const { user } = req.params
+  if (!name || !surname || !company || !username || !email)
+    return res.status(400).json({ error: { message: 'Malformed request' } })
+  User.findOneAndUpdate(
+    { username: user },
+    { $set: { name, surname, company, username, email } }
+  ).exec((error, user) => {
+    if (error) {
+      console.error('Could not update user information')
+      return res.status(500).json({ error: { message: 'Could not update user information' } })
+    }
+    if (!user) return res.status(404).json({ success: false, message: 'User specified not found' })
+    return res
+      .status(200)
+      .json({ success: true, message: 'Successfully updated user information', user })
+  })
+})
+
+router.route('/users/:username').delete((req, res) => {
+  const { username } = req.params
+  User.findOneAndDelete({ username }).exec((error, user) => {
+    if (error) {
+      console.error('Could not delete user')
+      return res.status(500).json({ error: { message: 'Could not delete user' } })
+    }
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' })
+    return res.status(200).json({ success: true, message: 'Successfully deleted user', user })
+  })
+})
+
+router.route('/users/:username/deactivate').patch((req, res) => {
+  const { username } = req.params
+  User.findOneAndUpdate({ username }, { $set: { active: false } }).exec((error, user) => {
+    if (error) {
+      console.error('Could not deactivate user')
+      return res.status(500).json({ error: { message: 'Could not deactivate user' } })
+    }
+    return res.status(200).json({ success: true, message: 'Successfully deactivated user', user })
+  })
+})
+
+// Export all users to CSV
+router.route('/users/export').get((req, res) => {
+  const company = req._user.cmp
+  const alarms = []
+
+  User.find({}).exec((error, users) => {
+    if (error) {
+      console.error('Could not export users', error)
+      return res.status(500).json({ error: { message: 'Could not export users' } })
+    }
+
+    const json2csvParser = new Json2csvParser({ fields })
+    const csv = json2csvParser.parse(users)
+    return fs.writeFile('static/users.csv', csv, error => {
+      if (error) {
+        winston.error({ error })
+        return res.status(500).json({ error })
+      }
+      return res.status(200).download('static/users.csv')
+    })
+  })
+})
 module.exports = router

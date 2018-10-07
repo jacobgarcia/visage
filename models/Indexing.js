@@ -7,7 +7,6 @@ const schema = new Schema({
   response: {
     success: Boolean,
     status: Number,
-    count: Number,
     features: Number
   },
   request: {

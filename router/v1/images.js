@@ -55,6 +55,29 @@ const fields = [
   }
 ]
 
+const adminFields = [
+  {
+    label: 'Username',
+    value: 'username'
+  },
+  {
+    label: 'Name',
+    value: 'name'
+  },
+  {
+    label: 'Surname',
+    value: 'surname'
+  },
+  {
+    label: 'Company',
+    value: 'company'
+  },
+  {
+    label: 'Email',
+    value: 'email'
+  }
+]
+
 router.route('/token/generate/:username').post((req, res) => {
   const { username } = req.params
   User.findOne({ username }).exec((error, user) => {

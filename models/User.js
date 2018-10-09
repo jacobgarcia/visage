@@ -10,7 +10,7 @@ const { ItemSchema } = require(path.resolve('models/Item'))
 const Rate = new Schema({
   min: Number,
   max: Number,
-  cost: { type: Number, default: 0 }
+  cost: { type: Number, default: 0 },
 })
 
 const IndexedImage = new Schema({
@@ -19,7 +19,7 @@ const IndexedImage = new Schema({
   id: Number,
   sku: Number,
   key: String,
-  timestamp: { type: Number, default: Date.now }
+  timestamp: { type: Number, default: Date.now },
 })
 
 const schema = new Schema({
@@ -34,27 +34,27 @@ const schema = new Schema({
   isIndexing: { type: Boolean, default: false },
   apiKey: {
     value: String,
-    active: Boolean
+    active: Boolean,
   },
-  active: Boolean,
+  active: { type: Boolean, default: true },
   indexLimit: Number,
   searchLimit: Number,
   aceptanceRate: Number,
   photo: String,
   indexings: {
     type: [{ type: Schema.Types.ObjectId, ref: 'Indexing' }],
-    default: []
+    default: [],
   },
   toIndex: {
     type: [IndexedImage],
-    default: []
+    default: [],
   },
   searches: {
     type: [{ type: Schema.Types.ObjectId, ref: 'Searching' }],
-    default: []
+    default: [],
   },
   items: { type: [ItemSchema], default: [] },
-  indexedImages: { type: [IndexedImage], default: [] }
+  indexedImages: { type: [IndexedImage], default: [] },
 })
 
 schema.virtual('fullname').get(() => {

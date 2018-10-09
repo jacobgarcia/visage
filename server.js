@@ -1,6 +1,6 @@
 /* eslint-env node */
-const express = require('express') // API framework
 const path = require('path') // Native node.js path resolver
+const express = require('express') // API framework
 const helmet = require('helmet') // Basic headers protection
 const hpp = require('hpp') // Protection against parameter pollution
 
@@ -9,10 +9,7 @@ const dotenv = require('dotenv') // Manager for evironment variables
 const mongoose = require('mongoose') // Mongo object modeling
 const bodyParser = require('body-parser') // Parser for incoming requests
 
-const {
-  databaseUri,
-  project: { name }
-} = require(path.resolve('config')) // Configuration variables
+const { databaseUri } = require(path.resolve('config')) // Configuration variables
 
 /* Winston logger object */
 const logger = winston.createLogger({
@@ -20,8 +17,8 @@ const logger = winston.createLogger({
   format: winston.format.json(),
   transports: [
     new winston.transports.Console(),
-    new winston.transports.File({ filename: 'logfile.log' })
-  ]
+    new winston.transports.File({ filename: 'logfile.log' }),
+  ],
 })
 
 const v1 = require(path.resolve('router/v1')) // API router location
@@ -33,7 +30,9 @@ const isProduction = mode === 'production'
 
 /* Environment configuration based on file */
 dotenv.config({
-  path: path.resolve(`config/.env${isProduction ? '.production' : '.development'}`)
+  path: path.resolve(
+    `config/.env${isProduction ? '.production' : '.development'}`
+  ),
 })
 
 /* Connecting to Database */
@@ -42,7 +41,7 @@ mongoose
   .connect(
     databaseUri,
     {
-      useNewUrlParser: true
+      useNewUrlParser: true,
     }
   )
   .then(() => {

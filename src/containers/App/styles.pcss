@@ -1,0 +1,59 @@
+.content {
+  margin-top: 64px;
+  margin-left: 80px;
+  padding: 16px;
+}
+
+#root {
+  .drawer-paper--open,
+  .drawer-paper--closed {
+    padding-top: 64px;
+  }
+  .drawer-paper--open {
+    max-width: 250px;
+    transition: 0.5s;
+    overflow: hidden;
+  }
+  .drawer-paper--closed {
+    max-width: 75px;
+    overflow: hidden;
+    transition: 0.5s;
+  }
+  .save-icon {
+    margin-left: 8px;
+  }
+  .circular-progress-container {
+    margin-right: 45px;
+  }
+  .toolbar-icon {
+    min-height: 64px;
+    display: flex;
+    justify-content: flex-end;
+    padding-right: 12px;
+    align-items: center;
+  }
+  .app-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    z-index: 2000;
+    .toolbar {
+      padding-left: 12px;
+      padding-right: 24px;
+      .toolbar__content {
+        display: flex;
+        flex-grow: 1;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .toolbar__actions {
+      }
+    }
+    .menu-button {
+      margin-right: 30px;
+    }
+  }
+}

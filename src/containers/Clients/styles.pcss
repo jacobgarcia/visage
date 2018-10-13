@@ -1,0 +1,50 @@
+.clients {
+  padding: 16px;
+  .actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .buttons {
+    margin-top: 16px;
+  }
+  .user-row {
+    &.deactive .user-row__body {
+      opacity: 0.4;
+    }
+  }
+}
+
+.modal {
+  z-index: 3000 !important;
+  .card {
+    max-width: 600px;
+    padding: 40px;
+    margin: 0 auto;
+    margin-top: 40px;
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    h4 {
+      margin-top: 16px;
+    }
+    .list {
+      > div {
+        padding: 10px 0;
+        border-bottom: 1px solid gray;
+        display: flex;
+        label {
+          flex-basis: 50%;
+        }
+        &:last-child {
+          border-bottom: none;
+        }
+        &:first-child {
+          border-bottom: 1px solid gray;
+        }
+      }
+    }
+  }
+}

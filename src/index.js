@@ -1,7 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 
-import Routes from 'router'
+import Router from 'router'
 
 import './global.pcss'
 /* eslint-disable */
@@ -13,13 +13,13 @@ if (!devMode && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
       .register('/sw.js')
-      .then(registration => {
+      .then((registration) => {
         registration.onupdatefound = () => {
           const installingWorker = registration.installing
           installingWorker.onstatechange = () => {
             if (installingWorker.state === 'installed') {
               if (navigator.serviceWorker.controller) {
-                console.warn('New content is available; please refresh') // eslint-disable-line no-console
+                console.warn('New content is available; please refresh')
               } else {
                 console.info('Content is cached for offline use', registration)
               }
@@ -27,11 +27,11 @@ if (!devMode && 'serviceWorker' in navigator) {
           }
         }
       })
-      .catch(registrationError => {
+      .catch((registrationError) => {
         console.info('SW registration failed: ', registrationError)
       })
   })
 }
 
 // Main render
-ReactDOM.render(<Routes />, document.getElementById('root'))
+ReactDOM.render(<Router />, document.getElementById('root'))

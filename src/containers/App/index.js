@@ -1,5 +1,5 @@
 import React, { Component, Fragment } from 'react'
-import { Link, Switch, Route } from 'react-router-dom'
+import { NavLink, Link, Switch, Route } from 'react-router-dom'
 import PropTypes from 'prop-types'
 
 import CssBaseline from '@material-ui/core/CssBaseline'
@@ -139,26 +139,27 @@ class App extends Component {
               classes={{
                 paper: `drawer-paper${open ? '--open' : '--closed'}`,
               }}
+              class="drawer"
               open={open}
             >
               <Divider />
-              <Link onClick={this.onLinkClick} to="/">
+              <NavLink onClick={this.onLinkClick} exact to="/">
                 {listItem('Dashboard', DashboardIcon)}
-              </Link>
+              </NavLink>
               <Divider />
-              <Link onClick={this.onLinkClick} to="/clients">
+              <NavLink onClick={this.onLinkClick} to="/clients">
                 {listItem('Clientes', PeopleIcon)}
-              </Link>
-              <Link onClick={this.onLinkClick} to="/admins">
+              </NavLink>
+              <NavLink onClick={this.onLinkClick} to="/admins">
                 {listItem('Administradores', SecurityIcon)}
-              </Link>
-              <Link onClick={this.onLinkClick} to="/tarifs">
+              </NavLink>
+              <NavLink onClick={this.onLinkClick} to="/tarifs">
                 {listItem('Tarifas', AttachMoneyIcon)}
-              </Link>
+              </NavLink>
               <Divider />
-              <Link onClick={this.onLinkClick} to="/login">
+              <NavLink onClick={this.onLinkClick} to="/login">
                 {listItem('Cerrar sesión', ExitIcon)}
-              </Link>
+              </NavLink>
             </Drawer>
             <main className={'content'}>
               <Switch>

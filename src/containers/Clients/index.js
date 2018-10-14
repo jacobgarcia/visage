@@ -72,12 +72,11 @@ class Clients extends Component {
 
   handleClick = (event) => this.setState({ anchorEl: event.currentTarget })
 
-  handlecheckChange = (name) => () => this.setState({ [name]: false })
+  onAction = (action, client) => {
+    console.log({action, client})
+  }
 
-  toggleUserAddModal = (isOpen = null) => () =>
-    this.setState(({ prev }) => ({
-      addUserModalOpen: isOpen !== null ? isOpen : !prev.addUserModalOpen,
-    }))
+
 
   render() {
     const {
@@ -86,164 +85,7 @@ class Clients extends Component {
 
     return (
       <div className="clients">
-        <Modal
-          open={addUserModalOpen}
-          onClose={this.toggleUserAddModal(false)}
-          className="modal"
-        >
-          <Card className="card">
-            <div className="card-header">
-              <h2>Añadir usuario</h2>
-              <Button
-                onClick={this.toggleUserAddModal(false)}
-                variant="outlined"
-              >
-                Cerrar
-              </Button>
-            </div>
-            <div>
-              <div>
-                <TextField
-                  id="standard-name"
-                  label="Nombre"
-                  value={user}
-                  name="user"
-                  onChange={this.onChange}
-                  margin="normal"
-                  variant="outlined"
-                />
-                <TextField
-                  id="standard-name"
-                  label="Email"
-                  value={user}
-                  name="user"
-                  onChange={this.onChange}
-                  margin="normal"
-                  variant="outlined"
-                />
-              </div>
-            </div>
-            <div>
-              <h4>Función</h4>
-              <div className="list">
-                <div>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={admin}
-                        onChange={this.handlecheckChange('admin')}
-                        value="checkedG"
-                        color="primary"
-                      />
-                    }
-                    label="Administrador"
-                  />
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={admin}
-                        onChange={this.handlecheckChange('admin')}
-                        value="checkedG"
-                        color="primary"
-                      />
-                    }
-                    label="Superadministrador"
-                  />
-                </div>
-              </div>
-            </div>
-            <div>
-              <h4>Permisos</h4>
-              <div className="list">
-                <div>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={admin}
-                        onChange={this.handlecheckChange('admin')}
-                        value="checkedG"
-                        color="primary"
-                      />
-                    }
-                    label="Ver dashboard"
-                  />
-                </div>
-                <div>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={admin}
-                        onChange={this.handlecheckChange('admin')}
-                        value="checkedG"
-                        color="primary"
-                      />
-                    }
-                    label="Ver clientes"
-                  />
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={admin}
-                        onChange={this.handlecheckChange('admin')}
-                        value="checkedG"
-                        color="primary"
-                      />
-                    }
-                    label="Crear y editar clientes"
-                  />
-                </div>
-                <div>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={admin}
-                        onChange={this.handlecheckChange('admin')}
-                        value="checkedG"
-                        color="primary"
-                      />
-                    }
-                    label="Ver administradores"
-                  />
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={admin}
-                        onChange={this.handlecheckChange('admin')}
-                        value="checkedG"
-                        color="primary"
-                      />
-                    }
-                    label="Crear y editar administradores"
-                  />
-                </div>
-                <div>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={admin}
-                        onChange={this.handlecheckChange('admin')}
-                        value="checkedG"
-                        color="primary"
-                      />
-                    }
-                    label="Ver tarifas"
-                  />
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={admin}
-                        onChange={this.handlecheckChange('admin')}
-                        value="checkedG"
-                        color="primary"
-                      />
-                    }
-                    label="Crear y editar tarifas"
-                  />
-                </div>
-              </div>
-            </div>
-          </Card>
-        </Modal>
+
         <div className="actions">
           <TextField
             id="standard-name"
@@ -258,7 +100,7 @@ class Clients extends Component {
             <Button
               color="primary"
               className="button"
-              onClick={this.toggleUserAddModal(true)}
+              
             >
               Añadir
             </Button>
@@ -310,8 +152,9 @@ class Clients extends Component {
                     <IconButton>
                       <BlockIcon />
                     </IconButton>
-                    <IconButton />
                     <MoreButton
+                      onAction={(action) => this.onAction(action, item)}
+                      isActive={item.active}
                       anchorEl={anchorEl}
                       handleClick={this.handleClick}
                       handleClose={this.handleClose}

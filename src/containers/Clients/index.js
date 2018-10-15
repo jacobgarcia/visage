@@ -37,6 +37,7 @@ class Clients extends Component {
     addUserModalOpen: false,
     admin: true,
   }
+
   async componentDidMount() {
     this.props.toggle(true)
 
@@ -76,6 +77,26 @@ class Clients extends Component {
     console.log({action, client})
   }
 
+  onAPIKeyAction = async (action, user) =>
+     async () => {
+       try {
+      if (action === 'REVOKE') {
+        console.log('REVOKE')
+        const result = await NetworkOperation.revokeAPIKey(user.username)
+        console.log({result})
+      }
+      if (action === 'RENEW') {
+        console.log('RENEW')
+        const result = await NetworkOperation.renewAPIKey(user.username)
+      }
+      if (action === 'GENERATE') {
+        const result = await NetworkOperation.generateAPIKey(user.username)
+      }} catch(error) {
+        console.warn(error)
+      } finally {
+        console.log('STOP LOADING')
+      }
+    }
 
 
   render() {
@@ -100,7 +121,7 @@ class Clients extends Component {
             <Button
               color="primary"
               className="button"
-              
+
             >
               Añadir
             </Button>
@@ -144,13 +165,13 @@ class Clients extends Component {
                   </TableCell>
                   <TableCell>
                     <IconButton>
-                      <KeyIcon />
+                      <KeyIcon  onClick={this.onAPIKeyAction('GENERATE', item)}  />
                     </IconButton>
                     <IconButton>
-                      <RefreshIcon />
+                      <RefreshIcon onClick={this.onAPIKeyAction('RENEW', item)}  />
                     </IconButton>
                     <IconButton>
-                      <BlockIcon />
+                      <BlockIcon onClick={this.onAPIKeyAction('REVOKE', item)} />
                     </IconButton>
                     <MoreButton
                       onAction={(action) => this.onAction(action, item)}

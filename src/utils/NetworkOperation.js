@@ -26,6 +26,10 @@ class NetworkOperation {
     return axios.get(`${baseUrl}/v1/users`)
   }
 
+  static deactivateUser(username) {
+    return axios.patch(`${baseUrl}/v1/users/${username}/deactivate`)
+  }
+
   /*
   A D M I N S
   */
@@ -40,6 +44,22 @@ class NetworkOperation {
 
   static updateAdmin({ username, ...admin }) {
     return axios.put(`${baseUrl}/v1/admins/${username}`, admin)
+  }
+
+  /*
+  A P I   K E Y S
+  */
+
+  static revokeAPIKey(username) {
+    return axios.post(`${baseUrl}/v1/token/revoke/${username}`)
+  }
+
+  static renewAPIKey(username) {
+    return axios.post(`${baseUrl}/v1/token/renew/${username}`)
+  }
+
+  static generateAPIKey(username) {
+    return axios.post(`${baseUrl}/v1/token/generate/${username}`)
   }
 }
 

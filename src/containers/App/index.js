@@ -139,7 +139,7 @@ class App extends Component {
               classes={{
                 paper: `drawer-paper${open ? '--open' : '--closed'}`,
               }}
-              class="drawer"
+              className="drawer"
               open={open}
             >
               <Divider />

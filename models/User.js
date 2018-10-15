@@ -3,8 +3,6 @@ const path = require('path')
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
-const { IndexingSchema } = require(path.resolve('models/Indexing'))
-const { SearchingSchema } = require(path.resolve('models/Searching'))
 const { ItemSchema } = require(path.resolve('models/Item'))
 
 const Rate = new Schema({

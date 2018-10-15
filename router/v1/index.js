@@ -1,6 +1,6 @@
 /* eslint-env node */
-const express = require('express')
 const path = require('path')
+const express = require('express')
 const router = new express.Router()
 
 router.use(require(path.resolve('router/v1/images')))

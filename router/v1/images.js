@@ -833,8 +833,33 @@ router.route('/rates').get(async (req, res) => {
   }
 })
 
+// Edit in bulk all rates (this is the UX stablished in the mocks)
+router.route('/rates').post(async (req, res) => {
+  const { username } = req._user
+  const { searchRates, indexRates } = req.body
+  if (!searchRates || !indexRates || searchRates.length === 0 || indexRates.length === 0) return res.status(400).json({ error: { message: 'Malformed Request' } })
+  try {
+    // Validate that searchRates and indexRates are well formed
+    if (searchRates[0].min > 0 || indexRates[0].min > 0) return res.status(403).json({ error: { message: 'Cannot insert an search invalid rate' } })
+
+    for (let index = 1; index < searchRates.length; index += 1) {
+      if (searchRates[index].min !== searchRates[index - 1].max + 1) return res.status(403).json({ error: { message: 'Cannot insert an search invalid rate' } })
+    }
+
+    for (let index = 1; index < indexRates.length; index += 1) {
+      if (indexRates[index].min !== indexRates[index - 1].max + 1) return res.status(403).json({ error: { message: 'Cannot insert an search invalid rate' } })
+    }
+
+    await User.findOneAndUpdate({ username }, { $set: { indexRates, searchRates } })
+    return res.status(200).json({ success: true, message: 'Successfully updated rates' })
+  } catch (error) {
+    console.error('Could not update rates', error)
+    return res.status(500).json({ error: { message: 'Could not update rates' } })
+  }
+})
+
 // Add new search rate
-router.route('/rates/search/add').post(async (req, res) => {
+router.route('/rates/search').post(async (req, res) => {
   const { username } = req._user
   const { min, max, cost } = req.body
   const rate = { min: parseInt(min, 10), max: parseInt(max, 10), cost }
@@ -861,7 +886,7 @@ router.route('/rates/search/add').post(async (req, res) => {
 })
 
 // Add new index rate
-router.route('/rates/index/add').post(async (req, res) => {
+router.route('/rates/index').post(async (req, res) => {
   const { username } = req._user
   const { min, max, cost } = req.body
   const rate = { min: parseInt(min, 10), max: parseInt(max, 10), cost }
@@ -884,6 +909,32 @@ router.route('/rates/index/add').post(async (req, res) => {
   } catch (error) {
     console.error('Could not add search rate', error)
     return res.status(500).json({ error: { message: 'Could not add index rate' } })
+  }
+})
+
+// Delete search rate
+router.route('/rates/search/:rateId').delete(async (req, res) => {
+  const { username } = req._user
+  const _id = req.params.rateId
+  try {
+    await User.findOneAndUpdate({ username }, { $pull: { searchRates: { _id } } })
+    return res.status(200).json({ success: true, message: 'Successfully deleted search rate' })
+  } catch (error) {
+    console.error('Could not delete search rate', error)
+    return res.status(500).json({ error: { message: 'Could not delete search rate' } })
+  }
+})
+
+// Delete index rate
+router.route('/rates/index/:rateId').delete(async (req, res) => {
+  const { username } = req._user
+  const _id = req.params.rateId
+  try {
+    await User.findOneAndUpdate({ username }, { $pull: { indexRates: { _id } } })
+    return res.status(200).json({ success: true, message: 'Successfully deleted index rate' })
+  } catch (error) {
+    console.error('Could not delete index rate', error)
+    return res.status(500).json({ error: { message: 'Could not delete index rate' } })
   }
 })
 

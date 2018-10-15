@@ -833,4 +833,18 @@ router.route('/rates').get(async (req, res) => {
   }
 })
 
+router.route('/rates/add').post(async (req, res) => {
+  const { username } = req._user
+  const { min, max, cost } = req.params
+  const rate = { min, max, cost }
+
+  try {
+    await User.findOneAndUpdate({ username }, { $push: { searchRates: rate } })
+    return res.status(200).json({ success: true, message: 'Successfully added search rate' })
+  } catch (error) {
+    console.error('Could not add search rate', error)
+    return res.status(500).json({ error: { message: 'Could not add search rate' } })
+  }
+})
+
 module.exports = router

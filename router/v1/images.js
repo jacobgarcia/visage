@@ -833,17 +833,57 @@ router.route('/rates').get(async (req, res) => {
   }
 })
 
-router.route('/rates/add').post(async (req, res) => {
+// Add new search rate
+router.route('/rates/search/add').post(async (req, res) => {
   const { username } = req._user
-  const { min, max, cost } = req.params
-  const rate = { min, max, cost }
-
+  const { min, max, cost } = req.body
+  const rate = { min: parseInt(min, 10), max: parseInt(max, 10), cost }
+  if (!min || !max || !cost || rate.min > rate.max) return res.status(400).json({ error: { message: 'Malformed request' } })
   try {
-    await User.findOneAndUpdate({ username }, { $push: { searchRates: rate } })
-    return res.status(200).json({ success: true, message: 'Successfully added search rate' })
+    const { searchRates } = await User.findOne({ username }).select('searchRates')
+    // If min is less than then
+    searchRates.sort(($0, $1) => {
+      return $0.min - $1.min
+    })
+    // Valid case for insert only
+    if (
+      (rate.min < searchRates[0].min && rate.max < searchRates[0].min) ||
+      rate.min === searchRates[searchRates.length - 1].max + 1
+    ) {
+      await User.findOneAndUpdate({ username }, { $push: { searchRates: rate } })
+      return res.status(200).json({ success: true, message: 'Successfully added search rate' })
+    }
+    return res.status(403).json({ error: { message: 'Cannot insert an search invalid rate' } })
   } catch (error) {
     console.error('Could not add search rate', error)
     return res.status(500).json({ error: { message: 'Could not add search rate' } })
+  }
+})
+
+// Add new index rate
+router.route('/rates/index/add').post(async (req, res) => {
+  const { username } = req._user
+  const { min, max, cost } = req.body
+  const rate = { min: parseInt(min, 10), max: parseInt(max, 10), cost }
+  if (!min || !max || !cost || rate.min > rate.max) return res.status(400).json({ error: { message: 'Malformed request' } })
+  try {
+    const { indexRates } = await User.findOne({ username }).select('indexRates')
+    // If min is less than then
+    indexRates.sort(($0, $1) => {
+      return $0.min - $1.min
+    })
+    // Valid case for insert only
+    if (
+      (rate.min < indexRates[0].min && rate.max < indexRates[0].min) ||
+      rate.min === indexRates[indexRates.length - 1].max + 1
+    ) {
+      await User.findOneAndUpdate({ username }, { $push: { indexRates: rate } })
+      return res.status(200).json({ success: true, message: 'Successfully added index rate' })
+    }
+    return res.status(403).json({ error: { message: 'Cannot insert an invalid index rate' } })
+  } catch (error) {
+    console.error('Could not add search rate', error)
+    return res.status(500).json({ error: { message: 'Could not add index rate' } })
   }
 })
 

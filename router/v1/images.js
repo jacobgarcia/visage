@@ -840,10 +840,10 @@ router.route('/rates').post(async (req, res) => {
   if (!searchRates || !indexRates || searchRates.length === 0 || indexRates.length === 0) return res.status(400).json({ error: { message: 'Malformed Request' } })
   try {
     // Validate that searchRates and indexRates are well formed
-    if (searchRates[0].min > 0 || indexRates[0].min > 0) return res.status(403).json({ error: { message: 'Cannot insert an search invalid rate' } })
+    if (searchRates[0].min > 0 || indexRates[0].min > 0) return res.status(403).json({ error: { message: 'Cannot insert a search invalid rate' } })
 
     for (let index = 1; index < searchRates.length; index += 1) {
-      if (searchRates[index].min !== searchRates[index - 1].max + 1) return res.status(403).json({ error: { message: 'Cannot insert an search invalid rate' } })
+      if (searchRates[index].min !== searchRates[index - 1].max + 1) return res.status(403).json({ error: { message: 'Cannot insert a search invalid rate' } })
     }
 
     for (let index = 1; index < indexRates.length; index += 1) {

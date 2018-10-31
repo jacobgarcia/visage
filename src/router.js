@@ -10,7 +10,8 @@ import NotFound from 'containers/NotFound'
 const theme = createMuiTheme({
   palette: {
     primary: { main: '#333333' }, // Purple and green play nicely together.
-    secondary: { main: '#90A9D1' }, // This is just green.A700 as hex.
+    secondary: { main: '#5BC3D7' }, // This is just green.A700 as hex.
+    action: { main: '#fff' },
   },
 })
 

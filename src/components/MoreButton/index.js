@@ -6,20 +6,10 @@ import IconButton from '@material-ui/core/IconButton'
 import PropTypes from 'prop-types'
 
 function MoreButton(props) {
-  console.log(props)
-  function action(action) {
-    return () => {
-      console.log('CLICK', { DATA: props.data })
-      props.handleClose()
-      props.onAction(action, props.data)
-    }
-  }
-
   const { anchorEl, isActive } = props
 
   return (
     <div style={{ display: 'inline-block' }}>
-      {JSON.stringify(props.data)}
       <IconButton
         aria-owns={anchorEl ? 'simple-menu' : null}
         aria-haspopup="true"
@@ -33,11 +23,11 @@ function MoreButton(props) {
         open={Boolean(anchorEl)}
         onClose={props.handleClose}
       >
-        <MenuItem onClick={action('EDIT')}>Editar</MenuItem>
-        <MenuItem onClick={action('DELETE')}>Eliminar</MenuItem>
-        <MenuItem onClick={action(isActive ? 'DEACTIVATE' : 'ACTIVATE')}>
-          {isActive ? 'Desactivar' : 'Activar'}
+        <MenuItem onClick={props.handleClose}>Editar</MenuItem>
+        <MenuItem onClick={props.handleClose}>
+          {isActive ? 'Desactivar' : 'Reactivar'}
         </MenuItem>
+        <MenuItem onClick={props.handleClose}>Eliminar</MenuItem>
       </Menu>
     </div>
   )
@@ -45,7 +35,11 @@ function MoreButton(props) {
 
 MoreButton.propTypes = {
   anchorEl: PropTypes.object,
-  onAction: PropTypes.function,
+  isActive: PropTypes.bool,
+}
+
+MoreButton.defaultProps = {
+  isActive: false,
 }
 
 export default MoreButton

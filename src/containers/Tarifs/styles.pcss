@@ -1,11 +1,30 @@
 .tarifs {
   padding: 16px;
+  display: flex;
+  flex-direction: row;
+  .card {
+    margin-bottom: 24px;
+    &:first-child {
+      margin-right: 16px;
+    }
+    &:last-child {
+      margin-left: 16px;
+    }
+  }
   .text-field {
     flex-basis: 300px;
+  }
+  .cost {
+    margin-left: 16px;
   }
   .row {
     display: flex;
     justify-content: space-between;
+    padding: 8px 16px;
+    border-bottom: 1px solid #b3b3b3;
+    &:last-child {
+      border-bottom: none;
+    }
     > div {
       display: flex;
       align-items: center;
@@ -21,6 +40,8 @@
     justify-content: space-between;
     margin-top: 8px;
     margin-bottom: 4px;
+    padding: 8px 16px;
+    border-bottom: 1px solid #b3b3b3;
   }
   .image-indexing {
     border-top: 1px solid gray;
@@ -31,5 +52,11 @@
     font-weight: 300;
     color: gray;
     font-size: 1.3rem;
+  }
+}
+
+@media (max-width: 1200px) {
+  .tarifs {
+    flex-direction: column;
   }
 }

@@ -34,7 +34,8 @@ class Dashboard extends Component {
           <Button>Filtrar</Button>
         </div>
         <div className="card-container">
-          <Card>
+          <Card className="card">
+            <h4>Total de peticiones e imágenes indexadas</h4>
             <AreaChart
               width={600}
               height={400}
@@ -53,7 +54,8 @@ class Dashboard extends Component {
               />
             </AreaChart>
           </Card>
-          <Card>
+          <Card className="card">
+            <h4>Consumo de datos por usuario</h4>
             <AreaChart
               width={600}
               height={400}
@@ -72,7 +74,8 @@ class Dashboard extends Component {
               />
             </AreaChart>
           </Card>
-          <Card>
+          <Card className="card">
+            <h4>Clientes con mayor facturación</h4>
             <AreaChart
               width={600}
               height={400}
@@ -91,7 +94,8 @@ class Dashboard extends Component {
               />
             </AreaChart>
           </Card>
-          <Card>
+          <Card className="card">
+            <h4>Resumen de facturación</h4>
             <AreaChart
               width={600}
               height={400}

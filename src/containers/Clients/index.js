@@ -8,6 +8,7 @@ import Button from '@material-ui/core/Button'
 import TextField from '@material-ui/core/TextField'
 import IconButton from '@material-ui/core/IconButton'
 import Modal from '@material-ui/core/Modal'
+import CircularProgress from '@material-ui/core/CircularProgress'
 import Card from '@material-ui/core/Card'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
 import Checkbox from '@material-ui/core/Checkbox'
@@ -17,6 +18,7 @@ import RefreshIcon from '@material-ui/icons/Refresh'
 import KeyIcon from '@material-ui/icons/VpnKey'
 import PropTypes from 'prop-types'
 
+import ClientRow from 'components/ClientRow'
 import MoreButton from 'components/MoreButton'
 import NetworkOperation from 'utils/NetworkOperation'
 import { withSaver } from 'utils/portals'
@@ -37,7 +39,6 @@ class Clients extends Component {
     addUserModalOpen: false,
     admin: true,
   }
-
   async componentDidMount() {
     this.props.toggle(true)
 
@@ -73,31 +74,12 @@ class Clients extends Component {
 
   handleClick = (event) => this.setState({ anchorEl: event.currentTarget })
 
-  onAction = (action, client) => {
-    console.log({action, client})
-  }
+  handlecheckChange = (name) => () => this.setState({ [name]: false })
 
-  onAPIKeyAction = async (action, user) =>
-     async () => {
-       try {
-      if (action === 'REVOKE') {
-        console.log('REVOKE')
-        const result = await NetworkOperation.revokeAPIKey(user.username)
-        console.log({result})
-      }
-      if (action === 'RENEW') {
-        console.log('RENEW')
-        const result = await NetworkOperation.renewAPIKey(user.username)
-      }
-      if (action === 'GENERATE') {
-        const result = await NetworkOperation.generateAPIKey(user.username)
-      }} catch(error) {
-        console.warn(error)
-      } finally {
-        console.log('STOP LOADING')
-      }
-    }
-
+  toggleUserAddModal = (isOpen = null) => () =>
+    this.setState(({ prev }) => ({
+      addUserModalOpen: isOpen !== null ? isOpen : !prev.addUserModalOpen,
+    }))
 
   render() {
     const {
@@ -106,7 +88,164 @@ class Clients extends Component {
 
     return (
       <div className="clients">
-
+        <Modal
+          open={addUserModalOpen}
+          onClose={this.toggleUserAddModal(false)}
+          className="modal"
+        >
+          <Card className="card">
+            <div className="card-header">
+              <h2>Añadir usuario</h2>
+              <Button
+                onClick={this.toggleUserAddModal(false)}
+                variant="outlined"
+              >
+                Cerrar
+              </Button>
+            </div>
+            <div>
+              <div>
+                <TextField
+                  id="standard-name"
+                  label="Nombre"
+                  value={user}
+                  name="user"
+                  onChange={this.onChange}
+                  margin="normal"
+                  variant="outlined"
+                />
+                <TextField
+                  id="standard-name"
+                  label="Email"
+                  value={user}
+                  name="user"
+                  onChange={this.onChange}
+                  margin="normal"
+                  variant="outlined"
+                />
+              </div>
+            </div>
+            <div>
+              <h4>Función</h4>
+              <div className="list">
+                <div>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={admin}
+                        onChange={this.handlecheckChange('admin')}
+                        value="checkedG"
+                        color="primary"
+                      />
+                    }
+                    label="Administrador"
+                  />
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={admin}
+                        onChange={this.handlecheckChange('admin')}
+                        value="checkedG"
+                        color="primary"
+                      />
+                    }
+                    label="Superadministrador"
+                  />
+                </div>
+              </div>
+            </div>
+            <div>
+              <h4>Permisos</h4>
+              <div className="list">
+                <div>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={admin}
+                        onChange={this.handlecheckChange('admin')}
+                        value="checkedG"
+                        color="primary"
+                      />
+                    }
+                    label="Ver dashboard"
+                  />
+                </div>
+                <div>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={admin}
+                        onChange={this.handlecheckChange('admin')}
+                        value="checkedG"
+                        color="primary"
+                      />
+                    }
+                    label="Ver clientes"
+                  />
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={admin}
+                        onChange={this.handlecheckChange('admin')}
+                        value="checkedG"
+                        color="primary"
+                      />
+                    }
+                    label="Crear y editar clientes"
+                  />
+                </div>
+                <div>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={admin}
+                        onChange={this.handlecheckChange('admin')}
+                        value="checkedG"
+                        color="primary"
+                      />
+                    }
+                    label="Ver administradores"
+                  />
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={admin}
+                        onChange={this.handlecheckChange('admin')}
+                        value="checkedG"
+                        color="primary"
+                      />
+                    }
+                    label="Crear y editar administradores"
+                  />
+                </div>
+                <div>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={admin}
+                        onChange={this.handlecheckChange('admin')}
+                        value="checkedG"
+                        color="primary"
+                      />
+                    }
+                    label="Ver tarifas"
+                  />
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={admin}
+                        onChange={this.handlecheckChange('admin')}
+                        value="checkedG"
+                        color="primary"
+                      />
+                    }
+                    label="Crear y editar tarifas"
+                  />
+                </div>
+              </div>
+            </div>
+          </Card>
+        </Modal>
         <div className="actions">
           <TextField
             id="standard-name"
@@ -115,77 +254,36 @@ class Clients extends Component {
             value={search}
             onChange={() => {}}
             margin="normal"
-            variant="outlined"
           />
           <div className="buttons">
             <Button
               color="primary"
               className="button"
-
+              onClick={this.toggleUserAddModal(true)}
             >
-              Añadir
+              Nuevo cliente
             </Button>
-            <Button color="primary" className="button">
+            <Button color="secondary" className="button" variant="contained">
               Exportar
             </Button>
           </div>
         </div>
-        <Table className="table">
-          <TableHead>
-            <TableRow>
-              <TableCell>Nombre</TableCell>
-              <TableCell>Empresa</TableCell>
-              <TableCell>Mail</TableCell>
-              <TableCell>Indexación</TableCell>
-              <TableCell>API Keys</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {rows.map((item) => {
-              return (
-                <TableRow
-                  key={item._id}
-                  className={`user-row ${item.active ? 'active' : 'deactive'}`}
-                >
-                  <TableCell
-                    component="th"
-                    scope="item"
-                    className="user-row__body"
-                  >
-                    {item.name} {item.surname}
-                  </TableCell>
-                  <TableCell className="user-row__body">
-                    {item.company}
-                  </TableCell>
-                  <TableCell className="user-row__body">{item.email}</TableCell>
-                  <TableCell>
-                    <Button variant="outlined" disabled={!item.isIndexing}>
-                      {item.isIndexing ? 'INDEXANDO' : 'INDEXADO'}
-                    </Button>
-                  </TableCell>
-                  <TableCell>
-                    <IconButton>
-                      <KeyIcon  onClick={this.onAPIKeyAction('GENERATE', item)}  />
-                    </IconButton>
-                    <IconButton>
-                      <RefreshIcon onClick={this.onAPIKeyAction('RENEW', item)}  />
-                    </IconButton>
-                    <IconButton>
-                      <BlockIcon onClick={this.onAPIKeyAction('REVOKE', item)} />
-                    </IconButton>
-                    <MoreButton
-                      onAction={(action) => this.onAction(action, item)}
-                      isActive={item.active}
-                      anchorEl={anchorEl}
-                      handleClick={this.handleClick}
-                      handleClose={this.handleClose}
-                    />
-                  </TableCell>
-                </TableRow>
-              )
-            })}
-          </TableBody>
-        </Table>
+        <Card>
+          <Table className="table">
+            <TableHead>
+              <TableRow>
+                <TableCell>Nombre</TableCell>
+                <TableCell>Empresa</TableCell>
+                <TableCell>Mail</TableCell>
+                <TableCell>Indexación</TableCell>
+                <TableCell>API Keys</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {rows.map((item) => <ClientRow {...item} key={item._id} />)}
+            </TableBody>
+          </Table>
+        </Card>
       </div>
     )
   }

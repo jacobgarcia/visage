@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
 import Button from '@material-ui/core/Button'
 import TextField from '@material-ui/core/TextField'
+import Card from '@material-ui/core/Card'
 import IconButton from '@material-ui/core/IconButton'
 import InputAdornment from '@material-ui/core/InputAdornment'
 import DeleteIcon from '@material-ui/icons/Delete'
@@ -61,18 +62,18 @@ class Tarifs extends Component {
 
     return (
       <div className="tarifs">
-        <div>
+        <Card className="card">
           <div className="actions-container">
             <h3>Consultas</h3>
             <Button
               onClick={() => this.onAddItem('consults')}
               color="primary"
               className="button"
-              variant="outlined"
             >
-              Añadir
+              Nueva tarifa
             </Button>
           </div>
+
           {consults.map((_, index) => {
             return (
               <div className="row" key={index}>
@@ -101,7 +102,7 @@ class Tarifs extends Component {
                   <TextField
                     id="standard-name"
                     label="Costo"
-                    className="text-field"
+                    className="text-field cost"
                     value={''}
                     onChange={() => {}}
                     margin="normal"
@@ -124,20 +125,18 @@ class Tarifs extends Component {
               </div>
             )
           })}
-        </div>
-        <div className="image-indexing">
+        </Card>
+        <Card className="card">
           <div className="actions-container">
             <h3>Indexación de imágenes</h3>
             <Button
               onClick={() => this.onAddItem('imageIndexing')}
               color="primary"
               className="button"
-              variant="outlined"
             >
-              Añadir
+              Nueva tarifa
             </Button>
           </div>
-
           {imageIndexing.map((_, index) => {
             return (
               <div className="row" key={index}>
@@ -166,7 +165,7 @@ class Tarifs extends Component {
                   <TextField
                     id="standard-name"
                     label="Costo"
-                    className="text-field"
+                    className="text-field cost"
                     value={''}
                     onChange={() => {}}
                     margin="normal"
@@ -189,7 +188,7 @@ class Tarifs extends Component {
               </div>
             )
           })}
-        </div>
+        </Card>
       </div>
     )
   }

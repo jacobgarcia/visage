@@ -1,5 +1,5 @@
 import React, { Component, Fragment } from 'react'
-import { NavLink, Link, Switch, Route } from 'react-router-dom'
+import { NavLink, Switch, Route } from 'react-router-dom'
 import PropTypes from 'prop-types'
 
 import CssBaseline from '@material-ui/core/CssBaseline'
@@ -36,7 +36,7 @@ function listItem(text, Component) {
   return (
     <ListItem button>
       <ListItemIcon>
-        <Component />
+        <Component color="secondary" />
       </ListItemIcon>
       <ListItemText primary={text} />
     </ListItem>
@@ -96,16 +96,8 @@ class App extends Component {
           <div className="root">
             <AppBar position="absolute" className="app-bar">
               <Toolbar className="toolbar">
-                <IconButton
-                  color="inherit"
-                  aria-label="Open drawer"
-                  onClick={this.onDrawerToggle}
-                  className="menu-button"
-                >
-                  <MenuIcon />
-                </IconButton>
                 <div className="toolbar__content">
-                  <Typography variant="title" color="inherit" noWrap>
+                  <Typography variant="subtitle" color="inherit" noWrap>
                     {title}
                   </Typography>
 
@@ -121,7 +113,8 @@ class App extends Component {
                         </div>
                       ) : (
                         <Button
-                          color="inherit"
+                          variant="contained"
+                          color="secondary"
                           onClick={this.onSaveClicked}
                           size="small"
                         >
@@ -135,18 +128,18 @@ class App extends Component {
             </AppBar>
 
             <Drawer
-              variant="permanent"
-              classes={{
-                paper: `drawer-paper${open ? '--open' : '--closed'}`,
-              }}
               className="drawer"
-              open={open}
+              variant="permanent"
+              // classes={{
+              //   paper: `drawer-paper${open ? '--open' : '--closed'}`,
+              // }}
+              anchor="left"
             >
-              <Divider />
+              {/* <Divider /> */}
               <NavLink onClick={this.onLinkClick} exact to="/">
                 {listItem('Dashboard', DashboardIcon)}
               </NavLink>
-              <Divider />
+              {/* <Divider /> */}
               <NavLink onClick={this.onLinkClick} to="/clients">
                 {listItem('Clientes', PeopleIcon)}
               </NavLink>
@@ -156,8 +149,8 @@ class App extends Component {
               <NavLink onClick={this.onLinkClick} to="/tarifs">
                 {listItem('Tarifas', AttachMoneyIcon)}
               </NavLink>
-              <Divider />
-              <NavLink onClick={this.onLinkClick} to="/login">
+              {/* <Divider /> */}
+              <NavLink onClick={this.onLinkClick} to="/login" className="login">
                 {listItem('Cerrar sesión', ExitIcon)}
               </NavLink>
             </Drawer>

@@ -6,15 +6,12 @@ import TableHead from '@material-ui/core/TableHead'
 import TableRow from '@material-ui/core/TableRow'
 import Button from '@material-ui/core/Button'
 import TextField from '@material-ui/core/TextField'
-// import MoreVertIcon from '@material-ui/icons/MoreVert'
-// import IconButton from '@material-ui/core/IconButton'
-// import BlockIcon from '@material-ui/icons/Block'
-// import RefreshIcon from '@material-ui/icons/Refresh'
+import Card from '@material-ui/core/Card'
+import MoreVertIcon from '@material-ui/icons/MoreVert'
+import IconButton from '@material-ui/core/IconButton'
+
 import PropTypes from 'prop-types'
 
-import MoreButton from 'components/MoreButton'
-
-import AddAdminModal from 'components/AddAdminModal'
 import NetworkOperation from 'utils/NetworkOperation'
 import { withSaver } from '../../utils/portals'
 
@@ -30,9 +27,6 @@ class Admins extends Component {
   state = {
     search: '',
     rows: [],
-    addUserModalOpen: false,
-    anchorEl: null,
-    selectedAdmin: null,
   }
 
   async componentDidMount() {
@@ -41,6 +35,7 @@ class Admins extends Component {
     try {
       const response = await NetworkOperation.getAdmins()
       const admins = response.data.admins || []
+      console.log({ admins })
       this.setState({ rows: admins })
     } catch (error) {
       console.error(error)
@@ -57,44 +52,19 @@ class Admins extends Component {
     this.props.stopSaving(null)
   }
 
-  handleClose = () => this.setState({ anchorEl: null })
-  handleClick = (event) => this.setState({ anchorEl: event.currentTarget })
-
-  onSave = () => {
+  onSave() {
     setTimeout(() => {
       this.props.stopSaving(true)
     }, 2000)
   }
 
-  toggleUserAddModal = (isOpen = null) => () => {
-    this.setState(
-      ({ prev }) => ({
-        addUserModalOpen: isOpen !== null ? isOpen : !prev.addUserModalOpen,
-      }),
-      () =>
-        this.state.addUserModalOpen === false &&
-        this.setState({ selectedAdmin: null })
-    )
-  }
-
-  onAction = (action, admin) => {
-    console.log({ action, admin })
-    if (action === 'EDIT') this.setState({ selectedAdmin: admin, addUserModalOpen: true })
-  }
-
   render() {
     const {
-      state: { search, rows, addUserModalOpen, anchorEl, selectedAdmin },
+      state: { search, rows },
     } = this
 
     return (
       <div className="admins">
-        <AddAdminModal
-          admin={selectedAdmin}
-          addUserModalOpen={addUserModalOpen}
-          toggleUserAddModal={this.toggleUserAddModal}
-          onSave={this.onSave}
-        />
         <div className="actions">
           <TextField
             id="standard-name"
@@ -103,56 +73,56 @@ class Admins extends Component {
             value={search}
             onChange={() => {}}
             margin="normal"
-            variant="outlined"
           />
           <div className="buttons">
-            <Button
-              onClick={this.toggleUserAddModal(true)}
-              color="primary"
-              className="button"
-            >
+            <Button color="primary" className="button">
               Añadir
             </Button>
-            <Button color="primary" className="button">
+            <Button color="primary" className="button" variant="contained">
               Exportar
             </Button>
           </div>
         </div>
-        <Table className="table">
-          <TableHead>
-            <TableRow>
-              <TableCell>Nombre</TableCell>
-              <TableCell numeric>Mail</TableCell>
-              <TableCell numeric>Rol</TableCell>
-              <TableCell />
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {rows.map((item) => (
-              <TableRow key={item._id}>
-                <TableCell component="th" scope="item">
-                  {item.name} {item.surname} {item._id}
-                </TableCell>
-                <TableCell numeric>{item.email}</TableCell>
-                <TableCell numeric>
-                  <Button variant="outlined">
-                    {item.superAdmin ? 'Super administrador' : 'Administrador'}
-                  </Button>
-                </TableCell>
-                <TableCell>
-                  <MoreButton
-                    data={item}
-                    onAction={this.onAction}
-                    isActive={item.active}
-                    anchorEl={anchorEl}
-                    handleClick={this.handleClick}
-                    handleClose={this.handleClose}
-                  />
-                </TableCell>
+        <Card>
+          <Table className="table">
+            <TableHead>
+              <TableRow>
+                <TableCell>Nombre</TableCell>
+                <TableCell numeric>Mail</TableCell>
+                <TableCell numeric>Rol</TableCell>
+                <TableCell />
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHead>
+            <TableBody>
+              {rows.map((item) => {
+                return (
+                  <TableRow key={item.id}>
+                    <TableCell component="th" scope="item">
+                      {item.name} {item.surname}
+                    </TableCell>
+                    <TableCell numeric>{item.email}</TableCell>
+                    <TableCell numeric>
+                      <Button variant="outlined" disabled>
+                        Indexado
+                      </Button>
+                    </TableCell>
+
+                    <TableCell>
+                      <IconButton
+                        aria-label="More"
+                        aria-owns={open ? 'long-menu' : null}
+                        aria-haspopup="true"
+                        onClick={this.handleClick}
+                      >
+                        <MoreVertIcon />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
+            </TableBody>
+          </Table>
+        </Card>
       </div>
     )
   }

@@ -1,18 +1,61 @@
 .content {
   margin-top: 64px;
-  margin-left: 80px;
+  margin-left: 240px;
   padding: 16px;
 }
 
 #root {
-  .drawer-paper--open,
-  .drawer-paper--closed {
-    padding-top: 64px;
-    a.active {
-      > div {
-        background-color: #e6e6e6;
+  header {
+    background-color: white;
+    z-index: 999;
+    padding-left: 256px;
+    padding-right: 8px;
+    box-shadow: none;
+    border-bottom: 1px solid #f4f4f4;
+    p,
+    h2,
+    span {
+      color: black;
+    }
+    button span {
+      color: white;
+    }
+  }
+  .drawer {
+    > div {
+      z-index: 1000;
+      box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.5);
+      padding-top: 102px;
+      background-color: #353a3f;
+      span {
+        color: #fff;
       }
     }
+    svg,
+    path {
+      color: #fff !important;
+    }
+    a {
+      span,
+      svg {
+        opacity: 0.4;
+      }
+      &.active span,
+      &.active svg {
+        opacity: 1;
+      }
+    }
+    .login {
+      width: 100%;
+      position: absolute;
+      bottom: 32px;
+      left: 0;
+      height: 49.5px;
+    }
+  }
+  /* .drawer-paper--open,
+  .drawer-paper--closed {
+    padding-top: 64px;
   }
   .drawer-paper--open {
     max-width: 250px;
@@ -23,7 +66,7 @@
     max-width: 75px;
     overflow: hidden;
     transition: 0.5s;
-  }
+  } */
   .save-icon {
     margin-left: 8px;
   }
@@ -43,7 +86,6 @@
     left: 0;
     right: 0;
     width: 100%;
-    z-index: 2000;
     .toolbar {
       padding-left: 12px;
       padding-right: 24px;

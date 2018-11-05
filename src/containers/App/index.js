@@ -124,6 +124,7 @@ class App extends Component {
                       ))}
                   </div>
                 </div>
+                <div />
               </Toolbar>
             </AppBar>
 

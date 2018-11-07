@@ -124,7 +124,9 @@ class App extends Component {
                       ))}
                   </div>
                 </div>
-                <div />
+                <div>
+                  <div className="user-image" />
+                </div>
               </Toolbar>
             </AppBar>
 
@@ -136,6 +138,7 @@ class App extends Component {
               // }}
               anchor="left"
             >
+              <div className="toolbar__logo" />
               {/* <Divider /> */}
               <NavLink onClick={this.onLinkClick} exact to="/">
                 {listItem('Dashboard', DashboardIcon)}

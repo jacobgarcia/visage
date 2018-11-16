@@ -8,11 +8,8 @@ import AppBar from '@material-ui/core/AppBar'
 import Toolbar from '@material-ui/core/Toolbar'
 import CircularProgress from '@material-ui/core/CircularProgress'
 import Typography from '@material-ui/core/Typography'
-import Divider from '@material-ui/core/Divider'
-import IconButton from '@material-ui/core/IconButton'
 import Button from '@material-ui/core/Button'
 
-import MenuIcon from '@material-ui/icons/Menu'
 import ListItem from '@material-ui/core/ListItem'
 import ListItemIcon from '@material-ui/core/ListItemIcon'
 import ListItemText from '@material-ui/core/ListItemText'
@@ -30,6 +27,7 @@ import Tarifs from '../Tarifs'
 
 import { SaverProvider } from '../../utils/portals'
 
+import qboLogo from '../../assets/qbo-logo.svg'
 import './styles.pcss'
 
 function listItem(text, Component) {
@@ -52,6 +50,7 @@ class App extends Component {
     open: false,
     showSaveButton: false,
     saving: false,
+    toolBarHidden: false
   }
 
   onDrawerToggle = () => this.setState(({ open }) => ({ open: !open }))
@@ -68,9 +67,13 @@ class App extends Component {
 
   setStopSaving = () => this.setState({ saving: false })
 
+  onToggleToolBar = () => {
+    this.setState(({ toolBarHidden })=> ({ toolBarHidden: !toolBarHidden }))
+  }
+
   render() {
     const {
-      state: { open, showSaveButton, saving },
+      state: { open, showSaveButton, saving, toolBarHidden },
       props: {
         location: { pathname },
       },
@@ -131,14 +134,14 @@ class App extends Component {
             </AppBar>
 
             <Drawer
-              className="drawer"
+              className={`drawer ${toolBarHidden ? '--hidden' : ''}`}
               variant="permanent"
-              // classes={{
-              //   paper: `drawer-paper${open ? '--open' : '--closed'}`,
-              // }}
               anchor="left"
             >
-              <div className="toolbar__logo" />
+              <div className={`toolbar__logo`}>
+                <img src={qboLogo} alt="QBO" />
+                <div onClick={this.onToggleToolBar} className={`toggle-button`} />
+              </div>
               {/* <Divider /> */}
               <NavLink onClick={this.onLinkClick} exact to="/">
                 {listItem('Dashboard', DashboardIcon)}
@@ -158,7 +161,7 @@ class App extends Component {
                 {listItem('Cerrar sesión', ExitIcon)}
               </NavLink>
             </Drawer>
-            <main className={'content'}>
+            <main className={`content ${toolBarHidden ? '--full-width' : ''}`}>
               <Switch>
                 <Route exact path="/" component={Dashboard} />
                 <Route exact path="/clients" component={Clients} />

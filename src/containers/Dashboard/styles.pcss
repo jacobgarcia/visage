@@ -1,8 +1,19 @@
 .dashboard {
-  padding: 16px;
-  .card {
-    margin-bottom: 32px;
+  .actions {
     padding: 16px;
+  }
+  .card-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+  }
+  .card-wrapper {
+    padding: 16px;
+    width: 50%;
+  }
+  .card {
+    padding: 24px;
+    width: 100%;
     h4 {
       color: gray;
       font-weight: normal;
@@ -13,10 +24,5 @@
     display: flex;
     justify-content: flex-end;
     margin-bottom: 16px;
-  }
-  .card-container {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
   }
 }

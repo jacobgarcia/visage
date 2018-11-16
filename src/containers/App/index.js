@@ -97,7 +97,7 @@ class App extends Component {
         <Fragment>
           <CssBaseline />
           <div className="root">
-            <AppBar position="absolute" className="app-bar">
+            <AppBar position="absolute" className={`app-bar ${toolBarHidden ? '--full-width' : ''}`}>
               <Toolbar className="toolbar">
                 <div className="toolbar__content">
                   <Typography variant="subtitle" color="inherit" noWrap>

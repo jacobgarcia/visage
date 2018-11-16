@@ -14,6 +14,7 @@ import PropTypes from 'prop-types'
 
 import NetworkOperation from 'utils/NetworkOperation'
 import { withSaver } from '../../utils/portals'
+import EditAdminModal from '../../components/EditAdminModal'
 
 import './styles.pcss'
 
@@ -27,6 +28,7 @@ class Admins extends Component {
   state = {
     search: '',
     rows: [],
+    openAdmin: true,
   }
 
   async componentDidMount() {
@@ -58,13 +60,18 @@ class Admins extends Component {
     }, 2000)
   }
 
+  onCloseEditModal = () => {
+    this.setState(({ openAdmin }) => ({ openAdmin: !openAdmin }))
+  }
+
   render() {
     const {
-      state: { search, rows },
+      state: { search, rows, openAdmin },
     } = this
 
     return (
       <div className="admins">
+        <EditAdminModal onClose={this.onCloseEditModal} open={openAdmin} />
         <div className="actions">
           <TextField
             id="standard-name"
@@ -103,7 +110,7 @@ class Admins extends Component {
                     <TableCell numeric>{item.email}</TableCell>
                     <TableCell numeric>
                       <Button variant="outlined" disabled>
-                        Indexado
+                        ADMIN
                       </Button>
                     </TableCell>
 

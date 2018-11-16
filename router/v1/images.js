@@ -250,11 +250,11 @@ router.route('/images/search').post(upload.single('image'), (req, res) => {
 // This method uploads the image to S3 and adds it to an toIndex array
 router.route('/images/index/batch').post(upload.single('image'), (req, res) => {
   const { id, sku } = req.body
-  const photo = req.file
-  if (!id || !sku || !photo) return res.status(400).json({ error: { message: 'Malformed Request' } })
+  const image = req.file
+  if (!id || !sku || !image) return res.status(400).json({ error: { message: 'Malformed Request' } })
 
   // Upload image to S3
-  return fs.readFile(photo.path, (error, data) => {
+  return fs.readFile(image.path, (error, data) => {
     if (error) {
       console.error(error)
       return res.status(500).json({
@@ -264,7 +264,7 @@ router.route('/images/index/batch').post(upload.single('image'), (req, res) => {
     }
 
     const base64data = Buffer.from(data, 'binary')
-    const key = req._user.username + '/' + photo.filename
+    const key = req._user.username + '/' + image.filename
     return s3.putObject(
       {
         Bucket: 'visual-search-qbo',
@@ -283,7 +283,7 @@ router.route('/images/index/batch').post(upload.single('image'), (req, res) => {
 
         // Put the image to the toIndex on User
         const indexedImage = {
-          name: photo.filename,
+          name: image.filename,
           id,
           sku,
           key,
@@ -441,21 +441,21 @@ router.route('/images/index/action/:username').post((req, res) => {
 router.route('/images/index').post(upload.single('image'), (req, res) => {
   const { id, sku } = req.body
   const indexedImages = []
-  const photo = req.file
+  const image = req.file
   if (!id || !sku) return res.status(400).json({ error: { message: 'Malformed request' } })
   if (!req.file) return res
       .status(400)
       .json({ error: { message: 'Could not get files info' } })
-  const url = `/static/uploads/temp/${photo.filename}`
+  const url = `/static/uploads/temp/${image.filename}`
 
   const indexedImage = {
     url,
-    name: photo.filename,
+    name: image.filename,
   }
   indexedImages.push(indexedImage)
 
   // Upload image to S3
-  fs.readFile(photo.path, (error, data) => {
+  fs.readFile(image.path, (error, data) => {
     if (error) {
       console.error(error)
       return res.status(500).json({
@@ -468,7 +468,7 @@ router.route('/images/index').post(upload.single('image'), (req, res) => {
     return s3.putObject(
       {
         Bucket: 'visual-search-qbo',
-        Key: req._user.username + '/' + photo.filename,
+        Key: req._user.username + '/' + image.filename,
         Body: base64data,
         ACL: 'public-read',
       },
@@ -488,7 +488,7 @@ router.route('/images/index').post(upload.single('image'), (req, res) => {
           image: {
             value: fs.createReadStream(process.env.PWD + url),
             options: {
-              filename: photo.filename,
+              filename: image.filename,
             },
           },
         }

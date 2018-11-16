@@ -28,7 +28,7 @@ class Admins extends Component {
   state = {
     search: '',
     rows: [],
-    openAdmin: true,
+    openAdmin: false,
   }
 
   async componentDidMount() {
@@ -60,7 +60,7 @@ class Admins extends Component {
     }, 2000)
   }
 
-  onCloseEditModal = () => {
+  onToggleEditModal = () => {
     this.setState(({ openAdmin }) => ({ openAdmin: !openAdmin }))
   }
 
@@ -71,7 +71,7 @@ class Admins extends Component {
 
     return (
       <div className="admins">
-        <EditAdminModal onClose={this.onCloseEditModal} open={openAdmin} />
+        <EditAdminModal onClose={this.onToggleEditModal} open={openAdmin} />
         <div className="actions">
           <TextField
             id="standard-name"
@@ -121,7 +121,7 @@ class Admins extends Component {
                         aria-haspopup="true"
                         onClick={this.handleClick}
                       >
-                        <MoreVertIcon />
+                        <MoreVertIcon onClick={this.onToggleEditModal} />
                       </IconButton>
                     </TableCell>
                   </TableRow>

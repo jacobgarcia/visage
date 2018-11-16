@@ -43,12 +43,13 @@ class Dashboard extends Component {
 
   state = {}
 
+  componentDidMount() {
+    this.props.toggle(false)
+  }
+
   render() {
     return (
       <div className="dashboard">
-        <div className="actions">
-          <Button>Filtrar</Button>
-        </div>
         <div className="card-container">
           <div className="card-wrapper">
             <Card className="card">

@@ -1,6 +1,8 @@
 import React, { Component, Fragment } from 'react'
 import { NavLink, Switch, Route } from 'react-router-dom'
 import PropTypes from 'prop-types'
+import DayPicker, { DateUtils } from 'react-day-picker'
+import 'react-day-picker/lib/style.css';
 
 import CssBaseline from '@material-ui/core/CssBaseline'
 import Drawer from '@material-ui/core/Drawer'
@@ -27,7 +29,7 @@ import Tarifs from '../Tarifs'
 
 import { SaverProvider } from '../../utils/portals'
 
-import qboLogo from '../../assets/qbo-logo.svg'
+import qboLogo from '../../assets/qbo-logo-mono.svg'
 import './styles.pcss'
 
 function listItem(text, Component) {
@@ -50,7 +52,10 @@ class App extends Component {
     open: false,
     showSaveButton: false,
     saving: false,
-    toolBarHidden: false
+    toolBarHidden: false,
+    showDateFilter: true,
+    showDayPicker: false,
+    ...this.getInitialState()
   }
 
   onDrawerToggle = () => this.setState(({ open }) => ({ open: !open }))
@@ -71,9 +76,31 @@ class App extends Component {
     this.setState(({ toolBarHidden })=> ({ toolBarHidden: !toolBarHidden }))
   }
 
+  onToggleDayPicker = () => this.setState(({showDayPicker}) => ({showDayPicker: !showDayPicker}))
+
+  onDateSelect = () => {
+
+  }
+
+  getInitialState() {
+    return {
+      from: undefined,
+      to: undefined,
+    };
+  }
+
+  handleDayClick = (day) => {
+    const range = DateUtils.addDayToRange(day, this.state);
+    this.setState(range);
+  }
+
+  handleResetClick = () => {
+    this.setState(this.getInitialState());
+  }
+
   render() {
     const {
-      state: { open, showSaveButton, saving, toolBarHidden },
+      state: { open, showSaveButton, saving, toolBarHidden, showDateFilter, showDayPicker },
       props: {
         location: { pathname },
       },
@@ -85,6 +112,9 @@ class App extends Component {
     if (pathname === '/admins') title = 'Administradores'
     if (pathname === '/tarifs') title = 'Tarifas'
 
+    const { from, to } = this.state
+    const modifiers = { start: from, end: to }
+
     return (
       <SaverProvider
         value={{
@@ -92,6 +122,8 @@ class App extends Component {
           value: showSaveButton,
           saving,
           stopSaving: this.setStopSaving,
+          showDateFilter,
+          onDateSelect: this.onDateSelect
         }}
       >
         <Fragment>
@@ -105,6 +137,30 @@ class App extends Component {
                   </Typography>
 
                   <div className="toolbar__actions">
+                    {
+                      showDateFilter && (
+                        <div className="date-filter-container">
+                          <Button
+                            variant="contained"
+                            color="secondary"
+                            onClick={this.onToggleDayPicker}
+                            size="small"
+                            >
+                            Filtrar
+                          </Button>
+                          { showDayPicker &&
+                            <DayPicker
+                              className="Selectable"
+                              numberOfMonths={this.props.numberOfMonths}
+                              selectedDays={[from, { from, to }]}
+                              modifiers={modifiers}
+                              onDayClick={this.handleDayClick}
+                            />
+                          }
+                        </div>
+
+                      )
+                    }
                     {showSaveButton &&
                       (saving ? (
                         <div className="circular-progress-container">
@@ -132,7 +188,6 @@ class App extends Component {
                 </div>
               </Toolbar>
             </AppBar>
-
             <Drawer
               className={`drawer ${toolBarHidden ? '--hidden' : ''}`}
               variant="permanent"
@@ -142,11 +197,9 @@ class App extends Component {
                 <img src={qboLogo} alt="QBO" />
                 <div onClick={this.onToggleToolBar} className={`toggle-button`} />
               </div>
-              {/* <Divider /> */}
               <NavLink onClick={this.onLinkClick} exact to="/">
                 {listItem('Dashboard', DashboardIcon)}
               </NavLink>
-              {/* <Divider /> */}
               <NavLink onClick={this.onLinkClick} to="/clients">
                 {listItem('Clientes', PeopleIcon)}
               </NavLink>
@@ -156,7 +209,6 @@ class App extends Component {
               <NavLink onClick={this.onLinkClick} to="/tarifs">
                 {listItem('Tarifas', AttachMoneyIcon)}
               </NavLink>
-              {/* <Divider /> */}
               <NavLink onClick={this.onLinkClick} to="/login" className="login">
                 {listItem('Cerrar sesión', ExitIcon)}
               </NavLink>

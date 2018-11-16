@@ -39,6 +39,7 @@ class Clients extends Component {
     addUserModalOpen: false,
     admin: true,
   }
+
   async componentDidMount() {
     this.props.toggle(true)
 

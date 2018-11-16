@@ -4,6 +4,7 @@ import Button from '@material-ui/core/Button'
 import PropTypes from 'prop-types'
 
 import './styles.pcss'
+import qboLogo from '../../assets/qbo-logo.svg'
 
 class Login extends Component {
   static propTypes = {
@@ -32,6 +33,7 @@ class Login extends Component {
     return (
       <div className="login">
         <form onSubmit={this.onSubmit}>
+          <img src={qboLogo} alt="" />
           <TextField
             id="standard-name"
             label="Usuario"

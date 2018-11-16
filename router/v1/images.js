@@ -9,6 +9,7 @@ const mime = require('mime')
 const multer = require('multer')
 const jwt = require('jsonwebtoken')
 const request = require('request')
+const rp = require('request-promise')
 const AWS = require('aws-sdk')
 const cors = require('cors')
 const s3 = new AWS.S3()
@@ -328,29 +329,10 @@ router.route('/images/index/action/:username').post((req, res) => {
           .status(200)
           .json({ success: false, message: 'Nothing to index' })
       // Iterate over the batch of images
-      user.toIndex.map((image) => {
+      const promises = user.toIndex.map(async (image) => {
         const { id, sku, key } = image
         const indexedImages = []
         indexedImages.push(image)
-        // Create temp file from s3
-        const file = fs.createWriteStream(
-          process.env.PWD +
-            '/static/uploads/temp/' +
-            key.substr(key.lastIndexOf('/') + 1)
-        )
-
-        // Get Object from S3 and pipe the output to the temp file
-        s3.getObject(
-          {
-            Bucket: 'visual-search-qbo',
-            Key: key,
-          },
-          (error) => {
-            if (error) console.error('Could not get object from S3', error)
-          }
-        )
-          .createReadStream()
-          .pipe(file)
 
         // Create formData object to send to the service
         const formData = {
@@ -369,13 +351,14 @@ router.route('/images/index/action/:username').post((req, res) => {
         }
 
         // Call internal Flask service to process petition
-        request.post(
-          { url: serviceUrl + '/v1/images/index', formData },
-          (error, resp) => {
-            if (error) {
-              console.error('Could not index image', error)
-              return
-            }
+
+        await rp
+          .post({
+            url: serviceUrl + '/v1/images/index',
+            formData,
+            resolveWithFullResponse: true,
+          })
+          .then((resp) => {
             console.log(resp.statusCode, resp.body)
             if (resp.statusCode === 200) count += 1
             // Build response object
@@ -418,20 +401,26 @@ router.route('/images/index/action/:username').post((req, res) => {
                 }
               })
             })
-          }
-        )
-      })
-      return User.findOneAndUpdate(
-        { username },
-        { $set: { isIndexing: false } }
-      ).exec((error, user) => {
-        if (error) {
-          console.error('Could not update user information')
-          return res.status(500).json({
-            error: { message: 'Could not update user information' },
           })
-        }
-        return res.status(200).json({ success: true, count, user })
+          .catch((error) => {
+            if (error) {
+              console.error('Could not index image', error)
+            }
+          })
+      })
+      return Promise.all(promises).then(() => {
+        User.findOneAndUpdate(
+          { username },
+          { $set: { isIndexing: false } }
+        ).exec((error, user) => {
+          if (error) {
+            console.error('Could not update user information')
+            return res.status(500).json({
+              error: { message: 'Could not update user information' },
+            })
+          }
+          return res.status(200).json({ success: true, count, user })
+        })
       })
     }
   )
@@ -442,12 +431,9 @@ router.route('/images/index').post(upload.single('image'), (req, res) => {
   const { id, sku } = req.body
   const indexedImages = []
   const image = req.file
-  if (!id || !sku) return res.status(400).json({ error: { message: 'Malformed request' } })
-  if (!req.file) return res
-      .status(400)
-      .json({ error: { message: 'Could not get files info' } })
-  const url = `/static/uploads/temp/${image.filename}`
+  if (!id || !sku || !image) return res.status(400).json({ error: { message: 'Malformed request' } })
 
+  const url = `/static/uploads/temp/${image.filename}`
   const indexedImage = {
     url,
     name: image.filename,
@@ -455,7 +441,7 @@ router.route('/images/index').post(upload.single('image'), (req, res) => {
   indexedImages.push(indexedImage)
 
   // Upload image to S3
-  fs.readFile(image.path, (error, data) => {
+  return fs.readFile(image.path, (error, data) => {
     if (error) {
       console.error(error)
       return res.status(500).json({
@@ -525,7 +511,6 @@ router.route('/images/index').post(upload.single('image'), (req, res) => {
               user: req._user._id,
             }).save((error, indexing) => {
               if (error) {
-                console.log('Could not create indexing object', error)
                 return res.status(500).json({
                   error: { message: 'Could not create indexing object' },
                 })

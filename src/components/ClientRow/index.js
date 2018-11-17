@@ -64,7 +64,6 @@ class ClientRow extends Component {
   }
 
   handleClose = () => this.setState({ anchorEl: null })
-
   handleClick = (event) => this.setState({ anchorEl: event.currentTarget })
 
   render() {

@@ -23,7 +23,14 @@ function MoreButton(props) {
         open={Boolean(anchorEl)}
         onClose={props.handleClose}
       >
-        <MenuItem onClick={props.handleClose}>Editar</MenuItem>
+        <MenuItem
+          onClick={() => {
+            props.onEdit()
+            props.handleClose()
+          }}
+        >
+          Editar
+        </MenuItem>
         <MenuItem onClick={props.handleClose}>
           {isActive ? 'Desactivar' : 'Reactivar'}
         </MenuItem>

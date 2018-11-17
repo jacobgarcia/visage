@@ -15,6 +15,7 @@ import PropTypes from 'prop-types'
 import NetworkOperation from 'utils/NetworkOperation'
 import { withSaver } from '../../utils/portals'
 import EditAdminModal from '../../components/EditAdminModal'
+import MoreButton from '../../components/MoreButton'
 
 import './styles.pcss'
 
@@ -26,22 +27,18 @@ class Admins extends Component {
   }
 
   state = {
+    anchorEl: null,
     search: '',
     rows: [],
     openAdmin: false,
+    isSaving: false,
+    selectedUser: null,
   }
 
-  async componentDidMount() {
+  componentDidMount() {
     this.props.toggle(true)
 
-    try {
-      const response = await NetworkOperation.getAdmins()
-      const admins = response.data.admins || []
-      console.log({ admins })
-      this.setState({ rows: admins })
-    } catch (error) {
-      console.error(error)
-    }
+    this.getAdmins()
   }
 
   componentDidUpdate(prevProps) {
@@ -54,24 +51,45 @@ class Admins extends Component {
     this.props.stopSaving(null)
   }
 
+  handleClose = () => this.setState({ anchorEl: null })
+  handleClick = (event) => this.setState({ anchorEl: event.currentTarget })
+
+  getAdmins = async () => {
+    try {
+      const response = await NetworkOperation.getAdmins()
+      const admins = response.data.admins || []
+      console.log({ admins })
+      this.setState({ rows: admins })
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
   onSave() {
     setTimeout(() => {
       this.props.stopSaving(true)
     }, 2000)
   }
 
-  onToggleEditModal = () => {
-    this.setState(({ openAdmin }) => ({ openAdmin: !openAdmin }))
+  onToggleEditModal = (item) => {
+    const newState = {}
+    if (item) newState.selectedUser = item
+    this.setState(({ openAdmin }) => ({ openAdmin: !openAdmin, ...newState }))
   }
 
   render() {
     const {
-      state: { search, rows, openAdmin },
+      state: { anchorEl, search, rows, openAdmin, isSaving, selectedUser },
     } = this
 
     return (
       <div className="admins">
-        <EditAdminModal onClose={this.onToggleEditModal} open={openAdmin} />
+        <EditAdminModal
+          user={selectedUser}
+          loading={isSaving}
+          onClose={this.onToggleEditModal}
+          open={openAdmin}
+        />
         <div className="actions">
           <TextField
             id="standard-name"
@@ -82,7 +100,11 @@ class Admins extends Component {
             margin="normal"
           />
           <div className="buttons">
-            <Button color="primary" className="button">
+            <Button
+              onClick={this.onToggleEditModal}
+              color="primary"
+              className="button"
+            >
               Añadir
             </Button>
             <Button color="primary" className="button" variant="contained">
@@ -110,19 +132,16 @@ class Admins extends Component {
                     <TableCell numeric>{item.email}</TableCell>
                     <TableCell numeric>
                       <Button variant="outlined" disabled>
-                        ADMIN
+                        {item.superAdmin ? 'SUPERADMIN' : 'ADMIN'}
                       </Button>
                     </TableCell>
-
                     <TableCell>
-                      <IconButton
-                        aria-label="More"
-                        aria-owns={open ? 'long-menu' : null}
-                        aria-haspopup="true"
-                        onClick={this.handleClick}
-                      >
-                        <MoreVertIcon onClick={this.onToggleEditModal} />
-                      </IconButton>
+                      <MoreButton
+                        anchorEl={anchorEl}
+                        onEdit={() => this.onToggleEditModal(item)}
+                        handleClick={this.handleClick}
+                        handleClose={this.handleClose}
+                      />
                     </TableCell>
                   </TableRow>
                 )

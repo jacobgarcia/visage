@@ -127,12 +127,15 @@ class ClientRow extends Component {
             </div>
           </IconButton>
           <IconButton />
+
+        </TableCell>
+        <TableCell number>
           <MoreButton
             anchorEl={anchorEl}
             handleClick={this.handleClick}
             handleClose={this.handleClose}
           />
-        </TableCell>
+</TableCell>
       </TableRow>
     )
   }

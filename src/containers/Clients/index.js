@@ -278,6 +278,7 @@ class Clients extends Component {
                 <TableCell>Mail</TableCell>
                 <TableCell>Indexación</TableCell>
                 <TableCell>API Keys</TableCell>
+                <TableCell />
               </TableRow>
             </TableHead>
             <TableBody>

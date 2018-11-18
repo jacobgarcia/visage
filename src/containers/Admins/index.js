@@ -117,9 +117,9 @@ class Admins extends Component {
             <TableHead>
               <TableRow>
                 <TableCell>Nombre</TableCell>
-                <TableCell numeric>Mail</TableCell>
-                <TableCell numeric>Rol</TableCell>
-                <TableCell />
+                <TableCell>Mail</TableCell>
+                <TableCell>Rol</TableCell>
+                <TableCell numeric />
               </TableRow>
             </TableHead>
             <TableBody>
@@ -129,13 +129,13 @@ class Admins extends Component {
                     <TableCell component="th" scope="item">
                       {item.name} {item.surname}
                     </TableCell>
-                    <TableCell numeric>{item.email}</TableCell>
-                    <TableCell numeric>
+                    <TableCell>{item.email}</TableCell>
+                    <TableCell>
                       <Button variant="outlined" disabled>
                         {item.superAdmin ? 'SUPERADMIN' : 'ADMIN'}
                       </Button>
                     </TableCell>
-                    <TableCell>
+                    <TableCell numeric>
                       <MoreButton
                         anchorEl={anchorEl}
                         onEdit={() => this.onToggleEditModal(item)}

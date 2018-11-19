@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import TextField from '@material-ui/core/TextField'
 import Button from '@material-ui/core/Button'
 import PropTypes from 'prop-types'
+import { NetworkOperation } from 'utils'
 
 import './styles.pcss'
 import qboLogo from '../../assets/qbo-logo.svg'
@@ -10,7 +11,6 @@ class Login extends Component {
   static propTypes = {
     history: PropTypes.object.isRequired,
   }
-
   state = {
     user: '',
     password: '',
@@ -18,11 +18,34 @@ class Login extends Component {
 
   onChange = ({ target: { name, value } }) => this.setState({ [name]: value })
 
-  onSubmit = (event) => {
+  onSubmit(event) {
     event.preventDefault()
 
-    localStorage.setItem('token', 'value')
-    this.props.history.replace('/')
+    const { email, password } = this.state
+
+    NetworkOperation.login({ email, password })
+      .then(({ data }) => {
+        localStorage.setItem('token', data.token)
+
+        this.props.setCredentials({ ...data.user, token: data.token })
+
+        this.props.history.replace(this.state.return || '/')
+      })
+      .catch(({ response = {} }) => {
+        const { status = 500 } = response
+        switch (status) {
+          case 400:
+          case 401:
+            this.setState({
+              error: 'Correo o contraseña incorrectos',
+            })
+            break
+          default:
+            this.setState({
+              error: 'Problemas al iniciar sesión, intenta nuevamente',
+            })
+        }
+      })
   }
 
   render() {
@@ -44,7 +67,7 @@ class Login extends Component {
             variant="outlined"
           />
           <TextField
-            id="standard-name"
+            id="standard-password"
             label="Contraseña"
             value={password}
             name="password"
@@ -65,6 +88,11 @@ class Login extends Component {
       </div>
     )
   }
+}
+
+Login.propTypes = {
+  history: PropTypes.object,
+  setCredentials: PropTypes.func,
 }
 
 export default Login

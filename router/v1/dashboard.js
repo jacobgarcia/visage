@@ -12,6 +12,9 @@ const User = require(path.resolve('models/User'))
 const Guest = require(path.resolve('models/Guest'))
 
 const config = require(path.resolve('config'))
+// const { databaseUri } = require(path.resolve('config'))
+
+URL = 'dash'
 
 nev.configure({
   verificationURL: `https://demo.kawlantid.com/signup/${URL}`,
@@ -43,6 +46,8 @@ nev.configure({
   },
 
   hashingFunction: null
+}, (error, options) => {
+  winston.error({ error })
 })
 
 router.route('/users/invite').post((req, res) => {
@@ -52,8 +57,8 @@ router.route('/users/invite').post((req, res) => {
     email,
     host: req._user
   })
-
   nev.createTempUser(guest, (err, existingPersistentUser, newTempUser) => {
+    console.log('Creating new tempo user')
     if (err) {
       winston.error({ err })
       return res.status(500).json({ err })
@@ -138,7 +143,6 @@ router.post('/signup/:invitation', (req, res) => {
 
 router.route('/authenticate').post((req, res) => {
   const { email, password } = req.body
-
   User.findOne({ email })
     .lean()
     .then(user => {
@@ -146,7 +150,6 @@ router.route('/authenticate').post((req, res) => {
         winston.info('Failed to authenticate user email')
         return res.status(400).json({ message: 'Authentication failed. Wrong user or password.' })
       }
-
       return bcrypt
         .compare(`${password}${config.secret}`, user.password)
         .then(result => {
@@ -158,9 +161,7 @@ router.route('/authenticate').post((req, res) => {
             },
             config.secret
           )
-
           const { _id, fullName: name, surname, access, defaultPosition } = user
-
           if (result)
             return res.status(200).json({
               token,

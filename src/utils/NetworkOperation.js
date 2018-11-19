@@ -14,6 +14,13 @@ axios.interceptors.request.use(
 )
 
 class NetworkOperation {
+  /*
+  LOGIN
+  */
+  static login( email, password) {
+    return axios.post(`${baseUrl}/v1/authenticate`, {email, password})
+  }
+
   static generateAPIToken(username) {
     return axios.post(`${baseUrl}/v1/token/generate/${username}`)
   }

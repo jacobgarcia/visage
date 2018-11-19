@@ -12,7 +12,6 @@ const User = require(path.resolve('models/User'))
 const Guest = require(path.resolve('models/Guest'))
 
 const config = require(path.resolve('config'))
-// const { databaseUri } = require(path.resolve('config'))
 
 URL = 'dash'
 
@@ -58,7 +57,6 @@ router.route('/users/invite').post((req, res) => {
     host: req._user
   })
   nev.createTempUser(guest, (err, existingPersistentUser, newTempUser) => {
-    console.log('Creating new tempo user')
     if (err) {
       winston.error({ err })
       return res.status(500).json({ err })

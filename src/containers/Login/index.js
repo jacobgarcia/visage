@@ -12,18 +12,16 @@ class Login extends Component {
     history: PropTypes.object.isRequired,
   }
   state = {
-    user: '',
+    email: '',
     password: '',
   }
 
   onChange = ({ target: { name, value } }) => this.setState({ [name]: value })
 
-  onSubmit(event) {
+  onSubmit = (event) => {
     event.preventDefault()
-
     const { email, password } = this.state
-
-    NetworkOperation.login({ email, password })
+    NetworkOperation.login({email, password})
       .then(({ data }) => {
         localStorage.setItem('token', data.token)
 
@@ -50,7 +48,7 @@ class Login extends Component {
 
   render() {
     const {
-      state: { user, password },
+      state: { email, password },
     } = this
 
     return (
@@ -60,8 +58,8 @@ class Login extends Component {
           <TextField
             id="standard-name"
             label="Usuario"
-            value={user}
-            name="user"
+            value={email}
+            name="email"
             onChange={this.onChange}
             margin="normal"
             variant="outlined"

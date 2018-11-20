@@ -17,12 +17,12 @@ class NetworkOperation {
   /*
   LOGIN
   */
-  static login( email, password) {
-    return axios.post(`${baseUrl}/v1/authenticate`, {email, password})
+  static login({email, password}) {
+    return axios.post(`${baseUrl}/v1/dashboard/authenticate`, {email, password})
   }
 
   static generateAPIToken(username) {
-    return axios.post(`${baseUrl}/v1/token/generate/${username}`)
+    return axios.post(`${baseUrl}/v1/dashboard/token/generate/${username}`)
   }
 
   /*
@@ -30,11 +30,11 @@ class NetworkOperation {
   */
 
   static getUsers() {
-    return axios.get(`${baseUrl}/v1/users`)
+    return axios.get(`${baseUrl}/v1/dashboard/users`)
   }
 
   static deactivateUser(username) {
-    return axios.patch(`${baseUrl}/v1/users/${username}/deactivate`)
+    return axios.patch(`${baseUrl}/v1/dashboard/users/${username}/deactivate`)
   }
 
   /*
@@ -42,15 +42,15 @@ class NetworkOperation {
   */
 
   static getAdmins() {
-    return axios.get(`${baseUrl}/v1/admins`)
+    return axios.get(`${baseUrl}/v1/dashboard/admins`)
   }
 
   static deleteAdmin(username) {
-    return axios.delete(`${baseUrl}/v1/admins/${username}`)
+    return axios.delete(`${baseUrl}/v1/dashboard/admins/${username}`)
   }
 
   static updateAdmin({ username, ...admin }) {
-    return axios.put(`${baseUrl}/v1/admins/${username}`, admin)
+    return axios.put(`${baseUrl}/v1/dashboard/admins/${username}`, admin)
   }
 
   /*
@@ -58,15 +58,15 @@ class NetworkOperation {
   */
 
   static revokeAPIKey(username) {
-    return axios.post(`${baseUrl}/v1/token/revoke/${username}`)
+    return axios.post(`${baseUrl}/v1/dashboard/token/revoke/${username}`)
   }
 
   static renewAPIKey(username) {
-    return axios.post(`${baseUrl}/v1/token/renew/${username}`)
+    return axios.post(`${baseUrl}/v1/dashboard/token/renew/${username}`)
   }
 
   static generateAPIKey(username) {
-    return axios.post(`${baseUrl}/v1/token/generate/${username}`)
+    return axios.post(`${baseUrl}/v1/dashboard/token/generate/${username}`)
   }
 }
 

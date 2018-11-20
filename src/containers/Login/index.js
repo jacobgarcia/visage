@@ -15,8 +15,11 @@ class Login extends Component {
   state = {
     email: '',
     password: '',
+    error: '',
   }
-
+  componentDidMount() {
+    localStorage.clear()
+  }
   onChange = ({ target: { name, value } }) => this.setState({ [name]: value })
 
   onSubmit = (event) => {
@@ -25,11 +28,7 @@ class Login extends Component {
 
     NetworkOperation.login({ email, password })
       .then(({ data }) => {
-        console.log({ data })
         localStorage.setItem('token', data.token)
-
-        // this.props.setCredentials({ ...data.user, token: data.token })
-
         this.props.history.replace(this.state.return || '/')
       })
       .catch(({ response = {} }) => {
@@ -51,7 +50,7 @@ class Login extends Component {
 
   render() {
     const {
-      state: { email, password },
+      state: { email, password, error },
     } = this
 
     return (
@@ -77,6 +76,7 @@ class Login extends Component {
             margin="normal"
             variant="outlined"
           />
+          {error ? <p>Error: {error}</p> : ''}
           <Button
             className="submit"
             variant="contained"

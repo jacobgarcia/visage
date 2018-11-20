@@ -10,6 +10,7 @@ const nev = require('email-verification')(mongoose)
 
 const User = require(path.resolve('models/User'))
 const Guest = require(path.resolve('models/Guest'))
+const Admin = require(path.resolve('models/Admin'))
 
 const config = require(path.resolve('config'))
 

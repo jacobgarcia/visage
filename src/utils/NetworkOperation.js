@@ -1,8 +1,8 @@
 import axios from 'axios'
-
-const baseUrl = 'http://localhost:8080'
-
+let baseUrl = 'http://localhost:8080'
+baseUrl = 'https://4b0490a5.ngrok.io'
 let token = null
+
 function getToken() {
   token = localStorage.getItem('token')
   return token

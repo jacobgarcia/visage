@@ -55,18 +55,23 @@ class App extends Component {
     open: false,
     showSaveButton: false,
     saving: false,
-    toolBarHidden: false,
+    toolBarHidden: true,
     showDateFilter: true,
     showDayPicker: false,
+    name: 'A',
+    userImage: '',
     ...this.getInitialState()
   }
 
   async componentDidMount() {
     try {
-      const data = await NetworkOperation.getSelf()
-
+      const { data }  = await NetworkOperation.getSelf()
       // Set data to display in nav
-      this.setState({ loadingSelf: false })
+      this.setState({
+        loadingSelf: false,
+        name: data.name,
+        userImage: data.userImage ? data.userImage : ''
+      })
 
     } catch(error) {
       if (error.response?.status === 401) this.props.history.replace('/login')
@@ -80,6 +85,10 @@ class App extends Component {
 
   onLinkClick = () => this.setState({ open: false })
 
+  onCloseClick = () => {
+    localStorage.clear()
+    this.setState({ open: false })
+  }
   setSaveButtonValue = (value = false) => {
     this.setState({ showSaveButton: value })
   }
@@ -116,12 +125,11 @@ class App extends Component {
 
   render() {
     const {
-      state: { open, showSaveButton, saving, toolBarHidden, showDateFilter, showDayPicker,loadingSelf },
+      state: { open, showSaveButton, saving, toolBarHidden, showDateFilter, showDayPicker,loadingSelf, name, userImage },
       props: {
         location: { pathname },
       },
     } = this
-
     if (loadingSelf) {
       return (
         <div className="loading-screen">
@@ -139,7 +147,7 @@ class App extends Component {
 
     const { from, to } = this.state
     const modifiers = { start: from, end: to }
-
+    console.log(name)
     return (
       <SaverProvider
         value={{
@@ -209,8 +217,10 @@ class App extends Component {
                   </div>
                 </div>
                 <div>
-                  <div className="user-image" />
+                <div className="user-image">
+                {userImage ? <img src={userImage}/> : <p>{name.charAt(0).toUpperCase()}</p> }
                 </div>
+              </div>
               </Toolbar>
             </AppBar>
             <Drawer
@@ -234,7 +244,7 @@ class App extends Component {
               <NavLink onClick={this.onLinkClick} to="/tarifs">
                 {listItem('Tarifas', AttachMoneyIcon)}
               </NavLink>
-              <NavLink onClick={this.onLinkClick} to="/login" className="login">
+              <NavLink onClick={this.onCloseClick} to="/login" className="login">
                 {listItem('Cerrar sesión', ExitIcon)}
               </NavLink>
             </Drawer>

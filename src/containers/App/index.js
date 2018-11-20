@@ -27,6 +27,7 @@ import Clients from '../Clients'
 import Admins from '../Admins'
 import Tarifs from '../Tarifs'
 
+import NetworkOperation from 'utils/NetworkOperation'
 import { SaverProvider } from '../../utils/portals'
 
 import qboLogoColor from '../../assets/qbo-logo.svg'
@@ -66,10 +67,10 @@ class App extends Component {
 
       // Set data to display in nav
       this.setState({ loadingSelf: false })
+
     } catch(error) {
-      // Check if we've got a 403 to replace to login. Other error should
-      // be displayed
-      this.props.history.replace('/login')
+      if (error.response?.status === 401) this.props.history.replace('/login')
+      // TODO Other error should be displayed
     }
   }
 

@@ -211,4 +211,16 @@ router.use((req, res, next) => {
   })
 })
 
+router.route('/self').get((req,res) => {
+  User.findOne({_id: req._user._id})
+    .lean()
+    .then( user => {
+      if (user === null) {
+            winston.info('No user found')
+            return res.status(400).json({ message: 'No user found' })
+          }
+      return res.status(200).json(user)
+    })
+})
+
 module.exports = router

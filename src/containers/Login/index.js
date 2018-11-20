@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import TextField from '@material-ui/core/TextField'
 import Button from '@material-ui/core/Button'
 import PropTypes from 'prop-types'
-import { NetworkOperation } from 'utils'
+import NetworkOperation from 'utils/NetworkOperation'
 
 import './styles.pcss'
 import qboLogo from '../../assets/qbo-logo.svg'
@@ -21,7 +21,8 @@ class Login extends Component {
   onSubmit = (event) => {
     event.preventDefault()
     const { email, password } = this.state
-    NetworkOperation.login({email, password})
+
+    NetworkOperation.login({ email, password })
       .then(({ data }) => {
         localStorage.setItem('token', data.token)
 

@@ -29,6 +29,7 @@ import Tarifs from '../Tarifs'
 
 import { SaverProvider } from '../../utils/portals'
 
+import qboLogoColor from '../../assets/qbo-logo.svg'
 import qboLogo from '../../assets/qbo-logo-mono.svg'
 import './styles.pcss'
 
@@ -49,6 +50,7 @@ class App extends Component {
   }
 
   state = {
+    loadingSelf: true,
     open: false,
     showSaveButton: false,
     saving: false,
@@ -56,6 +58,19 @@ class App extends Component {
     showDateFilter: true,
     showDayPicker: false,
     ...this.getInitialState()
+  }
+
+  async componentDidMount() {
+    try {
+      const data = await NetworkOperation.getSelf()
+
+      // Set data to display in nav
+      this.setState({ loadingSelf: false })
+    } catch(error) {
+      // Check if we've got a 403 to replace to login. Other error should
+      // be displayed
+      this.props.history.replace('/login')
+    }
   }
 
   onDrawerToggle = () => this.setState(({ open }) => ({ open: !open }))
@@ -100,11 +115,20 @@ class App extends Component {
 
   render() {
     const {
-      state: { open, showSaveButton, saving, toolBarHidden, showDateFilter, showDayPicker },
+      state: { open, showSaveButton, saving, toolBarHidden, showDateFilter, showDayPicker,loadingSelf },
       props: {
         location: { pathname },
       },
     } = this
+
+    if (loadingSelf) {
+      return (
+        <div className="loading-screen">
+          <img src={qboLogoColor} alt="QBO"/>
+          <p>Cargando...</p>
+        </div>
+      )
+    }
 
     let title = ''
     if (pathname === '/') title = 'Dashboard'

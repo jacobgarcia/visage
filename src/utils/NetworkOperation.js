@@ -2,10 +2,15 @@ import axios from 'axios'
 
 const baseUrl = 'http://localhost:8080'
 
+let token = null
+function getToken() {
+  token = localStorage.getItem('token')
+  return token
+}
+
 axios.interceptors.request.use(
   (config) => {
-    config.headers.Authorization =
-      'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1YmI5MzI5YTY3NDRhMjk1MmRhZGY0YjciLCJlbWFpbCI6Im1hcmlvQG51cmUubXgiLCJ1c2VybmFtZSI6Im1hcmlvZ2FyY2lhIiwiaWF0IjoxNTQyMzgwNjY1fQ.K6cqDFokwbe733RgknYSKDhFD9RetOtM6pShO1Lfabk'
+    config.headers.Authorization = `Bearer ${token || getToken()}`
     return config
   },
   (error) => {
@@ -14,6 +19,9 @@ axios.interceptors.request.use(
 )
 
 class NetworkOperation {
+  static getSelf() {
+    return axios.get(`${baseUrl}/v1/self`)
+  }
   /*
   LOGIN
   */

@@ -1,7 +1,8 @@
 import axios from 'axios'
-
-process.env.ON_SERVER ? const baseUrl = 'https://4b0490a5.ngrok.io' : const baseUrl = 'http://localhost:8080' 
-
+let baseUrl = 'http://localhost:8080'
+if (process.env.ON_SERVER) {
+  baseUrl = 'https://4b0490a5.ngrok.io'
+}
 let token = null
 function getToken() {
   token = localStorage.getItem('token')

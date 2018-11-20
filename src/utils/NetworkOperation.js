@@ -29,6 +29,10 @@ class NetworkOperation {
     return axios.post(`${baseUrl}/v1/dashboard/authenticate`, {email, password})
   }
 
+  static self() {
+    return axios.get(`${baseUrl}/v1/dashboard/self`)
+  }
+
   static generateAPIToken(username) {
     return axios.post(`${baseUrl}/v1/dashboard/token/generate/${username}`)
   }

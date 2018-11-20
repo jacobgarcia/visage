@@ -11,6 +11,7 @@ class Login extends Component {
   static propTypes = {
     history: PropTypes.object.isRequired,
   }
+
   state = {
     email: '',
     password: '',
@@ -24,9 +25,10 @@ class Login extends Component {
 
     NetworkOperation.login({ email, password })
       .then(({ data }) => {
+        console.log({ data })
         localStorage.setItem('token', data.token)
 
-        this.props.setCredentials({ ...data.user, token: data.token })
+        // this.props.setCredentials({ ...data.user, token: data.token })
 
         this.props.history.replace(this.state.return || '/')
       })

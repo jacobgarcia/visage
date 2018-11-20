@@ -20,7 +20,7 @@ axios.interceptors.request.use(
 
 class NetworkOperation {
   static getSelf() {
-    return axios.get(`${baseUrl}/v1/self`)
+    return axios.get(`${baseUrl}/v1/dashboard/self`)
   }
   /*
   LOGIN

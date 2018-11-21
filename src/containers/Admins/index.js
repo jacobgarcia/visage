@@ -30,21 +30,22 @@ class Admins extends Component {
     anchorEl: null,
     search: '',
     rows: [],
+    filteredRows: [],
     openAdmin: false,
     isSaving: false,
     selectedUser: null,
   }
 
   componentDidMount() {
-    this.props.toggle(true)
+    this.props.toggle(false)
 
     this.getAdmins()
   }
 
   componentDidUpdate(prevProps) {
-    if (this.props.saving && !prevProps.saving) {
-      this.onSave()
-    }
+    // if (this.props.saving && !prevProps.saving) {
+    //   this.onSave()
+    // }
   }
 
   componentWillUnmount() {
@@ -58,28 +59,64 @@ class Admins extends Component {
     try {
       const response = await NetworkOperation.getAdmins()
       const admins = response.data.admins || []
-      console.log({ admins })
-      this.setState({ rows: admins })
+
+      this.setState({ rows: admins, filteredRows: admins })
     } catch (error) {
       console.error(error)
     }
   }
 
-  onSave() {
-    setTimeout(() => {
-      this.props.stopSaving(true)
-    }, 2000)
+  onChange = (name) => ({ target: { value } }) => {
+    this.setState({ [name]: value }, () => {
+      if (name === 'search') {
+        this.setState((prevState) => ({
+          filteredRows: prevState.search
+            ? prevState.rows.filter(({ name }) =>
+                String(name)
+                  .toLowerCase()
+                  .includes(String(prevState.search).toLowerCase())
+              )
+            : prevState.rows,
+        }))
+      }
+    })
   }
+
+  // onSave() {
+  //   setTimeout(() => {
+  //     this.props.stopSaving(true)
+  //   }, 2000)
+  // }
 
   onToggleEditModal = (item) => {
     const newState = {}
+    console.log({ item })
     if (item) newState.selectedUser = item
     this.setState(({ openAdmin }) => ({ openAdmin: !openAdmin, ...newState }))
   }
 
+  onSaveAdmin = async (newAdmin) => {
+    const { _id: newAdminId, ...admin } = newAdmin
+    if (newAdminId) {
+      try {
+        const response = await NetworkOperation.updateAdmin(admin)
+        console.log({ response })
+      } catch (error) {
+        console.log({ error })
+      }
+    }
+  }
+
   render() {
     const {
-      state: { anchorEl, search, rows, openAdmin, isSaving, selectedUser },
+      state: {
+        anchorEl,
+        search,
+        filteredRows,
+        openAdmin,
+        isSaving,
+        selectedUser,
+      },
     } = this
 
     return (
@@ -89,6 +126,7 @@ class Admins extends Component {
           loading={isSaving}
           onClose={this.onToggleEditModal}
           open={openAdmin}
+          onSave={this.onSaveAdmin}
         />
         <div className="actions">
           <TextField
@@ -96,7 +134,7 @@ class Admins extends Component {
             label="Buscar"
             className="text-field"
             value={search}
-            onChange={() => {}}
+            onChange={this.onChange('search')}
             margin="normal"
           />
           <div className="buttons">
@@ -117,18 +155,20 @@ class Admins extends Component {
             <TableHead>
               <TableRow>
                 <TableCell>Nombre</TableCell>
+                <TableCell>Username</TableCell>
                 <TableCell>Mail</TableCell>
                 <TableCell>Rol</TableCell>
                 <TableCell numeric />
               </TableRow>
             </TableHead>
             <TableBody>
-              {rows.map((item) => {
+              {filteredRows.map((item, index) => {
                 return (
                   <TableRow key={item.id}>
                     <TableCell component="th" scope="item">
-                      {item.name} {item.surname}
+                      {item.name}
                     </TableCell>
+                    <TableCell>{item.username}</TableCell>
                     <TableCell>{item.email}</TableCell>
                     <TableCell>
                       <Button variant="outlined" disabled>
@@ -136,9 +176,20 @@ class Admins extends Component {
                       </Button>
                     </TableCell>
                     <TableCell numeric>
+                      <p
+                        onClick={() => {
+                          this.onToggleEditModal(item)
+                        }}
+                      >
+                        {item.name}
+                      </p>
+
                       <MoreButton
                         anchorEl={anchorEl}
-                        onEdit={() => this.onToggleEditModal(item)}
+                        onEdit={() => {
+                          console.log('Toggle with', item.name)
+                          this.onToggleEditModal(item)
+                        }}
                         handleClick={this.handleClick}
                         handleClose={this.handleClose}
                       />

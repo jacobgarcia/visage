@@ -28,8 +28,6 @@
 .toolbar__logo {
   background: linear-gradient(90deg, #9cd4d9, #92acd0);
   width: 100%;
-  width: calc(100% + 4px);
-  border-right: 4px solid #9bb8d1;
   height: 65px;
   position: absolute;
   top: 0;
@@ -138,6 +136,7 @@ html {
       }
       > div {
         max-width: 75px;
+        overflow-x: hidden;
         &:hover {
           max-width: 239px;
           img {

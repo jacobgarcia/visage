@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 
 import Modal from '@material-ui/core/Modal'
 import TextField from '@material-ui/core/TextField'
-import Switch from '@material-ui/core/Switch'
+// import Switch from '@material-ui/core/Switch'
 import Button from '@material-ui/core/Button'
 import Radio from '@material-ui/core/Radio'
 
@@ -14,12 +14,14 @@ function getInitialState() {
     _id: null,
     email: '',
     name: '',
+    username: '',
     services: [],
     superAdmin: false,
     dashboardAccess: 0,
     clientsAccess: 0,
     adminsAccess: 0,
     tarifsAccess: 0,
+    valid: false,
   }
 }
 
@@ -28,17 +30,22 @@ class EditAdminModal extends Component {
     ...getInitialState(),
   }
 
-  static getDerivedStateFromProps(nextProps) {
+  static getDerivedStateFromProps(nextProps, state) {
     const user = nextProps.user
 
-    if (user?._id) {
+    if (user?._id && !state._id) {
+      console.log({ user })
       return {
         name: user?.name || '',
         email: user?.email || '',
         superAdmin: user?.superAdmin,
         _id: user?._id,
+        valid: true,
+        username: user?.username,
       }
     }
+
+    console.log({ nextProps })
 
     if (nextProps.open === false) {
       return getInitialState()
@@ -47,11 +54,23 @@ class EditAdminModal extends Component {
     return {}
   }
 
+  onChange = (name) => ({ target: { value } }) => {
+    console.log('On change...')
+    this.setState({ [name]: value }, () => {
+      this.setState({ valid: this.state.name && this.state.email })
+    })
+  }
+
   onChangeRadio = (name, value) => () => this.setState({ [name]: value })
 
   onSave = () => {
     const nextUser = {}
     if (this.state._id) nextUser._id = this.state._id
+    nextUser.name = this.state.name
+    nextUser.email = this.state.email
+    nextUser.username = this.state.username
+    nextUser.services = this.state.services
+    nextUser.superAdmin = this.state.superAdmin
 
     this.props.onSave(nextUser)
     this.props.onClose()
@@ -69,10 +88,10 @@ class EditAdminModal extends Component {
         clientsAccess,
         adminsAccess,
         tarifsAccess,
+        valid,
+        username,
       },
     } = this
-
-    console.log({ props })
 
     return (
       <div>
@@ -93,24 +112,37 @@ class EditAdminModal extends Component {
                   margin="normal"
                   variant="outlined"
                   value={name}
+                  onChange={this.onChange('name')}
+                  className="user-name"
                 />
+                <TextField
+                  required
+                  label="Nombre de usuario"
+                  margin="normal"
+                  variant="outlined"
+                  value={username}
+                  onChange={this.onChange('username')}
+                />
+              </div>
+              <div>
                 <TextField
                   required
                   label="Email"
                   margin="normal"
                   variant="outlined"
                   value={email}
+                  onChange={this.onChange('email')}
                 />
               </div>
               <div>
                 <div className="radio-inputs-container">
                   <div>
                     <Radio checked={!superAdmin} />
-                    <label htmlFor="">Administrador</label>
+                    <label>Administrador</label>
                   </div>
                   <div>
                     <Radio checked={superAdmin} />
-                    <label htmlFor="">Super administrador</label>
+                    <label>Super administrador</label>
                   </div>
                 </div>
               </div>
@@ -124,14 +156,14 @@ class EditAdminModal extends Component {
                       onChange={this.onChangeRadio('dashboardAccess', 1)}
                       checked={dashboardAccess === 1}
                     />
-                    <label htmlFor="">Con acceso</label>
+                    <label>Con acceso</label>
                   </div>
                   <div>
                     <Radio
                       onChange={this.onChangeRadio('dashboardAccess', 0)}
                       checked={dashboardAccess === 0}
                     />
-                    <label htmlFor="">Sin acceso</label>
+                    <label>Sin acceso</label>
                   </div>
                 </div>
                 <hr />
@@ -142,21 +174,21 @@ class EditAdminModal extends Component {
                       onChange={this.onChangeRadio('clientsAccess', 2)}
                       checked={clientsAccess === 2}
                     />
-                    <label htmlFor="">Ver y editar</label>
+                    <label>Ver y editar</label>
                   </div>
                   <div>
                     <Radio
                       onChange={this.onChangeRadio('clientsAccess', 1)}
                       checked={clientsAccess === 1}
                     />
-                    <label htmlFor="">Sólo ver</label>
+                    <label>Sólo ver</label>
                   </div>
                   <div>
                     <Radio
                       onChange={this.onChangeRadio('clientsAccess', 0)}
                       checked={clientsAccess === 0}
                     />
-                    <label htmlFor="">Sin acceso</label>
+                    <label>Sin acceso</label>
                   </div>
                 </div>
                 <hr />
@@ -167,21 +199,21 @@ class EditAdminModal extends Component {
                       onChange={this.onChangeRadio('adminsAccess', 2)}
                       checked={adminsAccess === 2}
                     />
-                    <label htmlFor="">Ver y editar</label>
+                    <label>Ver y editar</label>
                   </div>
                   <div>
                     <Radio
                       onChange={this.onChangeRadio('adminsAccess', 1)}
                       checked={adminsAccess === 1}
                     />
-                    <label htmlFor="">Sólo ver</label>
+                    <label>Sólo ver</label>
                   </div>
                   <div>
                     <Radio
                       onChange={this.onChangeRadio('adminsAccess', 0)}
                       checked={adminsAccess === 0}
                     />
-                    <label htmlFor="">Sin acceso</label>
+                    <label>Sin acceso</label>
                   </div>
                 </div>
                 <hr />
@@ -192,18 +224,19 @@ class EditAdminModal extends Component {
                       onChange={this.onChangeRadio('tarifsAccess', 1)}
                       checked={tarifsAccess === 1}
                     />
-                    <label htmlFor="">Ver y editar</label>
+                    <label>Ver y editar</label>
                   </div>
                   <div>
                     <Radio
                       onChange={this.onChangeRadio('tarifsAccess', 0)}
                       checked={tarifsAccess === 0}
                     />
-                    <label htmlFor="">Sólo ver</label>
+                    <label>Sólo ver</label>
                   </div>
                 </div>
               </div>
               <Button
+                disabled={!valid}
                 onClick={this.onSave}
                 variant="contained"
                 color="secondary"

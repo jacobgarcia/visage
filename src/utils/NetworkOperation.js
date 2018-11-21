@@ -1,6 +1,6 @@
 import axios from 'axios'
 let baseUrl = 'http://localhost:8080'
-baseUrl = 'https://4b0490a5.ngrok.io'
+// baseUrl = 'https://4b0490a5.ngrok.io'
 let token = null
 
 function getToken() {
@@ -61,8 +61,8 @@ class NetworkOperation {
     return axios.delete(`${baseUrl}/v1/dashboard/admins/${username}`)
   }
 
-  static updateAdmin({ username, ...admin }) {
-    return axios.put(`${baseUrl}/v1/dashboard/admins/${username}`, admin)
+  static updateAdmin(admin) {
+    return axios.put(`${baseUrl}/v1/dashboard/admins/${admin.username}`, admin)
   }
 
   /*

@@ -53,8 +53,12 @@ class Admins extends Component {
   }
 
   handleClose = () => this.setState({ anchorEl: null })
-  handleClick = (event) => this.setState({ anchorEl: event.currentTarget })
-
+  handleClick = (e, user) => {
+    this.setState({
+      anchorEl: e.currentTarget,
+      selectedUser: user,
+    })
+  }
   getAdmins = async () => {
     try {
       const response = await NetworkOperation.getAdmins()
@@ -90,7 +94,6 @@ class Admins extends Component {
 
   onToggleEditModal = (item) => {
     const newState = {}
-    console.log({ item })
     if (item) newState.selectedUser = item
     this.setState(({ openAdmin }) => ({ openAdmin: !openAdmin, ...newState }))
   }
@@ -164,7 +167,7 @@ class Admins extends Component {
             <TableBody>
               {filteredRows.map((item, index) => {
                 return (
-                  <TableRow key={item.id}>
+                  <TableRow key={item._id}>
                     <TableCell component="th" scope="item">
                       {item.name}
                     </TableCell>
@@ -176,21 +179,14 @@ class Admins extends Component {
                       </Button>
                     </TableCell>
                     <TableCell numeric>
-                      <p
-                        onClick={() => {
-                          this.onToggleEditModal(item)
-                        }}
-                      >
-                        {item.name}
-                      </p>
-
                       <MoreButton
+                        user={item}
                         anchorEl={anchorEl}
-                        onEdit={() => {
-                          console.log('Toggle with', item.name)
-                          this.onToggleEditModal(item)
-                        }}
-                        handleClick={this.handleClick}
+                        onEdit={() =>{
+                          this.onToggleEditModal(selectedUser)
+                          }
+                        }
+                        handleClick={(e, user) => this.handleClick(e, user)}
                         handleClose={this.handleClose}
                       />
                     </TableCell>

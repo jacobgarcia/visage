@@ -6,14 +6,14 @@ import IconButton from '@material-ui/core/IconButton'
 import PropTypes from 'prop-types'
 
 function MoreButton(props) {
-  const { anchorEl, isActive } = props
+  const { anchorEl, isActive, user } = props
 
   return (
     <div style={{ display: 'inline-block' }}>
       <IconButton
         aria-owns={anchorEl ? 'simple-menu' : null}
         aria-haspopup="true"
-        onClick={props.handleClick}
+        onClick={e => props.handleClick(e, user)}
       >
         <MoreVertIcon />
       </IconButton>
@@ -43,10 +43,12 @@ function MoreButton(props) {
 MoreButton.propTypes = {
   anchorEl: PropTypes.object,
   isActive: PropTypes.bool,
+  user: PropTypes.object,
 }
 
 MoreButton.defaultProps = {
   isActive: false,
+  user: '',
 }
 
 export default MoreButton

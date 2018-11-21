@@ -147,7 +147,6 @@ class App extends Component {
 
     const { from, to } = this.state
     const modifiers = { start: from, end: to }
-    console.log(name)
     return (
       <SaverProvider
         value={{

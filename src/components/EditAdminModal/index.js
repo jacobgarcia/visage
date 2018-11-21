@@ -34,7 +34,6 @@ class EditAdminModal extends Component {
     const user = nextProps.user
 
     if (user?._id && !state._id) {
-      console.log({ user })
       return {
         name: user?.name || '',
         email: user?.email || '',
@@ -44,8 +43,6 @@ class EditAdminModal extends Component {
         username: user?.username,
       }
     }
-
-    console.log({ nextProps })
 
     if (nextProps.open === false) {
       return getInitialState()

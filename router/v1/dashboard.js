@@ -160,7 +160,7 @@ router.route('/authenticate').post((req, res) => {
             },
             config.secret
           )
-          const { _id, fullName: name, surname, access, defaultPosition } = user
+          const { _id, name, surname, access, defaultPosition } = user
           if (result)
             return res.status(200).json({
               token,

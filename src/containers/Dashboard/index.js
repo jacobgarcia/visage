@@ -107,8 +107,6 @@ class Dashboard extends Component {
               <h4>Clientes con mayor facturación</h4>
               <ResponsiveContainer width="100%" height={400}>
                 <Treemap
-                  width={600}
-                  height={400}
                   data={treeMapData}
                   dataKey="size"
                   ratio={4 / 3}
@@ -124,13 +122,7 @@ class Dashboard extends Component {
             <Card className="card">
               <h4>Resumen de facturación</h4>
               <ResponsiveContainer width="100%" height={400}>
-                <RadarChart
-                  cx={300}
-                  cy={200}
-                  outerRadius={150}
-                  data={radarData}
-                  isAnimationActive={false}
-                >
+                <RadarChart data={radarData} isAnimationActive={false}>
                   <PolarGrid />
                   <PolarAngleAxis dataKey="subject" />
                   <PolarRadiusAxis />

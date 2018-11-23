@@ -361,13 +361,17 @@ router.route('/admins').get(async (req, res) => {
 router
   .route('/admins/:adminUsername')
   .put((req, res) => {
-    const { name, surname, username, email } = req.body
+    const { name, username, email } = req.body
     const { adminUsername } = req.params
 
-    if (!name || !surname || !username || !email) return res.status(400).json({ error: { message: 'Malformed request' } })
+    if (!name || !username || !email) {
+      console.log({name, username, email})
+      return res.status(400).json({ error: { message: 'Malformed request' } })
+    }
+
     return Admin.findOneAndUpdate(
       { username: adminUsername },
-      { $set: { name, surname, username, email } }
+      { $set: { name, username, email } }
     ).exec((error, admin) => {
       if (error) {
         console.error('Could not update admin information')
@@ -375,9 +379,13 @@ router
           .status(500)
           .json({ error: { message: 'Could not update admin information' } })
       }
-      if (!admin) return res
+
+      if (!admin) {
+        return res
           .status(404)
           .json({ success: false, message: 'Admin specified not found' })
+      }
+
       return res.status(200).json({
         success: true,
         message: 'Successfully updated admin information',

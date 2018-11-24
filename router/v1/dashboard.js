@@ -140,50 +140,85 @@ router.post('/signup/:invitation', (req, res) => {
   })
 })
 
-router.route('/authenticate').post((req, res) => {
+router.route('/authenticate').post(async (req, res) => {
   const { email, password } = req.body
-  User.findOne({ email })
-    .lean()
-    .then(user => {
-      if (user === null) {
-        winston.info('Failed to authenticate user email')
-        return res.status(400).json({ message: 'Authentication failed. Wrong user or password.' })
-      }
-      return bcrypt
-        .compare(`${password}${config.secret}`, user.password)
-        .then(result => {
-          const token = jwt.sign(
-            {
-              _id: user._id,
-              acc: user.access,
-              cmp: user.company
-            },
-            config.secret
-          )
-          const { _id, name, surname, access, defaultPosition } = user
-          if (result)
-            return res.status(200).json({
-              token,
-              user: {
-                _id,
-                name,
-                surname,
-                access,
-                defaultPosition
-              }
-            })
+  const user = await User.findOne({ email })
+  const admin = await Admin.findOne({ email })
+  if (user === null && admin === null) {
+    console.log('user not found')
+    winston.info('Failed to authenticate admin email')
+    return res.status(400).json({ message: 'Authentication failed. Wrong user password.' })
+  }
+  try {
+    return bcrypt
+      .compare(`${password}${config.secret}`, admin.password)
+      .then(result => {
+        const token = jwt.sign(
+          {
+            _id: admin._id,
+            acc: 'admin',
+            cmp: admin.company
+          },
+          config.secret
+        )
+        const { _id, name, surname, access, defaultPosition } = admin
+        if (result)
+          return res.status(200).json({
+            token,
+            admin: {
+              _id,
+              name,
+              surname,
+              access: 'admin',
+              defaultPosition
+            }
+          })
 
-          return res.status(401).json({ message: 'Authentication failed. Wrong user or password' })
-        })
-        .catch(error => {
-          winston.info('Failed to authenticate user password', error)
-          return res.status(401).json({ message: 'Authentication failed. Wrong user or password' })
-        })
-    })
-    .catch(error => {
-      winston.error({ error })
-      return res.status(500).json({ error }) // Causes an error for cannot set headers after sent
-    })
+        return res.status(401).json({ message: 'Authentication failed. Wrong admin or password' })
+      })
+      .catch(error => {
+        winston.info('Failed to authenticate admin password', error)
+        return res.status(401).json({ message: 'Authentication failed. Wrong admin or password' })
+      })
+    } catch (error) {
+        try {
+          return bcrypt
+            .compare(`${password}${config.secret}`, user.password)
+            .then(result => {
+              const token = jwt.sign(
+                {
+                  _id: user._id,
+                  acc: 'user',
+                  cmp: user.company
+                },
+                config.secret
+              )
+              const { _id, name, surname, access, defaultPosition } = user
+              if (result)
+                return res.status(200).json({
+                  token,
+                  user: {
+                    _id,
+                    name,
+                    surname,
+                    access: 'user',
+                    defaultPosition
+                  }
+                })
+
+              return res.status(401).json({ message: 'Authentication failed. Wrong user or password' })
+            })
+            .catch(error => {
+              winston.info('Failed to authenticate user password', error)
+              return res.status(401).json({ message: 'Authentication failed. Wrong user or password' })
+            })
+        } catch(error) {
+          winston.error({ error })
+          return res.status(500).json({ error }) // Causes an error for cannot set headers after sent
+        }
+        winston.error({ error })
+        return res.status(500).json({ error }) // Causes an error for cannot set headers after sent
+    }
 })
 
 router.use((req, res, next) => {
@@ -212,16 +247,17 @@ router.use((req, res, next) => {
   })
 })
 
-router.route('/self').get((req,res) => {
-  User.findOne({_id: req._user._id})
-    .lean()
-    .then( user => {
-      if (user === null) {
-            winston.info('No user found')
-            return res.status(400).json({ message: 'No user found' })
-          }
-      return res.status(200).json(user)
-    })
+router.route('/self').get(async (req,res) => {
+  const user = await User.findOne({_id: req._user._id})
+  const admin = await Admin.findOne({_id: req._user._id})
+  if (admin) {
+    return res.status(200).json(user)
+  } else if (user) {
+    return res.status(200).json(user)
+  } else {
+          winston.info('No user found')
+          return res.status(400).json({ message: 'No user found' })
+  }
 })
 
 // Get all users information

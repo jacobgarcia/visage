@@ -126,10 +126,12 @@ class App extends Component {
   render() {
     const {
       state: { open, showSaveButton, saving, toolBarHidden, showDateFilter, showDayPicker,loadingSelf, name, userImage },
+
       props: {
         location: { pathname },
       },
     } = this
+    console.log(name)
     if (loadingSelf) {
       return (
         <div className="loading-screen">

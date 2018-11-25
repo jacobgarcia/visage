@@ -7,7 +7,7 @@ router.use('/engine', require(path.resolve('router/v1/images')))
 router.use('/dashboard', require(path.resolve('router/v1/dashboard')))
 
 router.use((req, res) => {
-  return res.status(401).json({ message: 'Not authorized' })
+  return res.status(404).json({ message: 'Resource not found' })
 })
 
 module.exports = router

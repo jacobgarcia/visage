@@ -80,7 +80,7 @@ class ClientRow extends Component {
 
   onDelete = async () => {
     this.setState({ loadingDelte: true })
-    
+
     try {
       const response = await NetworkOperation.deleteUser(this.props.username)
       console.log(response)
@@ -157,7 +157,7 @@ class ClientRow extends Component {
           <IconButton />
 
         </TableCell>
-        <TableCell number>
+        <TableCell numeric>
           <MoreButton
             isActive={props.active}
             anchorEl={anchorEl}

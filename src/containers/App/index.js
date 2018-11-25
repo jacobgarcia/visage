@@ -1,140 +1,121 @@
 import React, { Component, Fragment } from 'react'
 import { NavLink, Switch, Route } from 'react-router-dom'
 import PropTypes from 'prop-types'
-import DayPicker, { DateUtils } from 'react-day-picker'
-import 'react-day-picker/lib/style.css';
+import { DateUtils } from 'react-day-picker'
+import 'react-day-picker/lib/style.css'
 
 import CssBaseline from '@material-ui/core/CssBaseline'
-import Drawer from '@material-ui/core/Drawer'
-import AppBar from '@material-ui/core/AppBar'
-import Toolbar from '@material-ui/core/Toolbar'
-import CircularProgress from '@material-ui/core/CircularProgress'
-import Typography from '@material-ui/core/Typography'
-import Button from '@material-ui/core/Button'
 
 import ListItem from '@material-ui/core/ListItem'
 import ListItemIcon from '@material-ui/core/ListItemIcon'
-import ListItemText from '@material-ui/core/ListItemText'
-import DashboardIcon from '@material-ui/icons/Dashboard'
-import SaveIcon from '@material-ui/icons/Save'
-import PeopleIcon from '@material-ui/icons/People'
-import AttachMoneyIcon from '@material-ui/icons/AttachMoney'
-import SecurityIcon from '@material-ui/icons/Security'
-import ExitIcon from '@material-ui/icons/ExitToApp'
 
-import Dashboard from '../Dashboard'
-import Clients from '../Clients'
-import Admins from '../Admins'
-import Tarifs from '../Tarifs'
+import Dashboard from 'containers/Dashboard'
+import Clients from 'containers/Clients'
+import Admins from 'containers/Admins'
+import Tarifs from 'containers/Tarifs'
+
+import AppBar from 'components/AppBar'
+import Drawer from 'components/Drawer'
+
+import SaveIcon from '@material-ui/icons/Save'
 
 import NetworkOperation from 'utils/NetworkOperation'
+import { UserContext } from 'utils/context'
 import { SaverProvider } from '../../utils/portals'
 
 import qboLogoColor from '../../assets/qbo-logo.svg'
-import qboLogo from '../../assets/qbo-logo-mono.svg'
 import './styles.pcss'
-
-function listItem(text, Component) {
-  return (
-    <ListItem button>
-      <ListItemIcon>
-        <Component color="secondary" />
-      </ListItemIcon>
-      <ListItemText primary={text} />
-    </ListItem>
-  )
-}
 
 class App extends Component {
   static propTypes = {
     location: PropTypes.object,
   }
 
+  static contextType = UserContext
+
   state = {
     loadingSelf: true,
-    open: false,
     showSaveButton: false,
     saving: false,
     toolBarHidden: true,
     showDateFilter: true,
     showDayPicker: false,
-    name: 'A',
-    userImage: '',
-    ...this.getInitialState()
-  }
-
-  async componentDidMount() {
-    try {
-      const { data }  = await NetworkOperation.getSelf()
-      // Set data to display in nav
-      this.setState({
-        loadingSelf: false,
-        name: data.name,
-        userImage: data.userImage ? data.userImage : ''
-      })
-
-    } catch(error) {
-      if (error.response?.status === 401) this.props.history.replace('/login')
-      // TODO Other error should be displayed
-    }
-  }
-
-  onDrawerToggle = () => this.setState(({ open }) => ({ open: !open }))
-
-  handleDrawerClose = () => this.setState({ open: false })
-
-  onLinkClick = () => this.setState({ open: false })
-
-  onCloseClick = () => {
-    localStorage.clear()
-    this.setState({ open: false })
-  }
-  setSaveButtonValue = (value = false) => {
-    this.setState({ showSaveButton: value })
-  }
-
-  onSaveClicked = () => this.setState({ saving: true })
-
-  setStopSaving = () => this.setState({ saving: false })
-
-  onToggleToolBar = () => {
-    this.setState(({ toolBarHidden })=> ({ toolBarHidden: !toolBarHidden }))
-  }
-
-  onToggleDayPicker = () => this.setState(({showDayPicker}) => ({showDayPicker: !showDayPicker}))
-
-  onDateSelect = () => {
-
+    ...this.getInitialState(),
   }
 
   getInitialState() {
     return {
       from: undefined,
       to: undefined,
-    };
+    }
   }
 
+  async componentDidMount() {
+    try {
+      const { data } = await NetworkOperation.getSelf()
+
+      // Set user context
+      this.context.setUserData({
+        isSuperAdmin: data.superAdmin,
+        services: data.services,
+        name: data.name,
+        username: data.username,
+        email: data.email,
+        userImage: data.userImage ? data.userImage : '',
+      })
+
+      this.setState({ loadingSelf: false })
+    } catch (error) {
+      if (error.response?.status === 401) this.props.history.replace('/login')
+      // TODO Other error should be displayed
+    }
+  }
+
+  onCloseClick = () => {
+    localStorage.clear()
+  }
+
+  toggleNavActions = ({ saveButton = false, dateFilter = false } = {}) => {
+    this.setState({ showSaveButton: saveButton, showDateFilter: dateFilter })
+  }
+
+  onSaveClicked = () => this.setState({ saving: true })
+
+  setStopSaving = () => this.setState({ saving: false })
+
+  onToggle = (name) => () => this.setState((prev) => ({ [name]: !prev[name] }))
+
+  onDateSelect = () => {}
+
   handleDayClick = (day) => {
-    const range = DateUtils.addDayToRange(day, this.state);
-    this.setState(range);
+    const range = DateUtils.addDayToRange(day, this.state)
+    this.setState(range)
   }
 
   handleResetClick = () => {
-    this.setState(this.getInitialState());
+    this.setState(this.getInitialState())
   }
 
   render() {
     const {
-      state: { open, showSaveButton, saving, toolBarHidden, showDateFilter, showDayPicker,loadingSelf, name, userImage },
+      state: {
+        showSaveButton,
+        saving,
+        toolBarHidden,
+        showDateFilter,
+        showDayPicker,
+        loadingSelf,
+      },
 
       props: {
         location: { pathname },
       },
     } = this
+
     if (loadingSelf) {
       return (
         <div className="loading-screen">
-          <img src={qboLogoColor} alt="QBO"/>
+          <img src={qboLogoColor} alt="QBO" />
           <p>Cargando...</p>
         </div>
       )
@@ -151,103 +132,37 @@ class App extends Component {
     return (
       <SaverProvider
         value={{
-          toggle: this.setSaveButtonValue,
+          toggle: this.toggleNavActions,
           value: showSaveButton,
           saving,
           stopSaving: this.setStopSaving,
           showDateFilter,
-          onDateSelect: this.onDateSelect
+          onDateSelect: this.onDateSelect,
         }}
       >
         <Fragment>
           <CssBaseline />
           <div className="root">
-            <AppBar position="absolute" className={`app-bar ${toolBarHidden ? '--full-width' : ''}`}>
-              <Toolbar className="toolbar">
-                <div className="toolbar__content">
-                  <Typography variant="subtitle" color="inherit" noWrap>
-                    {title}
-                  </Typography>
-
-                  <div className="toolbar__actions">
-                    {
-                      showDateFilter && (
-                        <div className="date-filter-container">
-                          <Button
-                            variant="contained"
-                            color="secondary"
-                            onClick={this.onToggleDayPicker}
-                            size="small"
-                            >
-                            Filtrar
-                          </Button>
-                          { showDayPicker &&
-                            <DayPicker
-                              className="Selectable"
-                              numberOfMonths={this.props.numberOfMonths}
-                              selectedDays={[from, { from, to }]}
-                              modifiers={modifiers}
-                              onDayClick={this.handleDayClick}
-                            />
-                          }
-                        </div>
-
-                      )
-                    }
-                    {showSaveButton &&
-                      (saving ? (
-                        <div className="circular-progress-container">
-                          <CircularProgress
-                            className="circular-progress"
-                            size={30}
-                            color="inherit"
-                          />
-                        </div>
-                      ) : (
-                        <Button
-                          variant="contained"
-                          color="secondary"
-                          onClick={this.onSaveClicked}
-                          size="small"
-                        >
-                          Guardar
-                          <SaveIcon color="inherit" className="save-icon" />
-                        </Button>
-                      ))}
-                  </div>
-                </div>
-                <div>
-                <div className="user-image">
-                {userImage ? <img src={userImage}/> : <p>{name.charAt(0).toUpperCase()}</p> }
-                </div>
-              </div>
-              </Toolbar>
-            </AppBar>
+            <AppBar
+              onToggle={this.onToggle}
+              saving={saving}
+              showSaveButton={showSaveButton}
+              showDateFilter={showDateFilter}
+              from={from}
+              to={to}
+              modifiers={modifiers}
+              showDayPicker={showDayPicker}
+              toolBarHidden={toolBarHidden}
+              title={title}
+              handleDayClick={this.handleDayClick}
+              numberOfMonths={1}
+            />
             <Drawer
-              className={`drawer ${toolBarHidden ? '--hidden' : ''}`}
-              variant="permanent"
-              anchor="left"
-            >
-              <div className={`toolbar__logo`}>
-                <img src={qboLogo} alt="QBO" />
-                <div onClick={this.onToggleToolBar} className={`toggle-button`} />
-              </div>
-              <NavLink onClick={this.onLinkClick} exact to="/">
-                {listItem('Dashboard', DashboardIcon)}
-              </NavLink>
-              <NavLink onClick={this.onLinkClick} to="/clients">
-                {listItem('Clientes', PeopleIcon)}
-              </NavLink>
-              <NavLink onClick={this.onLinkClick} to="/admins">
-                {listItem('Administradores', SecurityIcon)}
-              </NavLink>
-              <NavLink onClick={this.onLinkClick} to="/tarifs">
-                {listItem('Tarifas', AttachMoneyIcon)}
-              </NavLink>
-              <NavLink onClick={this.onCloseClick} to="/login" className="login">
-                {listItem('Cerrar sesión', ExitIcon)}
-              </NavLink>
-            </Drawer>
+              onToggle={this.onToggle}
+              onLinkClick={this.onLinkClick}
+              toolBarHidden={toolBarHidden}
+              onCloseClick={this.onCloseClick}
+            />
             <main className={`content ${toolBarHidden ? '--full-width' : ''}`}>
               <Switch>
                 <Route exact path="/" component={Dashboard} />

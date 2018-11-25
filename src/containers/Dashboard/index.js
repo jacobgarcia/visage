@@ -37,14 +37,13 @@ import { treeMapData, radarData } from './dummy'
 class Dashboard extends Component {
   static propTypes = {
     saving: PropTypes.bool,
-    // stopSaving: PropTypes.function,
-    // toggle: PropTypes.function,
+    toggle: PropTypes.function,
   }
 
   state = {}
 
   componentDidMount() {
-    this.props.toggle(false)
+    this.props.toggle({ saveButton: false, dateFilter: true })
   }
 
   render() {

@@ -5,21 +5,13 @@ import TableCell from '@material-ui/core/TableCell'
 import TableHead from '@material-ui/core/TableHead'
 import TableRow from '@material-ui/core/TableRow'
 import Button from '@material-ui/core/Button'
-import TextField from '@material-ui/core/TextField'
-// import IconButton from '@material-ui/core/IconButton'
-import Modal from '@material-ui/core/Modal'
-// import CircularProgress from '@material-ui/core/CircularProgress'
 import Card from '@material-ui/core/Card'
-import FormControlLabel from '@material-ui/core/FormControlLabel'
-import Checkbox from '@material-ui/core/Checkbox'
+import TextField from '@material-ui/core/TextField'
 
-// import BlockIcon from '@material-ui/icons/Block'
-// import RefreshIcon from '@material-ui/icons/Refresh'
-// import KeyIcon from '@material-ui/icons/VpnKey'
 import PropTypes from 'prop-types'
 
 import ClientRow from 'components/ClientRow'
-// import MoreButton from 'components/MoreButton'
+import ClientModal from 'components/ClientModal'
 import NetworkOperation from 'utils/NetworkOperation'
 import { withSaver } from 'utils/portals'
 
@@ -41,15 +33,13 @@ class Clients extends Component {
   }
 
   async componentDidMount() {
-    this.props.toggle(true)
+    this.props.toggle({ saveButton: false, dateFilter: false })
 
     try {
       let users = await NetworkOperation.getUsers()
       users = users.data.users || []
-      console.log({ users })
-      this.setState({
-        rows: users,
-      })
+
+      this.setState({ rows: users })
     } catch (error) {
       console.log({ error })
     }
@@ -75,8 +65,6 @@ class Clients extends Component {
 
   handleClick = (event) => this.setState({ anchorEl: event.currentTarget })
 
-  handlecheckChange = (name) => () => this.setState({ [name]: false })
-
   toggleUserAddModal = (isOpen = null) => () =>
     this.setState(({ prev }) => ({
       addUserModalOpen: isOpen !== null ? isOpen : !prev.addUserModalOpen,
@@ -89,164 +77,10 @@ class Clients extends Component {
 
     return (
       <div className="clients">
-        <Modal
-          open={addUserModalOpen}
-          onClose={this.toggleUserAddModal(false)}
-          className="modal"
-        >
-          <Card className="card">
-            <div className="card-header">
-              <h2>Añadir usuario</h2>
-              <Button
-                onClick={this.toggleUserAddModal(false)}
-                variant="outlined"
-              >
-                Cerrar
-              </Button>
-            </div>
-            <div>
-              <div>
-                <TextField
-                  id="standard-name"
-                  label="Nombre"
-                  value={user}
-                  name="user"
-                  onChange={this.onChange}
-                  margin="normal"
-                  variant="outlined"
-                />
-                <TextField
-                  id="standard-name"
-                  label="Email"
-                  value={user}
-                  name="user"
-                  onChange={this.onChange}
-                  margin="normal"
-                  variant="outlined"
-                />
-              </div>
-            </div>
-            <div>
-              <h4>Función</h4>
-              <div className="list">
-                <div>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={admin}
-                        onChange={this.handlecheckChange('admin')}
-                        value="checkedG"
-                        color="primary"
-                      />
-                    }
-                    label="Administrador"
-                  />
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={admin}
-                        onChange={this.handlecheckChange('admin')}
-                        value="checkedG"
-                        color="primary"
-                      />
-                    }
-                    label="Superadministrador"
-                  />
-                </div>
-              </div>
-            </div>
-            <div>
-              <h4>Permisos</h4>
-              <div className="list">
-                <div>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={admin}
-                        onChange={this.handlecheckChange('admin')}
-                        value="checkedG"
-                        color="primary"
-                      />
-                    }
-                    label="Ver dashboard"
-                  />
-                </div>
-                <div>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={admin}
-                        onChange={this.handlecheckChange('admin')}
-                        value="checkedG"
-                        color="primary"
-                      />
-                    }
-                    label="Ver clientes"
-                  />
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={admin}
-                        onChange={this.handlecheckChange('admin')}
-                        value="checkedG"
-                        color="primary"
-                      />
-                    }
-                    label="Crear y editar clientes"
-                  />
-                </div>
-                <div>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={admin}
-                        onChange={this.handlecheckChange('admin')}
-                        value="checkedG"
-                        color="primary"
-                      />
-                    }
-                    label="Ver administradores"
-                  />
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={admin}
-                        onChange={this.handlecheckChange('admin')}
-                        value="checkedG"
-                        color="primary"
-                      />
-                    }
-                    label="Crear y editar administradores"
-                  />
-                </div>
-                <div>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={admin}
-                        onChange={this.handlecheckChange('admin')}
-                        value="checkedG"
-                        color="primary"
-                      />
-                    }
-                    label="Ver tarifas"
-                  />
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={admin}
-                        onChange={this.handlecheckChange('admin')}
-                        value="checkedG"
-                        color="primary"
-                      />
-                    }
-                    label="Crear y editar tarifas"
-                  />
-                </div>
-              </div>
-            </div>
-          </Card>
-        </Modal>
+        <ClientModal
+          toggleUserAddModal={this.toggleUserAddModal}
+          addUserModalOpen={addUserModalOpen}
+        />
         <div className="actions">
           <TextField
             id="standard-name"
@@ -262,7 +96,7 @@ class Clients extends Component {
               className="button"
               onClick={this.toggleUserAddModal(true)}
             >
-              Nuevo cliente
+              Nuevo usuario
             </Button>
             <Button color="secondary" className="button" variant="contained">
               Exportar
@@ -278,7 +112,7 @@ class Clients extends Component {
                 <TableCell>Mail</TableCell>
                 <TableCell>Indexación</TableCell>
                 <TableCell>API Keys</TableCell>
-                <TableCell />
+                <TableCell numeric />
               </TableRow>
             </TableHead>
             <TableBody>

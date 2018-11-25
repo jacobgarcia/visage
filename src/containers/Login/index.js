@@ -30,7 +30,6 @@ class Login extends Component {
 
     NetworkOperation.login({ email, password })
       .then(({ data }) => {
-        console.log({ data })
         localStorage.setItem('token', data.token)
         this.props.history.replace('/')
       })

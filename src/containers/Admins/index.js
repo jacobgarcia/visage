@@ -37,7 +37,7 @@ class Admins extends Component {
   }
 
   componentDidMount() {
-    this.props.toggle(false)
+    this.props.toggle({ saveButton: false, dateFilter: false })
 
     this.getAdmins()
   }
@@ -182,10 +182,9 @@ class Admins extends Component {
                       <MoreButton
                         user={item}
                         anchorEl={anchorEl}
-                        onEdit={() =>{
+                        onEdit={() => {
                           this.onToggleEditModal(selectedUser)
-                          }
-                        }
+                        }}
                         handleClick={(e, user) => this.handleClick(e, user)}
                         handleClose={this.handleClose}
                       />

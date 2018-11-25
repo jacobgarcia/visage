@@ -24,7 +24,7 @@ class Tarifs extends Component {
   }
 
   componentDidMount() {
-    this.props.toggle(true)
+    this.props.toggle({ saveButton: true })
   }
 
   componentDidUpdate(prevProps) {

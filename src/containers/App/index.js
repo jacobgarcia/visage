@@ -43,36 +43,40 @@ class App extends Component {
     ...this.getInitialState(),
   }
 
+  getInitialState() {
+    return {
+      from: undefined,
+      to: undefined,
+    }
+  }
+
   async componentDidMount() {
     try {
       const { data } = await NetworkOperation.getSelf()
 
       // Set user context
-      this.context.setUserData(
-        {
-          isSuperAdmin: data.superAdmin,
-          services: data.services,
-          name: data.name,
-          username: data.username,
-          email: data.email,
-          userImage: data.userImage ? data.userImage : '',
-        })
+      this.context.setUserData({
+        isSuperAdmin: data.superAdmin,
+        services: data.services,
+        name: data.name,
+        username: data.username,
+        email: data.email,
+        userImage: data.userImage ? data.userImage : '',
+      })
 
-        this.setState({ loadingSelf: false })
+      this.setState({ loadingSelf: false })
     } catch (error) {
       if (error.response?.status === 401) this.props.history.replace('/login')
       // TODO Other error should be displayed
     }
   }
 
-
   onCloseClick = () => {
     localStorage.clear()
-
   }
 
-  setSaveButtonValue = (value = false) => {
-    this.setState({ showSaveButton: value })
+  toggleNavActions = ({ saveButton = false, dateFilter = false } = {}) => {
+    this.setState({ showSaveButton: saveButton, showDateFilter: dateFilter })
   }
 
   onSaveClicked = () => this.setState({ saving: true })
@@ -82,13 +86,6 @@ class App extends Component {
   onToggle = (name) => () => this.setState((prev) => ({ [name]: !prev[name] }))
 
   onDateSelect = () => {}
-
-  getInitialState() {
-    return {
-      from: undefined,
-      to: undefined,
-    }
-  }
 
   handleDayClick = (day) => {
     const range = DateUtils.addDayToRange(day, this.state)
@@ -108,8 +105,6 @@ class App extends Component {
         showDateFilter,
         showDayPicker,
         loadingSelf,
-        name,
-        userImage,
       },
 
       props: {
@@ -137,7 +132,7 @@ class App extends Component {
     return (
       <SaverProvider
         value={{
-          toggle: this.setSaveButtonValue,
+          toggle: this.toggleNavActions,
           value: showSaveButton,
           saving,
           stopSaving: this.setStopSaving,

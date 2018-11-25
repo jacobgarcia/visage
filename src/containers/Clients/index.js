@@ -33,15 +33,13 @@ class Clients extends Component {
   }
 
   async componentDidMount() {
-    this.props.toggle(false)
+    this.props.toggle({ saveButton: false, dateFilter: false })
 
     try {
       let users = await NetworkOperation.getUsers()
       users = users.data.users || []
-      console.log({ users })
-      this.setState({
-        rows: users,
-      })
+
+      this.setState({ rows: users })
     } catch (error) {
       console.log({ error })
     }

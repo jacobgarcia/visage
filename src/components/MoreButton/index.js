@@ -13,7 +13,7 @@ function MoreButton(props) {
       <IconButton
         aria-owns={anchorEl ? 'simple-menu' : null}
         aria-haspopup="true"
-        onClick={(e) => props.handleClick(e, user)}
+        onClick={(evt) => props.handleClick(evt, user)}
       >
         <MoreVertIcon />
       </IconButton>
@@ -54,8 +54,12 @@ function MoreButton(props) {
 
 MoreButton.propTypes = {
   anchorEl: PropTypes.object,
+  handleClose: PropTypes.function,
   isActive: PropTypes.bool,
-  user: PropTypes.object,
+  onDelete: PropTypes.onDelete,
+  onEdit: PropTypes.onEdit,
+  onToggleActive: PropTypes.function,
+  user: PropTypes.string,
 }
 
 MoreButton.defaultProps = {

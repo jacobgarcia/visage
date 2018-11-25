@@ -25,6 +25,8 @@ class ClientRow extends Component {
     generateKeyLoading: false,
     revokeKeyLoading: false,
     renewKeyLoading: false,
+    loadingDelte: false,
+    toggleActiveLoading: false
   }
 
   revokeKey = async () => {
@@ -57,9 +59,35 @@ class ClientRow extends Component {
       const response = await NetworkOperation.generateAPIKey(this.props.username)
       console.log({response})
     } catch(error) {
-      console.log({ error })
+      console.error(error)
     } finally {
       this.setState({ generateKeyLoading: false })
+    }
+  }
+
+  onToggleActive = async (isActive) => {
+    this.setState({ toggleActiveLoading: true })
+
+    try {
+      const response = await isActive ?  NetworkOperation.deactivateUser(this.props.username) : NetworkOperation.reactivateUser(this.props.username)
+      console.log(response)
+    } catch (error) {
+      console.error(error)
+    } finally {
+      this.setState({ toggleActiveLoading: false })
+    }
+  }
+
+  onDelete = async () => {
+    this.setState({ loadingDelte: true })
+    
+    try {
+      const response = await NetworkOperation.deleteUser(this.props.username)
+      console.log(response)
+    } catch (error) {
+      console.error(error)
+    } finally {
+      this.setState({ loadingDelte: false })
     }
   }
 
@@ -131,11 +159,14 @@ class ClientRow extends Component {
         </TableCell>
         <TableCell number>
           <MoreButton
+            isActive={props.active}
             anchorEl={anchorEl}
+            onToggleActive={this.onToggleActive}
+            onDelete={this.onDelete}
             handleClick={this.handleClick}
             handleClose={this.handleClose}
           />
-</TableCell>
+        </TableCell>
       </TableRow>
     )
   }

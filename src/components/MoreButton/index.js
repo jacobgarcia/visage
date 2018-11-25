@@ -13,7 +13,7 @@ function MoreButton(props) {
       <IconButton
         aria-owns={anchorEl ? 'simple-menu' : null}
         aria-haspopup="true"
-        onClick={e => props.handleClick(e, user)}
+        onClick={(e) => props.handleClick(e, user)}
       >
         <MoreVertIcon />
       </IconButton>
@@ -31,10 +31,22 @@ function MoreButton(props) {
         >
           Editar
         </MenuItem>
-        <MenuItem onClick={props.handleClose}>
+        <MenuItem
+          onClick={() => {
+            props.onToggleActive(isActive)
+            props.handleClose()
+          }}
+        >
           {isActive ? 'Desactivar' : 'Reactivar'}
         </MenuItem>
-        <MenuItem onClick={props.handleClose}>Eliminar</MenuItem>
+        <MenuItem
+          onClick={() => {
+            props.onDelete()
+            props.handleClose()
+          }}
+        >
+          Eliminar
+        </MenuItem>
       </Menu>
     </div>
   )
@@ -49,6 +61,7 @@ MoreButton.propTypes = {
 MoreButton.defaultProps = {
   isActive: false,
   user: '',
+  onToggleActive: () => {},
 }
 
 export default MoreButton

@@ -59,6 +59,7 @@ MoreButton.propTypes = {
 }
 
 MoreButton.defaultProps = {
+  onEdit: () => {},
   isActive: false,
   user: '',
   onToggleActive: () => {},

@@ -23,6 +23,9 @@ function AppBarComponent(props) {
     showDayPicker,
     saving,
     onToggle,
+    onSaveClicked,
+    handleDayClick,
+    numberOfMonths,
   } = props
 
   return (
@@ -52,10 +55,10 @@ function AppBarComponent(props) {
                     {showDayPicker && (
                       <DayPicker
                         className="Selectable"
-                        numberOfMonths={this.props.numberOfMonths}
+                        numberOfMonths={numberOfMonths}
                         selectedDays={[from, { from, to }]}
                         modifiers={modifiers}
-                        onDayClick={this.handleDayClick}
+                        onDayClick={handleDayClick}
                       />
                     )}
                   </div>
@@ -73,7 +76,7 @@ function AppBarComponent(props) {
                     <Button
                       variant="contained"
                       color="secondary"
-                      onClick={this.onSaveClicked}
+                      onClick={onSaveClicked}
                       size="small"
                     >
                       Guardar

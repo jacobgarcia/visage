@@ -33,7 +33,7 @@ class Clients extends Component {
   }
 
   async componentDidMount() {
-    this.props.toggle(true)
+    this.props.toggle(false)
 
     try {
       let users = await NetworkOperation.getUsers()

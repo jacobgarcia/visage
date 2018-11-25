@@ -159,6 +159,8 @@ class App extends Component {
               showDayPicker={showDayPicker}
               toolBarHidden={toolBarHidden}
               title={title}
+              handleDayClick={this.handleDayClick}
+              numberOfMonths={1}
             />
             <Drawer
               onToggle={this.onToggle}

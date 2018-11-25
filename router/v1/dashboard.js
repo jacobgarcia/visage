@@ -251,7 +251,7 @@ router.route('/self').get(async (req,res) => {
   const user = await User.findOne({_id: req._user._id})
   const admin = await Admin.findOne({_id: req._user._id})
   if (admin) {
-    return res.status(200).json(user)
+    return res.status(200).json(admin)
   } else if (user) {
     return res.status(200).json(user)
   } else {

@@ -131,7 +131,6 @@ class App extends Component {
         location: { pathname },
       },
     } = this
-    console.log(name)
     if (loadingSelf) {
       return (
         <div className="loading-screen">

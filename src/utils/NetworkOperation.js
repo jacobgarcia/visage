@@ -25,8 +25,15 @@ class NetworkOperation {
   /*
   LOGIN
   */
+
   static login({email, password}) {
     return axios.post(`${baseUrl}/v1/dashboard/authenticate`, {email, password})
+  }
+  /*
+  Signup
+  */
+  static self(invitation,{email, password, username, fullName}) {
+    return axios.get(`${baseUrl}/v1/dashboard/signup/${invitation}`, {email, password, username, fullName})
   }
 
   static self() {

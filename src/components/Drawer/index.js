@@ -1,0 +1,64 @@
+import React from 'react'
+import PropTypes from 'prop-types'
+
+import { NavLink } from 'react-router-dom'
+
+import ListItem from '@material-ui/core/ListItem'
+import ListItemIcon from '@material-ui/core/ListItemIcon'
+import Drawer from '@material-ui/core/Drawer'
+import ListItemText from '@material-ui/core/ListItemText'
+
+import DashboardIcon from '@material-ui/icons/Dashboard'
+import PeopleIcon from '@material-ui/icons/People'
+import AttachMoneyIcon from '@material-ui/icons/AttachMoney'
+import SecurityIcon from '@material-ui/icons/Security'
+import ExitIcon from '@material-ui/icons/ExitToApp'
+
+import qboLogo from '../../assets/qbo-logo-mono.svg'
+
+function listItem(text, Component) {
+  return (
+    <ListItem button>
+      <ListItemIcon>
+        <Component color="secondary" />
+      </ListItemIcon>
+      <ListItemText primary={text} />
+    </ListItem>
+  )
+}
+
+function DrawerComponent(props) {
+  const { toolBarHidden, onToggle, onLinkClick, onCloseClick } = props
+
+  return (
+    <Drawer
+      className={`drawer ${toolBarHidden ? '--hidden' : ''}`}
+      variant="permanent"
+      anchor="left"
+    >
+      <div className={'toolbar__logo'}>
+        <img src={qboLogo} alt="QBO" />
+        <div onClick={onToggle('toolBarHidden')} className={'toggle-button'} />
+      </div>
+      <NavLink onClick={onLinkClick} exact to="/">
+        {listItem('Dashboard', DashboardIcon)}
+      </NavLink>
+      <NavLink onClick={onLinkClick} to="/clients">
+        {listItem('Clientes', PeopleIcon)}
+      </NavLink>
+      <NavLink onClick={onLinkClick} to="/admins">
+        {listItem('Administradores', SecurityIcon)}
+      </NavLink>
+      <NavLink onClick={onLinkClick} to="/tarifs">
+        {listItem('Tarifas', AttachMoneyIcon)}
+      </NavLink>
+      <NavLink onClick={onCloseClick} to="/login" className="login">
+        {listItem('Cerrar sesión', ExitIcon)}
+      </NavLink>
+    </Drawer>
+  )
+}
+
+DrawerComponent.propTypes = {}
+
+export default DrawerComponent

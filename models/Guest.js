@@ -10,7 +10,7 @@ const schema = new Schema({
   company: String,
   password: String,
   invitationToken: String,
-  host: { type: Schema.Types.ObjectId, ref: 'User' }
+  host: { type: Schema.Types.ObjectId, ref: 'User' },
 })
 
 module.exports = mongoose.model('Guest', schema)

@@ -149,7 +149,16 @@ class App extends Component {
           <CssBaseline />
           <div className="root">
             <AppBar
+              onToggle={this.onToggle}
+              saving={saving}
+              showSaveButton={showSaveButton}
+              showDateFilter={showDateFilter}
+              from={from}
+              to={to}
+              modifiers={modifiers}
+              showDayPicker={showDayPicker}
               toolBarHidden={toolBarHidden}
+              title={title}
             />
             <Drawer
               onToggle={this.onToggle}

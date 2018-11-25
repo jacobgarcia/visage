@@ -126,6 +126,7 @@ class App extends Component {
   render() {
     const {
       state: { open, showSaveButton, saving, toolBarHidden, showDateFilter, showDayPicker,loadingSelf, name, userImage },
+
       props: {
         location: { pathname },
       },

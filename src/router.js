@@ -21,8 +21,8 @@ function Routes() {
     <MuiThemeProvider theme={theme}>
       <Router>
         <Switch>
-          <Route path="/login" component={Login} />
-          <Route path="/signup" component={Signup} />
+          <Route exact path="/login" component={Login} />
+          <Route exact path="/signup" component={Signup} />
           <Route exact path="/(|tarifs|admins|clients)/" component={App} />
           <Route component={NotFound} />
         </Switch>

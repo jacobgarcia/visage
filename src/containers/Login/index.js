@@ -17,9 +17,11 @@ class Login extends Component {
     password: '',
     error: '',
   }
+
   componentDidMount() {
     localStorage.clear()
   }
+
   onChange = ({ target: { name, value } }) => this.setState({ [name]: value })
 
   onSubmit = (event) => {
@@ -28,8 +30,9 @@ class Login extends Component {
 
     NetworkOperation.login({ email, password })
       .then(({ data }) => {
+        console.log({ data })
         localStorage.setItem('token', data.token)
-        this.props.history.replace(this.state.return || '/')
+        this.props.history.replace('/')
       })
       .catch(({ response = {} }) => {
         const { status = 500 } = response

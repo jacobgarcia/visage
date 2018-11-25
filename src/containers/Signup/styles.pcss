@@ -1,0 +1,20 @@
+.login {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  form {
+    display: flex;
+    flex-direction: column;
+    max-width: 300px;
+    input:-webkit-autofill + label {
+      transform: translate(14px, -6px) scale(0.75);
+    }
+    p {
+      color: red;
+    }
+  }
+  .submit {
+    margin-top: 16px;
+  }
+}

@@ -131,7 +131,7 @@ html {
       height: 49.5px;
     }
     &.--hidden {
-      .toggle-button::after {
+      .toggle-button {
         display: none;
       }
       > div {
@@ -139,6 +139,9 @@ html {
         overflow-x: hidden;
         &:hover {
           max-width: 239px;
+          .toggle-button {
+            display: block;
+          }
           img {
             max-width: 80px;
           }

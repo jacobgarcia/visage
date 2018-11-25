@@ -9,7 +9,7 @@ const schema = new Schema({
   email: { type: String, required: true, unique: true, index: true },
   company: String,
   password: String,
-  invitationToken: String,
+  invitation: { type: String, required: true, unique: true },
   host: { type: Schema.Types.ObjectId, ref: 'User' },
 })
 

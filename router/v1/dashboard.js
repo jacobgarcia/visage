@@ -15,8 +15,6 @@ const Admin = require(path.resolve('models/Admin'))
 
 const config = require(path.resolve('config'))
 
-let URL
-
 const fields = [
   {
     label: 'Username',
@@ -72,7 +70,6 @@ nev.configure(
     tempUserModel: Guest,
     expirationTime: 86400, // 24 hour expiration
     URLFieldName: 'invitation',
-
     transportOptions: {
       service: 'Gmail',
       auth: {

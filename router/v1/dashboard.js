@@ -39,6 +39,29 @@ const fields = [
   },
 ]
 
+const adminFields = [
+  {
+    label: 'Username',
+    value: 'username',
+  },
+  {
+    label: 'Name',
+    value: 'name',
+  },
+  {
+    label: 'Surname',
+    value: 'surname',
+  },
+  {
+    label: 'Company',
+    value: 'company',
+  },
+  {
+    label: 'Email',
+    value: 'email',
+  },
+]
+
 nev.configure(
   {
     verificationURL: `http://localhost:8080/signup/${URL}`,
@@ -167,7 +190,7 @@ router.route('/authenticate').post(async (req, res) => {
   const user = await User.findOne({ email })
   const admin = await Admin.findOne({ email })
   if (user === null && admin === null) {
-    console.log('user not found')
+    console.info('user not found')
     winston.info('Failed to authenticate admin email')
     return res.status(400).json({ message: 'Authentication failed. Wrong user password.' })
   }
@@ -396,7 +419,7 @@ router
     const { adminUsername } = req.params
 
     if (!name || !username || !email) {
-      console.log({ name, username, email })
+      console.info({ name, username, email })
       return res.status(400).json({ error: { message: 'Malformed request' } })
     }
 
@@ -464,9 +487,6 @@ router.route('/admins/:username/activate').patch((req, res) => {
 
 // Export all users to CSV
 router.route('/admins/export').get((req, res) => {
-  const company = req._user.cmp
-  const alarms = []
-
   Admin.find({}).exec((error, admins) => {
     if (error) {
       console.error('Could not export admins', error)

@@ -95,14 +95,13 @@ class ClientRow extends Component {
   handleClick = (event) => this.setState({ anchorEl: event.currentTarget })
 
   render() {
-    console.log({props})
     const { props, state: { anchorEl, generateKeyLoading, revokeKeyLoading, renewKeyLoading } } = this
 
     return (
       <TableRow
-        key={props._id}
+        key={props.client._id}
         className={`user-row ${
-          props.active ? 'active' : 'deactive'
+          props.client.active ? 'active' : 'deactive'
         }`}
       >
         <TableCell
@@ -110,17 +109,17 @@ class ClientRow extends Component {
           scope="item"
           className="user-row__body"
         >
-          {props.name} {props.surname}
+          {props.client.name} {props.client.surname}
         </TableCell>
         <TableCell className="user-row__body">
-          {props.company}
+          {props.client.company}
         </TableCell>
         <TableCell className="user-row__body">
-          {props.email}
+          {props.client.email}
         </TableCell>
         <TableCell>
-          <Button variant="outlined" disabled={!props.isIndexing}>
-            {props.isIndexing ? 'INDEXANDO' : 'INDEXADO'}
+          <Button variant="outlined" disabled={!props.client.isIndexing}>
+            {props.client.isIndexing ? 'INDEXANDO' : 'INDEXADO'}
           </Button>
         </TableCell>
         <TableCell>
@@ -154,17 +153,16 @@ class ClientRow extends Component {
               <BlockIcon onClick={this.revokeKey} className="circular-progress--button" />
             </div>
           </IconButton>
-          <IconButton />
-
         </TableCell>
         <TableCell numeric>
           <MoreButton
-            isActive={props.active}
+            isActive={props.client.active}
             anchorEl={anchorEl}
             onToggleActive={this.onToggleActive}
             onDelete={this.onDelete}
             handleClick={this.handleClick}
             handleClose={this.handleClose}
+            onEdit={() => props.onSelectClient(props.client)}
           />
         </TableCell>
       </TableRow>

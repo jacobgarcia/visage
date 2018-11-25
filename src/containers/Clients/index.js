@@ -30,6 +30,7 @@ class Clients extends Component {
     anchorEl: null,
     addUserModalOpen: false,
     admin: true,
+    selectedClient: null,
   }
 
   async componentDidMount() {
@@ -66,18 +67,32 @@ class Clients extends Component {
   handleClick = (event) => this.setState({ anchorEl: event.currentTarget })
 
   toggleUserAddModal = (isOpen = null) => () =>
-    this.setState(({ prev }) => ({
-      addUserModalOpen: isOpen !== null ? isOpen : !prev.addUserModalOpen,
-    }))
+    this.setState(
+      ({ prev }) => ({
+        addUserModalOpen: isOpen !== null ? isOpen : !prev.addUserModalOpen,
+      }),
+      () =>
+        this.setState(
+          ({ addUserModalOpen, selectedClient }) =>
+            addUserModalOpen === false && selectedClient
+              ? { selectedClient: null }
+              : null
+        )
+    )
+
+  onSelectClient = (client) => {
+    this.setState({ selectedClient: client, addUserModalOpen: true })
+  }
 
   render() {
     const {
-      state: { search, rows, anchorEl, addUserModalOpen, admin, user = '' },
+      state: { search, rows, addUserModalOpen, selectedClient },
     } = this
 
     return (
       <div className="clients">
         <ClientModal
+          selectedClient={selectedClient}
           toggleUserAddModal={this.toggleUserAddModal}
           addUserModalOpen={addUserModalOpen}
         />
@@ -96,7 +111,7 @@ class Clients extends Component {
               className="button"
               onClick={this.toggleUserAddModal(true)}
             >
-              Nuevo usuario
+              Nuevo
             </Button>
             <Button color="secondary" className="button" variant="contained">
               Exportar
@@ -116,7 +131,14 @@ class Clients extends Component {
               </TableRow>
             </TableHead>
             <TableBody>
-              {rows.map((item) => <ClientRow {...item} key={item._id} />)}
+              {rows.map((item) => (
+                <ClientRow
+                  client={item}
+                  selectedClient={selectedClient}
+                  onSelectClient={this.onSelectClient}
+                  key={item._id}
+                />
+              ))}
             </TableBody>
           </Table>
         </Card>

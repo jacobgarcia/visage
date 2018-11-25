@@ -16,6 +16,8 @@ const Admin = require(path.resolve('models/Admin'))
 
 const config = require(path.resolve('config'))
 
+let URL
+
 const fields = [
   {
     label: 'Username',

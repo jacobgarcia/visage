@@ -23,7 +23,6 @@ const IndexedImage = new Schema({
 const schema = new Schema({
   email: { type: String, required: true, unique: true, index: true },
   name: String,
-  surname: String,
   username: { type: String, required: true, unique: true, index: true },
   company: String,
   password: { type: String, required: true },

@@ -1,11 +1,16 @@
 import axios from 'axios'
+let baseUrl = 'http://localhost:8080'
+// baseUrl = 'https://4b0490a5.ngrok.io'
+let token = null
 
-const baseUrl = 'http://localhost:8080'
+function getToken() {
+  token = localStorage.getItem('token')
+  return token
+}
 
 axios.interceptors.request.use(
   (config) => {
-    config.headers.Authorization =
-      'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1YmI5MzI5YTY3NDRhMjk1MmRhZGY0YjciLCJlbWFpbCI6Im1hcmlvQG51cmUubXgiLCJ1c2VybmFtZSI6Im1hcmlvZ2FyY2lhIiwiaWF0IjoxNTQyMzgwNjY1fQ.K6cqDFokwbe733RgknYSKDhFD9RetOtM6pShO1Lfabk'
+    config.headers.Authorization = `Bearer ${token || getToken()}`
     return config
   },
   (error) => {
@@ -14,8 +19,29 @@ axios.interceptors.request.use(
 )
 
 class NetworkOperation {
+  static getSelf() {
+    return axios.get(`${baseUrl}/v1/dashboard/self`)
+  }
+  /*
+  LOGIN
+  */
+
+  static login({email, password}) {
+    return axios.post(`${baseUrl}/v1/dashboard/authenticate`, {email, password})
+  }
+  /*
+  Signup
+  */
+  static self(invitation,{email, password, username, fullName}) {
+    return axios.get(`${baseUrl}/v1/dashboard/signup/${invitation}`, {email, password, username, fullName})
+  }
+
+  static self() {
+    return axios.get(`${baseUrl}/v1/dashboard/self`)
+  }
+
   static generateAPIToken(username) {
-    return axios.post(`${baseUrl}/v1/token/generate/${username}`)
+    return axios.post(`${baseUrl}/v1/dashboard/token/generate/${username}`)
   }
 
   /*
@@ -23,11 +49,11 @@ class NetworkOperation {
   */
 
   static getUsers() {
-    return axios.get(`${baseUrl}/v1/users`)
+    return axios.get(`${baseUrl}/v1/dashboard/users`)
   }
 
   static deactivateUser(username) {
-    return axios.patch(`${baseUrl}/v1/users/${username}/deactivate`)
+    return axios.patch(`${baseUrl}/v1/dashboard/users/${username}/deactivate`)
   }
 
   /*
@@ -35,15 +61,15 @@ class NetworkOperation {
   */
 
   static getAdmins() {
-    return axios.get(`${baseUrl}/v1/admins`)
+    return axios.get(`${baseUrl}/v1/dashboard/admins`)
   }
 
   static deleteAdmin(username) {
-    return axios.delete(`${baseUrl}/v1/admins/${username}`)
+    return axios.delete(`${baseUrl}/v1/dashboard/admins/${username}`)
   }
 
-  static updateAdmin({ username, ...admin }) {
-    return axios.put(`${baseUrl}/v1/admins/${username}`, admin)
+  static updateAdmin(admin) {
+    return axios.put(`${baseUrl}/v1/dashboard/admins/${admin.username}`, admin)
   }
 
   /*
@@ -51,15 +77,15 @@ class NetworkOperation {
   */
 
   static revokeAPIKey(username) {
-    return axios.post(`${baseUrl}/v1/token/revoke/${username}`)
+    return axios.post(`${baseUrl}/v1/dashboard/token/revoke/${username}`)
   }
 
   static renewAPIKey(username) {
-    return axios.post(`${baseUrl}/v1/token/renew/${username}`)
+    return axios.post(`${baseUrl}/v1/dashboard/token/renew/${username}`)
   }
 
   static generateAPIKey(username) {
-    return axios.post(`${baseUrl}/v1/token/generate/${username}`)
+    return axios.post(`${baseUrl}/v1/dashboard/token/generate/${username}`)
   }
 }
 

@@ -671,6 +671,8 @@ router.route('/stats/users/billing').get((req, res) => {
 })
 
 // Get all users information
+// TODO: deprecated
+
 router.route('/users').get(async (req, res) => {
   try {
     const users = await User.find({}).select(
@@ -684,6 +686,8 @@ router.route('/users').get(async (req, res) => {
 })
 
 // Edit user
+// TODO: deprecated
+
 router.route('/users/:user').put((req, res) => {
   const { name, surname, company, username, email } = req.body
   const { user } = req.params
@@ -709,6 +713,9 @@ router.route('/users/:user').put((req, res) => {
   })
 })
 
+// Delete user
+// TODO: deprecated
+
 router.route('/users/:username').delete((req, res) => {
   const { username } = req.params
   return User.findOneAndDelete({ username }).exec((error, user) => {
@@ -724,6 +731,9 @@ router.route('/users/:username').delete((req, res) => {
   })
 })
 
+
+// deactivate user
+// TODO: deprecated
 router.route('/users/:username/deactivate').patch((req, res) => {
   const { username } = req.params
   User.findOneAndUpdate({ username }, { $set: { active: false } }).exec(
@@ -743,6 +753,8 @@ router.route('/users/:username/deactivate').patch((req, res) => {
   )
 })
 
+// activate user
+// TODO: deprecated
 router.route('/users/:username/activate').patch((req, res) => {
   const { username } = req.params
   User.findOneAndUpdate({ username }, { $set: { active: true } }).exec(
@@ -763,6 +775,7 @@ router.route('/users/:username/activate').patch((req, res) => {
 })
 
 // Export all users to CSV
+// TODO: deprecated
 router.route('/users/export').get((req, res) => {
   const company = req._user.cmp
   const alarms = []
@@ -787,6 +800,7 @@ router.route('/users/export').get((req, res) => {
   })
 })
 
+// TODO: deprecated
 router.route('/admins').get(async (req, res) => {
   try {
     const admins = await Admin.find({}).select(
@@ -844,6 +858,7 @@ router
     }
   })
 
+  // TODO: deprecated
 router.route('/admins/:username/deactivate').patch((req, res) => {
   const { username } = req.params
   Admin.findOneAndUpdate({ username }, { $set: { active: false } }).exec(
@@ -863,6 +878,7 @@ router.route('/admins/:username/deactivate').patch((req, res) => {
   )
 })
 
+// TODO: deprecated
 router.route('/admins/:username/activate').patch((req, res) => {
   const { username } = req.params
   Admin.findOneAndUpdate({ username }, { $set: { active: true } }).exec(
@@ -883,6 +899,7 @@ router.route('/admins/:username/activate').patch((req, res) => {
 })
 
 // Export all users to CSV
+// TODO: deprecated
 router.route('/admins/export').get((req, res) => {
   const company = req._user.cmp
   const alarms = []
@@ -909,6 +926,7 @@ router.route('/admins/export').get((req, res) => {
 
 // Rates endpoints
 // GET all rates of user
+// TODO: deprecated
 router.route('/rates').get(async (req, res) => {
   const { username } = req._user
   try {
@@ -924,6 +942,7 @@ router.route('/rates').get(async (req, res) => {
 })
 
 // Edit in bulk all rates (this is the UX stablished in the mocks)
+// TODO: deprecated
 router.route('/rates').post(async (req, res) => {
   const { username } = req._user
   const { searchRates, indexRates } = req.body
@@ -967,6 +986,7 @@ router.route('/rates').post(async (req, res) => {
 })
 
 // Add new search rate
+// TODO: deprecated
 router.route('/rates/search').post(async (req, res) => {
   const { username } = req._user
   const { min, max, cost } = req.body
@@ -1005,6 +1025,7 @@ router.route('/rates/search').post(async (req, res) => {
 })
 
 // Add new index rate
+// TODO: deprecated
 router.route('/rates/index').post(async (req, res) => {
   const { username } = req._user
   const { min, max, cost } = req.body
@@ -1038,6 +1059,7 @@ router.route('/rates/index').post(async (req, res) => {
 })
 
 // Delete search rate
+// TODO: deprecated
 router.route('/rates/search/:rateId').delete(async (req, res) => {
   const { username } = req._user
   const _id = req.params.rateId
@@ -1058,6 +1080,7 @@ router.route('/rates/search/:rateId').delete(async (req, res) => {
 })
 
 // Delete index rate
+// TODO: deprecated
 router.route('/rates/index/:rateId').delete(async (req, res) => {
   const { username } = req._user
   const _id = req.params.rateId

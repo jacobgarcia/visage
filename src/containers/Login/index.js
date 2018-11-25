@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import TextField from '@material-ui/core/TextField'
 import Button from '@material-ui/core/Button'
 import PropTypes from 'prop-types'
+import NetworkOperation from 'utils/NetworkOperation'
 
 import './styles.pcss'
 import qboLogo from '../../assets/qbo-logo.svg'
@@ -12,22 +13,44 @@ class Login extends Component {
   }
 
   state = {
-    user: '',
+    email: '',
     password: '',
+    error: '',
   }
-
+  componentDidMount() {
+    localStorage.clear()
+  }
   onChange = ({ target: { name, value } }) => this.setState({ [name]: value })
 
   onSubmit = (event) => {
     event.preventDefault()
+    const { email, password } = this.state
 
-    localStorage.setItem('token', 'value')
-    this.props.history.replace('/')
+    NetworkOperation.login({ email, password })
+      .then(({ data }) => {
+        localStorage.setItem('token', data.token)
+        this.props.history.replace(this.state.return || '/')
+      })
+      .catch(({ response = {} }) => {
+        const { status = 500 } = response
+        switch (status) {
+          case 400:
+          case 401:
+            this.setState({
+              error: 'Correo o contraseña incorrectos',
+            })
+            break
+          default:
+            this.setState({
+              error: 'Problemas al iniciar sesión, intenta nuevamente',
+            })
+        }
+      })
   }
 
   render() {
     const {
-      state: { user, password },
+      state: { email, password, error },
     } = this
 
     return (
@@ -37,14 +60,14 @@ class Login extends Component {
           <TextField
             id="standard-name"
             label="Usuario"
-            value={user}
-            name="user"
+            value={email}
+            name="email"
             onChange={this.onChange}
             margin="normal"
             variant="outlined"
           />
           <TextField
-            id="standard-name"
+            id="standard-password"
             label="Contraseña"
             value={password}
             name="password"
@@ -53,6 +76,7 @@ class Login extends Component {
             margin="normal"
             variant="outlined"
           />
+          {error ? <p>Error: {error}</p> : ''}
           <Button
             className="submit"
             variant="contained"
@@ -65,6 +89,11 @@ class Login extends Component {
       </div>
     )
   }
+}
+
+Login.propTypes = {
+  history: PropTypes.object,
+  setCredentials: PropTypes.func,
 }
 
 export default Login

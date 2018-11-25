@@ -5,6 +5,7 @@ import { hot } from 'react-hot-loader'
 
 import App from 'containers/App'
 import Login from 'containers/Login'
+import Signup from 'containers/Signup'
 import NotFound from 'containers/NotFound'
 
 const theme = createMuiTheme({
@@ -21,6 +22,7 @@ function Routes() {
       <Router>
         <Switch>
           <Route path="/login" component={Login} />
+          <Route path="/signup" component={Signup} />
           <Route exact path="/(|tarifs|admins|clients)/" component={App} />
           <Route component={NotFound} />
         </Switch>

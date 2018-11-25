@@ -1,3 +1,19 @@
+.loading-screen {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  width: 100%;
+  p {
+    margin-top: 32px;
+    font-weight: 500;
+  }
+  img {
+    max-width: 200px;
+  }
+}
+
 .content {
   margin-top: 64px;
   margin-left: 240px;
@@ -12,8 +28,6 @@
 .toolbar__logo {
   background: linear-gradient(90deg, #9cd4d9, #92acd0);
   width: 100%;
-  width: calc(100% + 4px);
-  border-right: 4px solid #9bb8d1;
   height: 65px;
   position: absolute;
   top: 0;
@@ -90,6 +104,7 @@ html {
       background-color: #353a3f;
       border-right: 0;
       max-width: 239px;
+      overflow-y: unset;
       span {
         color: #fff;
       }
@@ -121,6 +136,7 @@ html {
       }
       > div {
         max-width: 75px;
+        overflow-x: hidden;
         &:hover {
           max-width: 239px;
           img {
@@ -160,11 +176,16 @@ html {
       padding-left: 12px;
       padding-right: 24px;
       .user-image {
-        width: 30px;
-        height: 30px;
+        display: flex;
+        width: 40px;
+        height: 40px;
         border-radius: 50%;
         background-color: #d7d7d7;
         margin-left: 16px;
+        text-align: center;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
       }
       .toolbar__content {
         display: flex;

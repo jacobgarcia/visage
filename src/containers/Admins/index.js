@@ -30,21 +30,22 @@ class Admins extends Component {
     anchorEl: null,
     search: '',
     rows: [],
+    filteredRows: [],
     openAdmin: false,
     isSaving: false,
     selectedUser: null,
   }
 
   componentDidMount() {
-    this.props.toggle(true)
+    this.props.toggle(false)
 
     this.getAdmins()
   }
 
   componentDidUpdate(prevProps) {
-    if (this.props.saving && !prevProps.saving) {
-      this.onSave()
-    }
+    // if (this.props.saving && !prevProps.saving) {
+    //   this.onSave()
+    // }
   }
 
   componentWillUnmount() {
@@ -52,24 +53,44 @@ class Admins extends Component {
   }
 
   handleClose = () => this.setState({ anchorEl: null })
-  handleClick = (event) => this.setState({ anchorEl: event.currentTarget })
-
+  handleClick = (e, user) => {
+    this.setState({
+      anchorEl: e.currentTarget,
+      selectedUser: user,
+    })
+  }
   getAdmins = async () => {
     try {
       const response = await NetworkOperation.getAdmins()
       const admins = response.data.admins || []
-      console.log({ admins })
-      this.setState({ rows: admins })
+
+      this.setState({ rows: admins, filteredRows: admins })
     } catch (error) {
       console.error(error)
     }
   }
 
-  onSave() {
-    setTimeout(() => {
-      this.props.stopSaving(true)
-    }, 2000)
+  onChange = (name) => ({ target: { value } }) => {
+    this.setState({ [name]: value }, () => {
+      if (name === 'search') {
+        this.setState((prevState) => ({
+          filteredRows: prevState.search
+            ? prevState.rows.filter(({ name }) =>
+                String(name)
+                  .toLowerCase()
+                  .includes(String(prevState.search).toLowerCase())
+              )
+            : prevState.rows,
+        }))
+      }
+    })
   }
+
+  // onSave() {
+  //   setTimeout(() => {
+  //     this.props.stopSaving(true)
+  //   }, 2000)
+  // }
 
   onToggleEditModal = (item) => {
     const newState = {}
@@ -77,9 +98,28 @@ class Admins extends Component {
     this.setState(({ openAdmin }) => ({ openAdmin: !openAdmin, ...newState }))
   }
 
+  onSaveAdmin = async (newAdmin) => {
+    const { _id: newAdminId, ...admin } = newAdmin
+    if (newAdminId) {
+      try {
+        const response = await NetworkOperation.updateAdmin(admin)
+        console.log({ response })
+      } catch (error) {
+        console.log({ error })
+      }
+    }
+  }
+
   render() {
     const {
-      state: { anchorEl, search, rows, openAdmin, isSaving, selectedUser },
+      state: {
+        anchorEl,
+        search,
+        filteredRows,
+        openAdmin,
+        isSaving,
+        selectedUser,
+      },
     } = this
 
     return (
@@ -89,6 +129,7 @@ class Admins extends Component {
           loading={isSaving}
           onClose={this.onToggleEditModal}
           open={openAdmin}
+          onSave={this.onSaveAdmin}
         />
         <div className="actions">
           <TextField
@@ -96,7 +137,7 @@ class Admins extends Component {
             label="Buscar"
             className="text-field"
             value={search}
-            onChange={() => {}}
+            onChange={this.onChange('search')}
             margin="normal"
           />
           <div className="buttons">
@@ -117,18 +158,20 @@ class Admins extends Component {
             <TableHead>
               <TableRow>
                 <TableCell>Nombre</TableCell>
+                <TableCell>Username</TableCell>
                 <TableCell>Mail</TableCell>
                 <TableCell>Rol</TableCell>
                 <TableCell numeric />
               </TableRow>
             </TableHead>
             <TableBody>
-              {rows.map((item) => {
+              {filteredRows.map((item, index) => {
                 return (
-                  <TableRow key={item.id}>
+                  <TableRow key={item._id}>
                     <TableCell component="th" scope="item">
-                      {item.name} {item.surname}
+                      {item.name}
                     </TableCell>
+                    <TableCell>{item.username}</TableCell>
                     <TableCell>{item.email}</TableCell>
                     <TableCell>
                       <Button variant="outlined" disabled>
@@ -137,9 +180,13 @@ class Admins extends Component {
                     </TableCell>
                     <TableCell numeric>
                       <MoreButton
+                        user={item}
                         anchorEl={anchorEl}
-                        onEdit={() => this.onToggleEditModal(item)}
-                        handleClick={this.handleClick}
+                        onEdit={() =>{
+                          this.onToggleEditModal(selectedUser)
+                          }
+                        }
+                        handleClick={(e, user) => this.handleClick(e, user)}
                         handleClose={this.handleClose}
                       />
                     </TableCell>

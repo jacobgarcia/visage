@@ -15,12 +15,12 @@ function getInitialState() {
     email: '',
     name: '',
     username: '',
-    services: [],
+    services: {},
     superAdmin: false,
     dashboardAccess: 0,
     clientsAccess: 0,
     adminsAccess: 0,
-    tarifsAccess: 0,
+    ratesAccess: 0,
     valid: false,
   }
 }
@@ -65,7 +65,7 @@ class EditAdminModal extends Component {
         dashboardAccess: 1,
         clientsAccess: 2,
         adminsAccess: 2,
-        tarifsAccess: 1,
+        ratesAccess: 1,
       })
     }
     this.setState({ [name]: setValue })
@@ -74,13 +74,18 @@ class EditAdminModal extends Component {
   onSave = () => {
     const nextUser = {}
     if (this.state._id) nextUser._id = this.state._id
+
     nextUser.name = this.state.name
     nextUser.email = this.state.email
     nextUser.username = this.state.username
-    nextUser.services = this.state.services
-    nextUser.superAdmin = this.state.superAdmin
+    nextUser.services = {
+      dashboard: this.state.dashboardAccess,
+      clients: this.state.clientsAccess,
+      admins: this.state.adminsAccess,
+      rates: this.state.ratesAccess,
+    }
 
-    this.props.onSave(nextUser)
+    this.props.onSave(nextUser, this.props.user.username)
     this.props.onClose()
   }
 
@@ -95,7 +100,7 @@ class EditAdminModal extends Component {
         dashboardAccess,
         clientsAccess,
         adminsAccess,
-        tarifsAccess,
+        ratesAccess,
         valid,
         username,
       },
@@ -243,16 +248,16 @@ class EditAdminModal extends Component {
                 <div className="radio-inputs-container">
                   <div>
                     <Radio
-                      onChange={this.onRadioChange('tarifsAccess', 1)}
-                      checked={tarifsAccess === 1}
+                      onChange={this.onRadioChange('ratesAccess', 1)}
+                      checked={ratesAccess === 1}
                       disabled={superAdmin}
                     />
                     <label>Ver y editar</label>
                   </div>
                   <div>
                     <Radio
-                      onChange={this.onRadioChange('tarifsAccess', 0)}
-                      checked={tarifsAccess === 0}
+                      onChange={this.onRadioChange('ratesAccess', 0)}
+                      checked={ratesAccess === 0}
                       disabled={superAdmin}
                     />
                     <label>Sólo ver</label>

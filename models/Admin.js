@@ -10,8 +10,8 @@ const schema = new Schema({
   company: String,
   services: {
     dashboard: Boolean,
-    clients: {type: Number, enum: [0,1,2]},
-    admins: {type: Number, enum: [0,1,2]},
+    clients: { type: Number, enum: [0, 1, 2] },
+    admins: { type: Number, enum: [0, 1, 2] },
     rates: Boolean,
   },
   password: String,

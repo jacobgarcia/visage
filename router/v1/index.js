@@ -3,8 +3,8 @@ const path = require('path')
 const express = require('express')
 const router = new express.Router()
 
-router.use('/engine', require(path.resolve('router/v1/images')))
-router.use('/dashboard', require(path.resolve('router/v1/dashboard')))
+router.use('/public', require(path.resolve('router/v1/public')))
+router.use('/private', require(path.resolve('router/v1/private')))
 
 router.use((req, res) => {
   return res.status(404).json({ message: 'Resource not found' })

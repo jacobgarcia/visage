@@ -55,7 +55,7 @@ class ClientModal extends Component {
   onChange = (name) => ({ target: { value } }) => {
     this.setState({ [name]: value }, () => {
       this.setState({
-        valid: this.state.name && this.state.email && this.state.username,
+        valid: this.state._id && this.state.name && this.state.email && this.state.username && this.state.company || !this.state._id && this.state.email ,
       })
     })
   }
@@ -144,7 +144,7 @@ class ClientModal extends Component {
         <div className="paper-container">
           <div className="paper">
             <h3>{_id ? 'Editar' : 'Nuevo'} usuario</h3>
-            <div>
+            {_id && <div>
               <TextField
                 required
                 label="Nombre"
@@ -154,8 +154,8 @@ class ClientModal extends Component {
                 onChange={this.onChange('name')}
                 className="user-name"
               />
-            </div>
-            <div>
+            </div>}
+            {_id && <div>
               <TextField
                 required
                 label="Nombre de usuario"
@@ -164,7 +164,17 @@ class ClientModal extends Component {
                 value={username}
                 onChange={this.onChange('username')}
               />
-            </div>
+            </div>}
+            {_id && <div>
+              <TextField
+                required
+                label="Company"
+                margin="normal"
+                variant="outlined"
+                value={company}
+                onChange={this.onChange('company')}
+              />
+            </div>}
             <div>
               <TextField
                 required
@@ -173,16 +183,6 @@ class ClientModal extends Component {
                 variant="outlined"
                 value={email}
                 onChange={this.onChange('email')}
-              />
-            </div>
-            <div>
-              <TextField
-                required
-                label="Company"
-                margin="normal"
-                variant="outlined"
-                value={company}
-                onChange={this.onChange('company')}
               />
             </div>
             {error ? <p>{error}</p> : ''}

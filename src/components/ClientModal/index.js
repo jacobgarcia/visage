@@ -7,19 +7,65 @@ import FormControlLabel from '@material-ui/core/FormControlLabel'
 import Checkbox from '@material-ui/core/Checkbox'
 import Button from '@material-ui/core/Button'
 import Card from '@material-ui/core/Card'
+import Radio from '@material-ui/core/Radio'
+
+import '../EditAdminModal/styles.pcss'
+
+function getInitialState() {
+  return {
+    _id: null,
+    name: '',
+    username: '',
+    email: '',
+    company: '',
+    valid: false,
+  }
+}
 
 class ClientModal extends Component {
   static propTypes = {}
 
-  state = {}
+  state = {
+    ...getInitialState,
+  }
+
+  componentDidUpdate(prevProps) {
+    if (
+      !prevProps.selectedClient &&
+      this.props.selectedClient &&
+      !this.state.username
+    ) {
+      this.setState(this.props.selectedClient)
+      return
+    }
+
+    if (
+      prevProps.addUserModalOpen &&
+      !this.props.addUserModalOpen &&
+      this.state.username
+    ) {
+      this.setState(getInitialState)
+    }
+  }
 
   handlecheckChange = (name) => () => this.setState({ [name]: false })
 
-  onChange = () => {}
+  onChange = (name) => ({ target: { value } }) => {
+    this.setState({ [name]: value }, () => {
+      this.setState({
+        valid: this.state.name && this.state.email && this.state.username,
+      })
+    })
+  }
+
+  onSave = () => {
+    console.log('ON SAVE')
+  }
 
   render() {
     const {
-      props: { addUserModalOpen, admin, user, toggleUserAddModal },
+      props: { addUserModalOpen, toggleUserAddModal },
+      state: { username, name, valid, _id, email, company },
     } = this
 
     return (
@@ -28,155 +74,60 @@ class ClientModal extends Component {
         onClose={toggleUserAddModal(false)}
         className="modal"
       >
-        <Card className="card">
-          <div className="card-header">
-            <h2>Añadir usuario</h2>
-            <Button onClick={toggleUserAddModal(false)} variant="outlined">
-              Cerrar
-            </Button>
-          </div>
-          <div>
+        <div className="paper-container">
+          <div className="paper">
+            <h3>{_id ? 'Editar' : 'Nuevo'} usuario</h3>
             <div>
               <TextField
-                id="standard-name"
+                required
                 label="Nombre"
-                value={user}
-                name="user"
-                onChange={this.onChange}
                 margin="normal"
                 variant="outlined"
+                value={name}
+                onChange={this.onChange('name')}
+                className="user-name"
               />
+            </div>
+            <div>
               <TextField
-                id="standard-name"
-                label="Email"
-                value={user}
-                name="user"
-                onChange={this.onChange}
+                required
+                label="Nombre de usuario"
                 margin="normal"
                 variant="outlined"
+                value={username}
+                onChange={this.onChange('username')}
               />
             </div>
-          </div>
-          <div>
-            <h4>Función</h4>
-            <div className="list">
-              <div>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={admin}
-                      onChange={this.handlecheckChange('admin')}
-                      value="checkedG"
-                      color="primary"
-                    />
-                  }
-                  label="Administrador"
-                />
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={admin}
-                      onChange={this.handlecheckChange('admin')}
-                      value="checkedG"
-                      color="primary"
-                    />
-                  }
-                  label="Superadministrador"
-                />
-              </div>
+            <div>
+              <TextField
+                required
+                label="Email"
+                margin="normal"
+                variant="outlined"
+                value={email}
+                onChange={this.onChange('email')}
+              />
             </div>
-          </div>
-          <div>
-            <h4>Permisos</h4>
-            <div className="list">
-              <div>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={admin}
-                      onChange={this.handlecheckChange('admin')}
-                      value="checkedG"
-                      color="primary"
-                    />
-                  }
-                  label="Ver dashboard"
-                />
-              </div>
-              <div>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={admin}
-                      onChange={this.handlecheckChange('admin')}
-                      value="checkedG"
-                      color="primary"
-                    />
-                  }
-                  label="Ver clientes"
-                />
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={admin}
-                      onChange={this.handlecheckChange('admin')}
-                      value="checkedG"
-                      color="primary"
-                    />
-                  }
-                  label="Crear y editar clientes"
-                />
-              </div>
-              <div>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={admin}
-                      onChange={this.handlecheckChange('admin')}
-                      value="checkedG"
-                      color="primary"
-                    />
-                  }
-                  label="Ver administradores"
-                />
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={admin}
-                      onChange={this.handlecheckChange('admin')}
-                      value="checkedG"
-                      color="primary"
-                    />
-                  }
-                  label="Crear y editar administradores"
-                />
-              </div>
-              <div>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={admin}
-                      onChange={this.handlecheckChange('admin')}
-                      value="checkedG"
-                      color="primary"
-                    />
-                  }
-                  label="Ver tarifas"
-                />
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={admin}
-                      onChange={this.handlecheckChange('admin')}
-                      value="checkedG"
-                      color="primary"
-                    />
-                  }
-                  label="Crear y editar tarifas"
-                />
-              </div>
+            <div>
+              <TextField
+                required
+                label="Company"
+                margin="normal"
+                variant="outlined"
+                value={company}
+                onChange={this.onChange('company')}
+              />
             </div>
+            <Button
+              disabled={!valid}
+              onClick={this.onSave}
+              variant="contained"
+              color="secondary"
+            >
+              {_id ? 'Guardar' : 'Añadir'}
+            </Button>
           </div>
-        </Card>
+        </div>
       </Modal>
     )
   }

@@ -27,9 +27,11 @@ class Clients extends Component {
   state = {
     search: '',
     rows: [],
+    filteredRows: [],
     anchorEl: null,
     addUserModalOpen: false,
     admin: true,
+    selectedClient: null,
   }
 
   async componentDidMount() {
@@ -39,7 +41,7 @@ class Clients extends Component {
       let users = await NetworkOperation.getUsers()
       users = users.data.users || []
 
-      this.setState({ rows: users })
+      this.setState({ rows: users, filteredRows: users })
     } catch (error) {
       console.log({ error })
     }
@@ -66,18 +68,48 @@ class Clients extends Component {
   handleClick = (event) => this.setState({ anchorEl: event.currentTarget })
 
   toggleUserAddModal = (isOpen = null) => () =>
-    this.setState(({ prev }) => ({
-      addUserModalOpen: isOpen !== null ? isOpen : !prev.addUserModalOpen,
-    }))
+    this.setState(
+      ({ prev }) => ({
+        addUserModalOpen: isOpen !== null ? isOpen : !prev.addUserModalOpen,
+      }),
+      () =>
+        this.setState(
+          ({ addUserModalOpen, selectedClient }) =>
+            addUserModalOpen === false && selectedClient
+              ? { selectedClient: null }
+              : null
+        )
+    )
+
+  onSelectClient = (client) => {
+    this.setState({ selectedClient: client, addUserModalOpen: true })
+  }
+
+  onChange = (name) => ({ target: { value } }) => {
+    this.setState({ [name]: value }, () => {
+      if (name === 'search') {
+        this.setState((prevState) => ({
+          filteredRows: prevState.search
+            ? prevState.rows.filter(({ name }) =>
+                String(name)
+                  .toLowerCase()
+                  .includes(String(prevState.search).toLowerCase())
+              )
+            : prevState.rows,
+        }))
+      }
+    })
+  }
 
   render() {
     const {
-      state: { search, rows, anchorEl, addUserModalOpen, admin, user = '' },
+      state: { search, filteredRows, addUserModalOpen, selectedClient },
     } = this
 
     return (
       <div className="clients">
         <ClientModal
+          selectedClient={selectedClient}
           toggleUserAddModal={this.toggleUserAddModal}
           addUserModalOpen={addUserModalOpen}
         />
@@ -87,7 +119,7 @@ class Clients extends Component {
             label="Buscar"
             className="text-field"
             value={search}
-            onChange={() => {}}
+            onChange={this.onChange('search')}
             margin="normal"
           />
           <div className="buttons">
@@ -96,7 +128,7 @@ class Clients extends Component {
               className="button"
               onClick={this.toggleUserAddModal(true)}
             >
-              Nuevo usuario
+              Nuevo
             </Button>
             <Button color="secondary" className="button" variant="contained">
               Exportar
@@ -116,7 +148,14 @@ class Clients extends Component {
               </TableRow>
             </TableHead>
             <TableBody>
-              {rows.map((item) => <ClientRow {...item} key={item._id} />)}
+              {filteredRows.map((item) => (
+                <ClientRow
+                  client={item}
+                  selectedClient={selectedClient}
+                  onSelectClient={this.onSelectClient}
+                  key={item._id}
+                />
+              ))}
             </TableBody>
           </Table>
         </Card>

@@ -7,11 +7,12 @@ import InputAdornment from '@material-ui/core/InputAdornment'
 import DeleteIcon from '@material-ui/icons/Delete'
 import PropTypes from 'prop-types'
 
-import { withSaver } from '../../utils/portals'
+import NetworkOperation from 'utils/NetworkOperation'
+import { withSaver } from 'utils/portals'
 
 import './styles.pcss'
 
-class Tarifs extends Component {
+class Rates extends Component {
   static propTypes = {
     saving: PropTypes.bool,
     stopSaving: PropTypes.function,
@@ -19,12 +20,25 @@ class Tarifs extends Component {
   }
 
   state = {
-    consults: [0, 0, 0],
-    imageIndexing: [0, 0],
+    searchRates: [],
+    indexRates: [],
   }
 
-  componentDidMount() {
-    this.props.toggle({ saveButton: true })
+  async componentDidMount() {
+    this.props.toggle({ saveButton: false })
+
+    try {
+      const { data } = await NetworkOperation.getRates()
+
+      console.log({ data })
+
+      this.setState({
+        indexRates: data.rates?.indexRates,
+        searchRates: data.rates?.searchRates,
+      })
+    } catch (error) {
+      console.log({ error })
+    }
   }
 
   componentDidUpdate(prevProps) {
@@ -43,6 +57,10 @@ class Tarifs extends Component {
     }, 2000)
   }
 
+  onChange = () => {
+    this.props.toggle({ saveButton: true })
+  }
+
   deleteItem = (element, index) => {
     this.setState((prevState) => ({
       [element]: prevState[element].filter((_, $0) => $0 !== index),
@@ -57,8 +75,10 @@ class Tarifs extends Component {
 
   render() {
     const {
-      state: { consults, imageIndexing },
+      state: { searchRates, indexRates },
     } = this
+
+    console.log(this.state)
 
     return (
       <div className="tarifs">
@@ -74,16 +94,16 @@ class Tarifs extends Component {
             </Button>
           </div>
 
-          {consults.map((_, index) => {
+          {searchRates?.map((rate) => {
             return (
-              <div className="row" key={index}>
+              <div className="row" key={rate._id}>
                 <div>
                   <TextField
                     id="standard-name"
                     label="Mínimo"
                     className="text-field"
-                    value={''}
-                    onChange={() => {}}
+                    value={rate.min}
+                    onChange={(evt) => this.onChange(evt, rate)}
                     margin="normal"
                     variant="outlined"
                   />
@@ -92,8 +112,8 @@ class Tarifs extends Component {
                     id="standard-name"
                     label="Máximo"
                     className="text-field"
-                    value={''}
-                    onChange={() => {}}
+                    value={rate.max}
+                    onChange={(evt) => this.onChange(evt, rate)}
                     margin="normal"
                     variant="outlined"
                   />
@@ -103,8 +123,8 @@ class Tarifs extends Component {
                     id="standard-name"
                     label="Costo"
                     className="text-field cost"
-                    value={''}
-                    onChange={() => {}}
+                    value={rate.cost}
+                    onChange={(evt) => this.onChange(evt, rate)}
                     margin="normal"
                     variant="outlined"
                     InputProps={{
@@ -117,7 +137,7 @@ class Tarifs extends Component {
                     }}
                   />
                   <IconButton
-                    onClick={() => this.deleteItem('consults', index)}
+                    onClick={() => this.deleteItem('consults', rate._id)}
                   >
                     <DeleteIcon />
                   </IconButton>
@@ -137,15 +157,15 @@ class Tarifs extends Component {
               Nueva tarifa
             </Button>
           </div>
-          {imageIndexing.map((_, index) => {
+          {indexRates?.map((rate) => {
             return (
-              <div className="row" key={index}>
+              <div className="row" key={rate._id}>
                 <div>
                   <TextField
                     id="standard-name"
                     label="Mínimo"
                     className="text-field"
-                    value={''}
+                    value={rate.min}
                     onChange={() => {}}
                     margin="normal"
                     variant="outlined"
@@ -155,7 +175,7 @@ class Tarifs extends Component {
                     id="standard-name"
                     label="Máximo"
                     className="text-field"
-                    value={''}
+                    value={rate.max}
                     onChange={() => {}}
                     margin="normal"
                     variant="outlined"
@@ -166,7 +186,7 @@ class Tarifs extends Component {
                     id="standard-name"
                     label="Costo"
                     className="text-field cost"
-                    value={''}
+                    value={rate.cost}
                     onChange={() => {}}
                     margin="normal"
                     variant="outlined"
@@ -194,4 +214,4 @@ class Tarifs extends Component {
   }
 }
 
-export default withSaver(Tarifs)
+export default withSaver(Rates)

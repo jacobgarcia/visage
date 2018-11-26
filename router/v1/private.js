@@ -2,6 +2,7 @@
 const fs = require('fs')
 const path = require('path')
 const express = require('express')
+const winston = require('winston')
 const router = new express.Router()
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
@@ -19,6 +20,10 @@ const Searching = require(path.resolve('models/Searching'))
 const config = require(path.resolve('config'))
 
 const serviceUrl = 'https://admin.vs-01-dev.qbo.tech'
+
+function getUserData(data) {
+  return { ...data.toObject(), access: data.services ? 'admin' : 'user' }
+}
 
 const fields = [
   {
@@ -66,15 +71,15 @@ const adminFields = [
   },
 ]
 
-const verificationURL = 'http://localhost:8080/signup/${URL}'
 nev.configure(
   {
-    verificationURL,
+    verificationURL: `http://localhost:8080/signup/${URL}`,
     // mongo configuration
     persistentUserModel: User,
     tempUserModel: Guest,
     expirationTime: 86400, // 24 hour expiration
     URLFieldName: 'invitation',
+
     transportOptions: {
       service: 'Gmail',
       auth: {
@@ -85,11 +90,8 @@ nev.configure(
     verifyMailOptions: {
       from: 'Do Not Reply <ingenieria@connus.mx>',
       subject: 'Confirm your account',
-      html:
-        '<p>Please verify your account by clicking <a href="${URL}">this link</a>. If you are unable to do so, copy and ' +
-        'paste the following link into your browser:</p><p>${URL}</p>',
-      text:
-        'Please verify your account by clicking the following link, or by copying and pasting it into your browser: ${URL}',
+      html: `<p>Please verify your account by clicking <a href="${URL}">this link</a>. If you are unable to do so, copy and paste the following link into your browser:</p><p>${URL}</p>`,
+      text: `Please verify your account by clicking the following link, or by copying and pasting it into your browser: ${URL}`,
     },
     shouldSendConfirmation: true,
     confirmMailOptions: {
@@ -101,9 +103,7 @@ nev.configure(
     hashingFunction: null,
   },
   (error) => {
-    if (error) {
-      console.error({ error })
-    }
+    winston.error({ error })
   }
 )
 
@@ -339,30 +339,64 @@ router.route('/stats/users/billing').get((req, res) => {
 
 router.route('/users/invite').post((req, res) => {
   const { email } = req.body
-  if (!email) return res.status(400).json({ error: { message: 'Malformed request' } })
   const guest = new User({
     email,
     host: req._user,
   })
-  return nev.createTempUser(guest, (error, existingPersistentUser, newTempUser) => {
-    if (error) {
-      console.error({ error })
-      return res.status(500).json({ error })
-    }
-    if (existingPersistentUser) return res.status(409).json({ error: 'User already registered' })
+  nev.createTempUser(
+    guest,
+    (error, existingPersistentUser, newTempUser) => {
+      if (error) {
+        winston.error({ error })
+        return res.status(500).json({ error })
+      }
+      if (existingPersistentUser) return res.status(409).json({ error: 'User already registered' })
 
-    if (newTempUser) {
-      const URL = newTempUser[nev.options.URLFieldName]
-      nev.sendVerificationEmail(email, URL, (error) => {
-        if (error) return res.status(500).json({ error })
-        return res.status(200).json({ message: 'Invitation successfully sent' })
-      })
-    } else {
-      // User already invited
+      if (newTempUser) {
+        const URL = newTempUser[nev.options.URLFieldName]
+        return nev.sendVerificationEmail(email, URL, (error) => {
+          if (error) return res.status(500).json({ error })
+          return res.status(200).json({ message: 'Invitation successfully sent' })
+        })
+      }
+      // user already have been invited
       return res.status(409).json({ error: 'User already invited' })
+    },
+    (error) => {
+      winston.error({ error })
     }
-    return true
+  )
+})
+
+router.route('/admin/invite').post((req, res) => {
+  const { email, services } = req.body
+  const guest = new Admin({
+    email,
+    services,
+    host: req._user,
   })
+  nev.createTempUser(
+    guest,
+    (error, existingPersistentUser, newTempUser) => {
+      if (error) {
+        winston.error({ error })
+        return res.status(500).json({ error })
+      }
+      if (existingPersistentUser) return res.status(409).json({ error: 'Admin already registered' })
+      if (newTempUser) {
+        const URL = newTempUser[nev.options.URLFieldName]
+        return nev.sendVerificationEmail(email, URL, (error) => {
+          if (error) return res.status(500).json({ error })
+          return res.status(200).json({ message: 'Invitation successfully sent' })
+        })
+      }
+      // user already have been invited
+      return res.status(409).json({ error: 'Admin already invited' })
+    },
+    (error) => {
+      winston.error({ error })
+    }
+  )
 })
 
 router.post('/signup/:invitation', (req, res) => {
@@ -371,7 +405,7 @@ router.post('/signup/:invitation', (req, res) => {
   if (!invitation) return res.status(401).json({ message: 'No invitation token provided' })
   return Guest.findOne({ invitation }).exec(async (error, guest) => {
     if (error) {
-      console.error({ error })
+      winston.error({ error })
       return res.status(500).json({ error })
     }
     if (!guest || guest.email !== email) return res.status(401).json({
@@ -385,7 +419,7 @@ router.post('/signup/:invitation', (req, res) => {
     return guest.save(() => {
       nev.confirmTempUser(invitation, (error, user) => {
         if (error) {
-          console.error(error)
+          winston.error(error)
           return res.status(500).json({ error })
         }
         if (!user) return res.status(500).json({ message: 'Could not send create user information' })
@@ -426,7 +460,7 @@ router.route('/authenticate').post(async (req, res) => {
   const admin = await Admin.findOne({ email })
   if (user === null && admin === null) {
     console.info('user not found')
-    console.info('Failed to authenticate admin email')
+    winston.info('Failed to authenticate admin email')
     return res.status(400).json({ message: 'Authentication failed. Wrong user password.' })
   }
   try {
@@ -436,27 +470,21 @@ router.route('/authenticate').post(async (req, res) => {
         const token = jwt.sign(
           {
             _id: admin._id,
-            acc: 'admin',
+            admin: true,
             cmp: admin.company,
           },
           config.secret
         )
-        const { _id, name, surname, defaultPosition } = admin
+
         if (result) return res.status(200).json({
             token,
-            admin: {
-              _id,
-              name,
-              surname,
-              access: 'admin',
-              defaultPosition,
-            },
+            user: getUserData(admin),
           })
 
         return res.status(401).json({ message: 'Authentication failed. Wrong admin or password' })
       })
       .catch((error) => {
-        console.info('Failed to authenticate admin password', error)
+        winston.info('Failed to authenticate admin password', error)
         return res.status(401).json({ message: 'Authentication failed. Wrong admin or password' })
       })
   } catch (error) {
@@ -467,31 +495,25 @@ router.route('/authenticate').post(async (req, res) => {
           const token = jwt.sign(
             {
               _id: user._id,
-              acc: 'user',
+              admin: false,
               cmp: user.company,
             },
             config.secret
           )
-          const { _id, name, surname, defaultPosition } = user
+
           if (result) return res.status(200).json({
               token,
-              user: {
-                _id,
-                name,
-                surname,
-                access: 'user',
-                defaultPosition,
-              },
+              user: getUserData(user),
             })
 
           return res.status(401).json({ message: 'Authentication failed. Wrong user or password' })
         })
         .catch((error) => {
-          console.info('Failed to authenticate user password', error)
+          winston.info('Failed to authenticate user password', error)
           return res.status(401).json({ message: 'Authentication failed. Wrong user or password' })
         })
     } catch (err) {
-      console.error({ err })
+      winston.error({ err })
       return res.status(500).json({ err }) // Causes an error for cannot set headers after sent
     }
   }
@@ -513,7 +535,7 @@ router.use((req, res, next) => {
 
   return jwt.verify(token, config.secret, (err, decoded) => {
     if (err) {
-      console.error('Failed to authenticate token', err, token)
+      winston.error('Failed to authenticate token', err, token)
       return res.status(401).json({ error: { message: 'Failed to authenticate  bearer token' } })
     }
 
@@ -524,14 +546,15 @@ router.use((req, res, next) => {
 })
 
 router.route('/users/self').get(async (req, res) => {
-  const user = await User.findOne({ _id: req._user._id })
-  const admin = await Admin.findOne({ _id: req._user._id })
+  const user = await User.findOne({ _id: req._user._id }, '-apiKey -password -toIndex')
+  const admin = await Admin.findOne({ _id: req._user._id }, '-apiKey -password -toIndex')
   if (admin) {
-    return res.status(200).json(admin)
+    return res.status(200).json({ user: getUserData(admin) })
   } else if (user) {
-    return res.status(200).json(user)
+    return res.status(200).json({ user: getUserData(user) })
   }
-  console.info('No user found')
+
+  winston.info('No user found')
   return res.status(400).json({ message: 'No user found' })
 })
 
@@ -626,7 +649,7 @@ router.route('/users/export').get((req, res) => {
     const csv = json2csvParser.parse(users)
     return fs.writeFile('static/users.csv', csv, (error) => {
       if (error) {
-        console.error({ error })
+        winston.error({ error })
         return res.status(500).json({ error })
       }
       return res.status(200).download('static/users.csv')
@@ -733,7 +756,7 @@ router.route('/admins/export').get((req, res) => {
     const csv = json2csvParser.parse(admins)
     return fs.writeFile('static/admins.csv', csv, (error) => {
       if (error) {
-        console.error({ error })
+        winston.error({ error })
         return res.status(500).json({ error })
       }
       return res.status(200).download('static/admins.csv')

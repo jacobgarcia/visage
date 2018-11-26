@@ -1,0 +1,114 @@
+#client-app {
+  .dashboard {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 8px;
+  }
+
+  .card-container {
+    width: 50%;
+  }
+
+  .card {
+    margin: 16px;
+    box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.2);
+    padding: 16px;
+    border-radius: 4px;
+    min-height: 270px;
+    &.--no-padding {
+      padding: 0;
+      h4 {
+        padding: 12px;
+        padding-bottom: 8px;
+      }
+    }
+    h4 {
+      color: gray;
+      font-weight: 500;
+      font-size: 0.9rem;
+      margin-bottom: 8px;
+    }
+  }
+
+  .chart-data-container {
+    display: flex;
+    align-items: center;
+  }
+  .pie-chart__legend {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.9rem;
+    p {
+      display: inline-block;
+    }
+    > div {
+      margin-bottom: 12px;
+      position: relative;
+      &:last-child {
+        margin-bottom: 0;
+      }
+      .bullet {
+        left: 12px;
+        position: absolute;
+        display: block;
+        width: 6px;
+        height: 6px;
+        border-radius: 3px;
+        top: 5px;
+        background-color: gray;
+      }
+      span:first-child {
+        position: relative;
+        padding-left: 14px;
+        font-weight: 600;
+      }
+      span {
+        margin: 0 24px;
+      }
+      span:last-child {
+        color: #8f8f8f;
+      }
+    }
+  }
+  .pie-chart-container {
+    position: relative;
+    .recharts-wrapper {
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+    .pie-chart__label {
+      text-align: center;
+      position: absolute;
+      top: 50%;
+      right: 50%;
+      transform: translate(52px, -26px);
+      span {
+        font-size: 0.7rem;
+      }
+      p {
+        font-size: 1.2rem;
+      }
+    }
+  }
+
+  .table {
+    font-size: 0.9rem;
+    > div {
+      display: flex;
+      border-bottom: 1px solid #d0d0d0;
+      padding: 8px 12px;
+      &:last-child {
+        border-bottom: none;
+        padding-bottom: 12px;
+      }
+      &:first-child > div {
+        font-weight: 600;
+      }
+      > div {
+        flex-basis: 100px;
+        flex-grow: 1;
+      }
+    }
+  }
+}

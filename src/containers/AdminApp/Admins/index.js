@@ -7,15 +7,13 @@ import TableRow from '@material-ui/core/TableRow'
 import Button from '@material-ui/core/Button'
 import TextField from '@material-ui/core/TextField'
 import Card from '@material-ui/core/Card'
-import MoreVertIcon from '@material-ui/icons/MoreVert'
-import IconButton from '@material-ui/core/IconButton'
 
 import PropTypes from 'prop-types'
 
 import NetworkOperation from 'utils/NetworkOperation'
-import { withSaver } from '../../utils/portals'
-import EditAdminModal from '../../components/EditAdminModal'
-import MoreButton from '../../components/MoreButton'
+import { withSaver } from 'utils/portals'
+import EditAdminModal from 'components/EditAdminModal'
+import MoreButton from 'components/MoreButton'
 
 import './styles.pcss'
 
@@ -53,12 +51,14 @@ class Admins extends Component {
   }
 
   handleClose = () => this.setState({ anchorEl: null })
+
   handleClick = (e, user) => {
     this.setState({
       anchorEl: e.currentTarget,
       selectedUser: user,
     })
   }
+
   getAdmins = async () => {
     try {
       const response = await NetworkOperation.getAdmins()

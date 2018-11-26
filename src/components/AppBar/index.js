@@ -1,9 +1,11 @@
-import React from 'react'
+import React, { PureComponent } from 'react'
 import PropTypes from 'prop-types'
 
+import TextField from '@material-ui/core/TextField'
 import AppBar from '@material-ui/core/AppBar'
 import Toolbar from '@material-ui/core/Toolbar'
 import Button from '@material-ui/core/Button'
+import Modal from '@material-ui/core/Modal'
 import DayPicker from 'react-day-picker'
 import CircularProgress from '@material-ui/core/CircularProgress'
 import Typography from '@material-ui/core/Typography'
@@ -11,94 +13,174 @@ import SaveIcon from '@material-ui/icons/Save'
 
 import { UserContext } from 'utils/context'
 
-function AppBarComponent(props) {
-  const {
-    showSaveButton,
-    showDateFilter,
-    from,
-    to,
-    modifiers,
-    title,
-    toolBarHidden,
-    showDayPicker,
-    saving,
-    onToggle,
-    onSaveClicked,
-    handleDayClick,
-    numberOfMonths,
-  } = props
+class AppBarComponent extends PureComponent {
+  state = {
+    openUserModal: false,
+  }
 
-  return (
-    <UserContext.Consumer>
-      {(data) => (
-        <AppBar
-          position="absolute"
-          className={`app-bar ${toolBarHidden ? '--full-width' : ''}`}
-        >
-          <Toolbar className="toolbar">
-            <div className="toolbar__content">
-              <Typography variant="subtitle" color="inherit" noWrap>
-                {title}
-              </Typography>
+  toggleUserDataModal = (value) => () =>
+    this.setState(({ openUserModal }) => ({
+      openUserModal: value === undefined ? !openUserModal : value,
+    }))
 
-              <div className="toolbar__actions">
-                {showDateFilter && (
-                  <div className="date-filter-container">
-                    <Button
-                      variant="contained"
-                      color="secondary"
-                      onClick={onToggle('showDayPicker')}
-                      size="small"
-                    >
-                      Filtrar
-                    </Button>
-                    {showDayPicker && (
-                      <DayPicker
-                        className="Selectable"
-                        numberOfMonths={numberOfMonths}
-                        selectedDays={[from, { from, to }]}
-                        modifiers={modifiers}
-                        onDayClick={handleDayClick}
-                      />
-                    )}
+  render() {
+    const {
+      props: {
+        showSaveButton,
+        showDateFilter,
+        from,
+        to,
+        modifiers,
+        title,
+        toolBarHidden,
+        showDayPicker,
+        saving,
+        onToggle,
+        onSaveClicked,
+        handleDayClick,
+        numberOfMonths,
+      },
+      state: {
+        openUserModal
+      }
+    } = this
+
+    return (
+      <UserContext.Consumer>
+        {(data) => (
+          <AppBar
+            position="absolute"
+            className={`app-bar ${toolBarHidden ? '--full-width' : ''}`}
+          >
+            <Modal
+              open={openUserModal}
+              onClose={this.toggleUserDataModal(false)}
+              className="modal"
+            >
+              <div className="paper-container">
+                <div className="paper">
+                  <h3>Mi información</h3>
+                  <div>
+                    <TextField
+                      label="Nombre"
+                      margin="normal"
+                      variant="outlined"
+                      value={data?.user?.name}
+                      readOnly
+                    />
                   </div>
-                )}
-                {showSaveButton &&
-                  (saving ? (
-                    <div className="circular-progress-container">
-                      <CircularProgress
-                        className="circular-progress"
-                        size={30}
-                        color="inherit"
-                      />
-                    </div>
-                  ) : (
-                    <Button
-                      variant="contained"
-                      color="secondary"
-                      onClick={onSaveClicked}
-                      size="small"
-                    >
-                      Guardar
-                      <SaveIcon color="inherit" className="save-icon" />
-                    </Button>
-                  ))}
+                  <div>
+                    <TextField
+                      label="Usuario"
+                      margin="normal"
+                      variant="outlined"
+                      value={data?.user?.username}
+                      readOnly
+                    />
+                  </div>
+                  <div>
+                    <TextField
+                      label="Email"
+                      margin="normal"
+                      variant="outlined"
+                      value={data?.user?.email}
+                      readOnly
+                    />
+                  </div>
+                  <div>
+                    <TextField
+                      label="RFC"
+                      margin="normal"
+                      variant="outlined"
+                      value={data?.user?.username}
+                      readOnly
+                    />
+                    <TextField
+                      label="Razón social"
+                      margin="normal"
+                      variant="outlined"
+                      value={data?.user?.username}
+                      readOnly
+                    />
+                  </div>
+                  <div>
+                    <TextField
+                      label="Código postal"
+                      margin="normal"
+                      variant="outlined"
+                      value={data?.user?.username}
+                      readOnly
+                    />
+                  </div>
+                </div>
               </div>
-            </div>
-            <div>
-              <div className="user-image">
+            </Modal>
+            <Toolbar className="toolbar">
+              <div className="toolbar__content">
+                <Typography variant="subtitle" color="inherit" noWrap>
+                  {title}
+                </Typography>
+
+                <div className="toolbar__actions">
+                  {showDateFilter && (
+                    <div className="date-filter-container">
+                      <Button
+                        variant="contained"
+                        color="secondary"
+                        onClick={onToggle('showDayPicker')}
+                        size="small"
+                      >
+                        Filtrar
+                      </Button>
+                      {showDayPicker && (
+                        <DayPicker
+                          className="Selectable"
+                          numberOfMonths={numberOfMonths}
+                          selectedDays={[from, { from, to }]}
+                          modifiers={modifiers}
+                          onDayClick={handleDayClick}
+                        />
+                      )}
+                    </div>
+                  )}
+                  {showSaveButton &&
+                    (saving ? (
+                      <div className="circular-progress-container">
+                        <CircularProgress
+                          className="circular-progress"
+                          size={30}
+                          color="inherit"
+                        />
+                      </div>
+                    ) : (
+                      <Button
+                        variant="contained"
+                        color="secondary"
+                        onClick={onSaveClicked}
+                        size="small"
+                      >
+                        Guardar
+                        <SaveIcon color="inherit" className="save-icon" />
+                      </Button>
+                    ))}
+                </div>
+              </div>
+              <div
+                className="user-image"
+                onClick={this.toggleUserDataModal(true)}
+              >
                 {data?.user?.userImage ? (
                   <img src={data?.user?.userImage} alt="User" />
                 ) : (
-                  <p>{data?.user?.name.charAt(0).toUpperCase()}</p>
+                  <p>{data?.user?.name?.charAt(0)?.toUpperCase()}</p>
                 )}
               </div>
-            </div>
-          </Toolbar>
-        </AppBar>
-      )}
-    </UserContext.Consumer>
-  )
+            </Toolbar>
+          </AppBar>
+        )}
+      </UserContext.Consumer>
+    )
+  }
 }
 
 export default AppBarComponent

@@ -52,9 +52,10 @@ class EditAdminModal extends Component {
   }
 
   onChange = (name) => ({ target: { value } }) => {
-    console.log('On change...')
     this.setState({ [name]: value }, () => {
-      this.setState({ valid: this.state.name && this.state.email })
+      this.setState({
+        valid: this.state.name && this.state.email && this.state.username,
+      })
     })
   }
 

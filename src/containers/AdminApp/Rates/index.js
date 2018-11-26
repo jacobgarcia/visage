@@ -12,6 +12,24 @@ import { withSaver } from 'utils/portals'
 
 import './styles.pcss'
 
+function parseRates($0) {
+  const { _id, ...rate } = $0
+
+  if ((/^(?=[a-f\d]{24}$)(\d+[a-f]|[a-f]+\d)/i).test(_id)) {
+    return {
+      min: parseFloat(rate.min),
+      max: parseFloat(rate.max),
+      cost: parseFloat(rate.cost),
+      _id,
+    }
+  }
+  return {
+    min: parseFloat(rate.min),
+    max: parseFloat(rate.max),
+    cost: parseFloat(rate.cost),
+  }
+}
+
 class Rates extends Component {
   static propTypes = {
     saving: PropTypes.bool,
@@ -41,13 +59,21 @@ class Rates extends Component {
   }
 
   onSave = async () => {
+    const rates = {
+      searchRates: this.state.searchRates.map(parseRates),
+      indexRates: this.state.indexRates.map(parseRates),
+    }
+
+    console.log(rates)
+
     try {
-      const response = await NetworkOperation.setRates(this.state)
+      const response = await NetworkOperation.setRates(rates)
 
       console.log({ response })
 
       this.props.stopSaving({ success: true })
-    } catch (getDerivedStateFromProps) {
+    } catch (error) {
+      console.error(error)
       this.props.stopSaving({ success: false })
     }
   }

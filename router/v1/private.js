@@ -771,8 +771,10 @@ router.route('/admins/export').get((req, res) => {
 // GET all rates of user
 router.route('/rates').get(async (req, res) => {
   try {
-    const rates = await User.findOne({ _id: req._user._id })
-    
+    const rates = await User.findOne()
+
+    console.log({rates})
+
     return res.status(200).json({ rates })
   } catch (error) {
     console.error('Could not get rates', error)
@@ -810,7 +812,7 @@ router.route('/rates/search').post(async (req, res) => {
   const rate = { min: parseInt(min, 10), max: parseInt(max, 10), cost }
   if (!min || !max || !cost || rate.min > rate.max) return res.status(400).json({ error: { message: 'Malformed request' } })
   try {
-    const { searchRates } = await User.findOne({ _id: req._user._id }).select('searchRates')
+    const { searchRates } = await User.findOne().select('searchRates')
     // If min is less than then
     searchRates.sort(($0, $1) => {
       return $0.min - $1.min
@@ -837,7 +839,7 @@ router.route('/rates/index').post(async (req, res) => {
   const rate = { min: parseInt(min, 10), max: parseInt(max, 10), cost }
   if (!min || !max || !cost || rate.min > rate.max) return res.status(400).json({ error: { message: 'Malformed request' } })
   try {
-    const { indexRates } = await User.findOne({ _id: req._user._id }).select('indexRates')
+    const { indexRates } = await User.findOne().select('indexRates')
     // If min is less than then
     indexRates.sort(($0, $1) => {
       return $0.min - $1.min

@@ -65,7 +65,7 @@ function DrawerComponent(props) {
               </NavLink>
             )}
             {services?.rates && (
-              <NavLink onClick={onLinkClick} to="/tarifs">
+              <NavLink onClick={onLinkClick} to="/rates">
                 {listItem('Tarifas', AttachMoneyIcon)}
               </NavLink>
             )}

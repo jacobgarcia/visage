@@ -95,7 +95,7 @@ class App extends Component {
     if (pathname === '/') title = 'Dashboard'
     if (pathname === '/clients') title = 'Clientes'
     if (pathname === '/admins') title = 'Administradores'
-    if (pathname === '/tarifs') title = 'Tarifas'
+    if (pathname === '/rates') title = 'Tarifas'
 
     const { from, to } = this.state
     const modifiers = { start: from, end: to }
@@ -138,7 +138,7 @@ class App extends Component {
                 <Route exact path="/" component={Dashboard} />
                 <Route exact path="/clients" component={Clients} />
                 <Route exact path="/admins" component={Admins} />
-                <Route exact path="/tarifs" component={Rates} />
+                <Route exact path="/rates" component={Rates} />
               </Switch>
             </main>
           </div>

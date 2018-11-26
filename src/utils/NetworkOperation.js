@@ -20,37 +20,37 @@ axios.interceptors.request.use(
 
 class NetworkOperation {
   static getSelf() {
-    return axios.get(`${baseUrl}/v1/dashboard/self`)
+    return axios.get(`${baseUrl}/v1/private/users/self`)
   }
   /*
   LOGIN
   */
 
   static login({email, password}) {
-    return axios.post(`${baseUrl}/v1/dashboard/authenticate`, {email, password})
+    return axios.post(`${baseUrl}/v1/private/authenticate`, {email, password})
   }
   /*
   Signup
   */
   static self(invitation,{email, password, username, fullName}) {
-    return axios.get(`${baseUrl}/v1/dashboard/signup/${invitation}`, {email, password, username, fullName})
+    return axios.get(`${baseUrl}/v1/private/signup/${invitation}`, {email, password, username, fullName})
   }
 
-  static self() {
-    return axios.get(`${baseUrl}/v1/dashboard/self`)
-  }
+  // static self() {
+  //   return axios.get(`${baseUrl}/v1/private/self`)
+  // }
 
   static generateAPIToken(username) {
-    return axios.post(`${baseUrl}/v1/dashboard/token/generate/${username}`)
+    return axios.post(`${baseUrl}/v1/private/users/token/${username}`)
   }
 
 
   /*
-  T A R I F S
+  R A T E S
   */
 
   static getRates() {
-    return axios.get(`${baseUrl}/v1/dashboard/rates`)
+    return axios.get(`${baseUrl}/v1/private/rates`)
   }
 
   /*
@@ -58,11 +58,11 @@ class NetworkOperation {
   */
 
   static getUsers() {
-    return axios.get(`${baseUrl}/v1/dashboard/users`)
+    return axios.get(`${baseUrl}/v1/private/users`)
   }
 
   static deactivateUser(username) {
-    return axios.patch(`${baseUrl}/v1/dashboard/users/${username}/deactivate`)
+    return axios.patch(`${baseUrl}/v1/private/users/${username}/deactivate`)
   }
 
   /*
@@ -70,15 +70,15 @@ class NetworkOperation {
   */
 
   static getAdmins() {
-    return axios.get(`${baseUrl}/v1/dashboard/admins`)
+    return axios.get(`${baseUrl}/v1/private/admins`)
   }
 
   static deleteAdmin(username) {
-    return axios.delete(`${baseUrl}/v1/dashboard/admins/${username}`)
+    return axios.delete(`${baseUrl}/v1/private/admins/${username}`)
   }
 
   static updateAdmin(admin) {
-    return axios.put(`${baseUrl}/v1/dashboard/admins/${admin.username}`, admin)
+    return axios.put(`${baseUrl}/v1/private/admins/${admin.username}`, admin)
   }
 
   /*
@@ -86,15 +86,15 @@ class NetworkOperation {
   */
 
   static revokeAPIKey(username) {
-    return axios.post(`${baseUrl}/v1/dashboard/token/revoke/${username}`)
+    return axios.patch(`${baseUrl}/v1/private/users/token/${username}`)
   }
 
   static renewAPIKey(username) {
-    return axios.post(`${baseUrl}/v1/dashboard/token/renew/${username}`)
+    return axios.post(`${baseUrl}/v1/private/users/token/${username}`)
   }
 
   static generateAPIKey(username) {
-    return axios.post(`${baseUrl}/v1/dashboard/token/generate/${username}`)
+    return axios.post(`${baseUrl}/v1/private/users/token/${username}`)
   }
 }
 

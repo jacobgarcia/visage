@@ -89,7 +89,7 @@ class Routes extends PureComponent {
                       {this.state.user?.access === 'admin' ? (
                         <Route
                           exact
-                          path="/(|tarifs|admins|clients)/"
+                          path="/(|rates|admins|clients)/"
                           component={AdminApp}
                         />
                       ) : (

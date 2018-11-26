@@ -32,7 +32,7 @@ class ClientRow extends Component {
   revokeKey = async () => {
     this.setState({ revokeKeyLoading: true })
     try {
-      const response = await NetworkOperation.revokeAPIKey(this.props.username)
+      const response = await NetworkOperation.revokeAPIKey(this.props.client.username)
       console.log({response})
     } catch(error) {
       console.log({ error })
@@ -44,7 +44,7 @@ class ClientRow extends Component {
   renewAPIKey = async () => {
     this.setState({ renewKeyLoading: true })
     try {
-      const response = await NetworkOperation.generateAPIKey(this.props.username)
+      const response = await NetworkOperation.generateAPIKey(this.props.client.username)
       console.log({response})
     } catch(error) {
       console.log({ error })
@@ -56,7 +56,7 @@ class ClientRow extends Component {
   generateKey = async () => {
     this.setState({ generateKeyLoading: true })
     try {
-      const response = await NetworkOperation.generateAPIKey(this.props.username)
+      const response = await NetworkOperation.generateAPIKey(this.props.client.username)
       console.log({response})
     } catch(error) {
       console.error(error)
@@ -69,7 +69,7 @@ class ClientRow extends Component {
     this.setState({ toggleActiveLoading: true })
 
     try {
-      const response = await isActive ?  NetworkOperation.deactivateUser(this.props.username) : NetworkOperation.reactivateUser(this.props.username)
+      const response = isActive ? await NetworkOperation.deactivateUser(this.props.client.username) : await NetworkOperation.reactivateUser(this.props.client.username)
       console.log(response)
     } catch (error) {
       console.error(error)
@@ -82,7 +82,7 @@ class ClientRow extends Component {
     this.setState({ loadingDelte: true })
 
     try {
-      const response = await NetworkOperation.deleteUser(this.props.username)
+      const response = await NetworkOperation.deleteUser(this.props.client.username)
       console.log(response)
     } catch (error) {
       console.error(error)

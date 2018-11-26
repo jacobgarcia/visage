@@ -75,8 +75,11 @@ class App extends Component {
     this.setState(this.getInitialState())
   }
 
-  onSave = (args) => {
-    console.log('ON SAVE', args)
+   onSave = async (passedFunction, data, callback) => {
+    console.log('ON SAVE RECIEVED', passedFunction, callback)
+    const response = await passedFunction()
+
+    callback(response)
   }
 
   render() {
@@ -143,7 +146,7 @@ class App extends Component {
                 <Route exact path="/" component={Dashboard} />
                 <Route exact path="/clients" component={Clients} />
                 <Route exact path="/admins" component={Admins} />
-                <Route exact path="/tarifs" component={Rates} />
+                <Route exact path="/rates" component={Rates} />
               </Switch>
             </main>
           </div>

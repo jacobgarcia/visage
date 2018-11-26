@@ -25,8 +25,12 @@ class Rates extends Component {
   }
 
   async componentDidMount() {
-    console.log(this.props)
+    console.log('RATES', this.props)
     this.props.toggle({ saveButton: false })
+
+    this.props.onSave(NetworkOperation.getRates, {}, (response) => {
+      console.log(response)
+    })
 
     try {
       const { data } = await NetworkOperation.getRates()

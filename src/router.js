@@ -10,7 +10,7 @@ import Signup from 'containers/Signup'
 import NotFound from 'containers/NotFound'
 
 import NetworkOperation from 'utils/NetworkOperation'
-import { UserContext, defaultUser } from 'utils/context'
+import { UserContext } from 'utils/context'
 import qboLogoColor from 'assets/qbo-logo.svg'
 
 const theme = createMuiTheme({
@@ -25,7 +25,11 @@ class SessionLoader extends PureComponent {
   static contextType = UserContext
 
   async componentDidMount() {
-    console.log('SESSION LOADER DID MOUNT')
+    const pathname = this.props.location.pathname
+    if (pathname === '/login' || pathname === '/signup') {
+      return
+    }
+
     try {
       const { data } = await NetworkOperation.getSelf()
 
@@ -56,17 +60,12 @@ class Routes extends PureComponent {
     }
 
     this.state = {
-      loadingSelf: true,
       user: null,
       setUserData: this.setUserData,
     }
   }
 
   render() {
-    const {
-      state: { loadingSelf },
-    } = this
-
     return (
       <MuiThemeProvider theme={theme}>
         <UserContext.Provider

@@ -22,10 +22,16 @@ class Profile extends Component {
     this.props.history.replace('/login')
   }
 
+  onChange = ({ target: { name, value } }) => {
+    this.setState({ [name]: value })
+  }
+
   render() {
     const {
       state: { name, company, email, username },
     } = this
+
+    console.log(this.context)
 
     return (
       <div className="profile-content">
@@ -70,15 +76,25 @@ class Profile extends Component {
           <h5>Rangos de consultas</h5>
           <div className="consults-range">
             <label>Consultas</label>
-            <p>
-              $0.89MXN <span>Entre 1000 y 9999</span>
-            </p>
+            {this.context?.user?.searchRates?.map((rate) => (
+              <p>
+                ${rate.cost}MXN{' '}
+                <span>
+                  Entre {rate.min} y {rate.max}
+                </span>
+              </p>
+            ))}
           </div>
           <div className="consults-range">
             <label>Indexación</label>
-            <p>
-              $0.89MXN <span>Entre 1000 y 9999</span>
-            </p>
+            {this.context?.user?.indexRates?.map((rate) => (
+              <p>
+                ${rate.cost}MXN{' '}
+                <span>
+                  Entre {rate.min} y {rate.max}
+                </span>
+              </p>
+            ))}
           </div>
         </div>
         <div>

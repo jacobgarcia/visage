@@ -13,9 +13,9 @@ import IconButton from '@material-ui/core/IconButton'
 import PropTypes from 'prop-types'
 
 import NetworkOperation from 'utils/NetworkOperation'
-import { withSaver } from '../../utils/portals'
-import EditAdminModal from '../../components/EditAdminModal'
-import MoreButton from '../../components/MoreButton'
+import { withSaver } from 'utils/portals'
+import EditAdminModal from 'components/EditAdminModal'
+import MoreButton from 'components/MoreButton'
 
 import './styles.pcss'
 

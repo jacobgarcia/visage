@@ -44,6 +44,15 @@ class NetworkOperation {
     return axios.post(`${baseUrl}/v1/dashboard/token/generate/${username}`)
   }
 
+
+  /*
+  T A R I F S
+  */
+
+  static getRates() {
+    return axios.get(`${baseUrl}/v1/dashboard/rates`)
+  }
+
   /*
   U S E R S
   */

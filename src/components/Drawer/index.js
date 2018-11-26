@@ -14,7 +14,7 @@ import AttachMoneyIcon from '@material-ui/icons/AttachMoney'
 import SecurityIcon from '@material-ui/icons/Security'
 import ExitIcon from '@material-ui/icons/ExitToApp'
 
-import qboLogo from '../../assets/qbo-logo-mono.svg'
+import qboLogo from 'assets/qbo-logo-mono.svg'
 
 function listItem(text, Component) {
   return (

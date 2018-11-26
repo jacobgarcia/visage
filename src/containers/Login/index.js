@@ -5,12 +5,15 @@ import PropTypes from 'prop-types'
 import NetworkOperation from 'utils/NetworkOperation'
 
 import './styles.pcss'
-import qboLogo from '../../assets/qbo-logo.svg'
+import qboLogo from 'assets/qbo-logo.svg'
+import { UserContext } from 'utils/context'
 
 class Login extends Component {
   static propTypes = {
     history: PropTypes.object.isRequired,
   }
+
+  static contextType = UserContext
 
   state = {
     email: '',
@@ -20,6 +23,8 @@ class Login extends Component {
 
   componentDidMount() {
     localStorage.clear()
+
+    console.log('PROPS', this.context)
   }
 
   onChange = ({ target: { name, value } }) => this.setState({ [name]: value })
@@ -31,6 +36,13 @@ class Login extends Component {
     NetworkOperation.login({ email, password })
       .then(({ data }) => {
         localStorage.setItem('token', data.token)
+
+        // Set user context
+        this.context.setUserData({
+          user: data.user,
+          loadingSelf: false,
+        })
+
         this.props.history.replace('/')
       })
       .catch(({ response = {} }) => {

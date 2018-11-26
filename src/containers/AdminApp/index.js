@@ -9,10 +9,10 @@ import CssBaseline from '@material-ui/core/CssBaseline'
 import ListItem from '@material-ui/core/ListItem'
 import ListItemIcon from '@material-ui/core/ListItemIcon'
 
-import Dashboard from 'containers/Dashboard'
-import Clients from 'containers/Clients'
-import Admins from 'containers/Admins'
-import Tarifs from 'containers/Tarifs'
+import Dashboard from 'containers/AdminApp/Dashboard'
+import Clients from 'containers/AdminApp/Clients'
+import Admins from 'containers/AdminApp/Admins'
+import Rates from 'containers/AdminApp/Rates'
 
 import AppBar from 'components/AppBar'
 import Drawer from 'components/Drawer'
@@ -21,9 +21,9 @@ import SaveIcon from '@material-ui/icons/Save'
 
 import NetworkOperation from 'utils/NetworkOperation'
 import { UserContext } from 'utils/context'
-import { SaverProvider } from '../../utils/portals'
+import { SaverProvider } from 'utils/portals'
 
-import qboLogoColor from '../../assets/qbo-logo.svg'
+
 import './styles.pcss'
 
 class App extends Component {
@@ -34,7 +34,7 @@ class App extends Component {
   static contextType = UserContext
 
   state = {
-    loadingSelf: true,
+
     showSaveButton: false,
     saving: false,
     toolBarHidden: true,
@@ -47,27 +47,6 @@ class App extends Component {
     return {
       from: undefined,
       to: undefined,
-    }
-  }
-
-  async componentDidMount() {
-    try {
-      const { data } = await NetworkOperation.getSelf()
-
-      // Set user context
-      this.context.setUserData({
-        isSuperAdmin: data.superAdmin,
-        services: data.services,
-        name: data.name,
-        username: data.username,
-        email: data.email,
-        userImage: data.userImage ? data.userImage : '',
-      })
-
-      this.setState({ loadingSelf: false })
-    } catch (error) {
-      if (error.response?.status === 401) this.props.history.replace('/login')
-      // TODO Other error should be displayed
     }
   }
 
@@ -106,20 +85,11 @@ class App extends Component {
         showDayPicker,
         loadingSelf,
       },
-
       props: {
         location: { pathname },
       },
     } = this
 
-    if (loadingSelf) {
-      return (
-        <div className="loading-screen">
-          <img src={qboLogoColor} alt="QBO" />
-          <p>Cargando...</p>
-        </div>
-      )
-    }
 
     let title = ''
     if (pathname === '/') title = 'Dashboard'
@@ -142,7 +112,7 @@ class App extends Component {
       >
         <Fragment>
           <CssBaseline />
-          <div className="root">
+          <div className="root" id="admin-app">
             <AppBar
               onToggle={this.onToggle}
               saving={saving}
@@ -168,7 +138,7 @@ class App extends Component {
                 <Route exact path="/" component={Dashboard} />
                 <Route exact path="/clients" component={Clients} />
                 <Route exact path="/admins" component={Admins} />
-                <Route exact path="/tarifs" component={Tarifs} />
+                <Route exact path="/tarifs" component={Rates} />
               </Switch>
             </main>
           </div>

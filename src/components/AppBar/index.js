@@ -90,7 +90,7 @@ function AppBarComponent(props) {
                 {data?.user?.userImage ? (
                   <img src={data?.user?.userImage} alt="User" />
                 ) : (
-                  <p>{data?.user?.name.charAt(0).toUpperCase()}</p>
+                  <p>{data?.user?.name?.charAt(0)?.toUpperCase()}</p>
                 )}
               </div>
             </div>

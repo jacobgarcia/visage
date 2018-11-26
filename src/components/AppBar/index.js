@@ -18,10 +18,10 @@ class AppBarComponent extends PureComponent {
     openUserModal: false,
   }
 
-  toggleUserDataModal = (value) => () =>
+  toggleUserDataModal = (value) => () =>{
     this.setState(({ openUserModal }) => ({
       openUserModal: value === undefined ? !openUserModal : value,
-    }))
+    }))}
 
   render() {
     const {

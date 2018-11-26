@@ -23,7 +23,6 @@ const IndexedImage = new Schema({
 const schema = new Schema({
   email: { type: String, required: true, unique: true, index: true },
   name: String,
-  username: { type: String },
   company: String,
   password: { type: String, required: true },
   searchRates: {
@@ -58,10 +57,6 @@ const schema = new Schema({
   },
   items: { type: [ItemSchema], default: [] },
   indexedImages: { type: [IndexedImage], default: [] },
-})
-
-schema.virtual('fullname').get(() => {
-  return `${this.name} ${this.surname}`
 })
 
 module.exports = mongoose.model('User', schema)

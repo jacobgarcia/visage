@@ -16,9 +16,7 @@ import MoreButton from 'components/MoreButton'
 import NetworkOperation from 'utils/NetworkOperation'
 
 class ClientRow extends Component {
-  static propTypes = {
-
-  }
+  static propTypes = {}
 
   state = {
     anchorEl: null,
@@ -99,6 +97,8 @@ class ClientRow extends Component {
   render() {
     const { props, state: { anchorEl, generateKeyLoading, revokeKeyLoading, renewKeyLoading } } = this
 
+    console.log({props})
+
     return (
       <TableRow
         key={props.client._id}
@@ -125,7 +125,7 @@ class ClientRow extends Component {
           </Button>
         </TableCell>
         <TableCell>
-          <IconButton>
+          {!props.client.apiKey && <IconButton>
             <div className="circular-progress__container">
               {generateKeyLoading && <CircularProgress
                 size={48}
@@ -134,8 +134,8 @@ class ClientRow extends Component {
               />}
               <KeyIcon onClick={this.generateKey} className="circular-progress--button" />
             </div>
-          </IconButton>
-          <IconButton>
+          </IconButton>}
+          {props.client.apiKey && <IconButton>
             <div className="circular-progress__container">
               {renewKeyLoading && <CircularProgress
                 size={48}
@@ -144,8 +144,8 @@ class ClientRow extends Component {
               />}
               <RefreshIcon onClick={this.renewAPIKey} className="circular-progress--button" />
             </div>
-          </IconButton>
-          <IconButton>
+          </IconButton>}
+          {props.client.apiKey && <IconButton>
             <div className="circular-progress__container">
               {revokeKeyLoading && <CircularProgress
                 size={48}
@@ -154,7 +154,7 @@ class ClientRow extends Component {
               />}
               <BlockIcon onClick={this.revokeKey} className="circular-progress--button" />
             </div>
-          </IconButton>
+          </IconButton>}
         </TableCell>
         <TableCell numeric>
           <MoreButton

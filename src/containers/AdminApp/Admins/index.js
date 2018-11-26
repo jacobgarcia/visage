@@ -35,7 +35,7 @@ class Admins extends Component {
   componentDidMount() {
     this.props.toggle({ saveButton: false, dateFilter: false })
 
-    this.getAdmins()
+    this.reloadData()
   }
 
   componentDidUpdate(prevProps) {
@@ -53,7 +53,7 @@ class Admins extends Component {
     })
   }
 
-  getAdmins = async () => {
+  reloadData = async () => {
     try {
       const response = await NetworkOperation.getAdmins()
       const admins = response.data.admins || []
@@ -87,14 +87,19 @@ class Admins extends Component {
   }
 
   onSaveAdmin = async (newAdmin) => {
-    const { _id: newAdminId, ...admin } = newAdmin
-    if (newAdminId) {
-      try {
-        const response = await NetworkOperation.updateAdmin(admin)
-        console.log({ response })
-      } catch (error) {
-        console.log({ error })
+    const { _id: newAdminId, ...data } = newAdmin
+
+    try {
+      let response
+      if (newAdminId) {
+        response = await NetworkOperation.updateAdmin(data)
+      } else {
+        response = await NetworkOperation.createAdmin(data)
       }
+
+      console.log({ response })
+    } catch (error) {
+      console.error(error)
     }
   }
 

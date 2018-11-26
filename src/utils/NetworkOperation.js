@@ -23,7 +23,7 @@ class NetworkOperation {
     return axios.get(`${baseUrl}/v1/private/users/self`)
   }
   /*
-  LOGIN
+  L O G I N
   */
 
   static login({email, password}) {
@@ -79,6 +79,10 @@ class NetworkOperation {
 
   static getAdmins() {
     return axios.get(`${baseUrl}/v1/private/admins`)
+  }
+
+  static createAdmin(data) {
+    return axios.post(`${baseUrl}/v1/private/admins`, data)
   }
 
   static deleteAdmin(username) {

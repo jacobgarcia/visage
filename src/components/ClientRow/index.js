@@ -75,6 +75,7 @@ class ClientRow extends Component {
       console.error(error)
     } finally {
       this.setState({ toggleActiveLoading: false })
+      this.props.reloadData()
     }
   }
 
@@ -88,6 +89,7 @@ class ClientRow extends Component {
       console.error(error)
     } finally {
       this.setState({ loadingDelte: false })
+      this.props.reloadData()
     }
   }
 

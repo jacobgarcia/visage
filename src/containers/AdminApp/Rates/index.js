@@ -25,17 +25,11 @@ class Rates extends Component {
   }
 
   async componentDidMount() {
-    console.log('RATES', this.props)
     this.props.toggle({ saveButton: false })
-
-    this.props.onSave(NetworkOperation.getRates, {}, (response) => {
-      console.log(response)
-    })
+    this.props.setSaveFunction(this.onSave)
 
     try {
       const { data } = await NetworkOperation.getRates()
-
-      console.log({ data })
 
       this.setState({
         indexRates: data.rates?.indexRates,
@@ -46,24 +40,37 @@ class Rates extends Component {
     }
   }
 
-  componentDidUpdate(prevProps) {
-    if (this.props.saving && !prevProps.saving) {
-      this.onSave()
+  onSave = async () => {
+    try {
+      const response = await NetworkOperation.setRates(this.state)
+
+      console.log({ response })
+
+      this.props.stopSaving({ success: true })
+    } catch (getDerivedStateFromProps) {
+      this.props.stopSaving({ success: false })
     }
   }
 
-  componentWillUnmount() {
-    // this.props.stopSaving(null)
-  }
+  onChange = ({ target: { name, value } }, rate, field) => {
+    this.props.toggle({ [name]: value, saveButton: true })
 
-  onSave() {
-    setTimeout(() => {
-      this.props.stopSaving(true)
-    }, 2000)
-  }
+    if (rate && field) {
+      if (field === 'searchRates') {
+        this.setState((prev) => ({
+          searchRates: prev.searchRates.map(($0) =>
+            $0._id === rate._id ? { ...$0, [name]: value } : $0
+          ),
+        }))
+        return
+      }
 
-  onChange = () => {
-    this.props.toggle({ saveButton: true })
+      this.setState((prev) => ({
+        searchRates: prev.searchRates.map(($0) =>
+          $0._id === rate._id ? { ...$0, [name]: value } : $0
+        ),
+      }))
+    }
   }
 
   deleteItem = (element, rateId) => {
@@ -108,8 +115,9 @@ class Rates extends Component {
                     label="Mínimo"
                     className="text-field"
                     value={rate.min}
-                    onChange={(evt) => this.onChange(evt, rate)}
+                    onChange={(evt) => this.onChange(evt, rate, 'searchRates')}
                     margin="normal"
+                    name="min"
                     variant="outlined"
                   />
                   <span className="dash">-</span>
@@ -118,8 +126,9 @@ class Rates extends Component {
                     label="Máximo"
                     className="text-field"
                     value={rate.max}
-                    onChange={(evt) => this.onChange(evt, rate)}
+                    onChange={(evt) => this.onChange(evt, rate, 'searchRates')}
                     margin="normal"
+                    name="max"
                     variant="outlined"
                   />
                 </div>
@@ -129,8 +138,9 @@ class Rates extends Component {
                     label="Costo"
                     className="text-field cost"
                     value={rate.cost}
-                    onChange={(evt) => this.onChange(evt, rate)}
+                    onChange={(evt) => this.onChange(evt, rate, 'searchRates')}
                     margin="normal"
+                    name="cost"
                     variant="outlined"
                     InputProps={{
                       startAdornment: (
@@ -171,7 +181,7 @@ class Rates extends Component {
                     label="Mínimo"
                     className="text-field"
                     value={rate.min}
-                    onChange={() => {}}
+                    onChange={(evt) => this.onChange(evt, rate, 'indexRates')}
                     margin="normal"
                     variant="outlined"
                   />
@@ -181,7 +191,7 @@ class Rates extends Component {
                     label="Máximo"
                     className="text-field"
                     value={rate.max}
-                    onChange={() => {}}
+                    onChange={(evt) => this.onChange(evt, rate, 'indexRates')}
                     margin="normal"
                     variant="outlined"
                   />
@@ -192,7 +202,7 @@ class Rates extends Component {
                     label="Costo"
                     className="text-field cost"
                     value={rate.cost}
-                    onChange={() => {}}
+                    onChange={(evt) => this.onChange(evt, rate, 'indexRates')}
                     margin="normal"
                     variant="outlined"
                     InputProps={{

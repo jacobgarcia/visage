@@ -149,7 +149,7 @@ class AppBarComponent extends PureComponent {
                         <CircularProgress
                           className="circular-progress"
                           size={30}
-                          color="inherit"
+                          color="secondary"
                         />
                       </div>
                     ) : (

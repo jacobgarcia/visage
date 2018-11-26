@@ -20,7 +20,6 @@ import './styles.pcss'
 class Clients extends Component {
   static propTypes = {
     saving: PropTypes.any,
-    stopSaving: PropTypes.any,
     toggle: PropTypes.any,
   }
 
@@ -34,9 +33,13 @@ class Clients extends Component {
     selectedClient: null,
   }
 
-  async componentDidMount() {
+  componentDidMount() {
     this.props.toggle({ saveButton: false, dateFilter: false })
 
+    this.reloadData()
+  }
+
+  reloadData = async () => {
     try {
       let users = await NetworkOperation.getUsers()
       users = users.data.users || []
@@ -45,22 +48,6 @@ class Clients extends Component {
     } catch (error) {
       console.log({ error })
     }
-  }
-
-  componentDidUpdate(prevProps) {
-    if (this.props.saving && !prevProps.saving) {
-      this.onSave()
-    }
-  }
-
-  componentWillUnmount() {
-    this.props.stopSaving(null)
-  }
-
-  onSave() {
-    setTimeout(() => {
-      this.props.stopSaving(true)
-    }, 10000)
   }
 
   handleClose = () => this.setState({ anchorEl: null })
@@ -151,6 +138,7 @@ class Clients extends Component {
               {filteredRows.map((item) => (
                 <ClientRow
                   client={item}
+                  reloadData={this.reloadData}
                   selectedClient={selectedClient}
                   onSelectClient={this.onSelectClient}
                   key={item._id}

@@ -19,9 +19,7 @@ import './styles.pcss'
 
 class Admins extends Component {
   static propTypes = {
-    saving: PropTypes.any,
-    stopSaving: PropTypes.any,
-    toggle: PropTypes.any,
+    toggle: PropTypes.function,
   }
 
   state = {
@@ -44,10 +42,6 @@ class Admins extends Component {
     // if (this.props.saving && !prevProps.saving) {
     //   this.onSave()
     // }
-  }
-
-  componentWillUnmount() {
-    this.props.stopSaving(null)
   }
 
   handleClose = () => this.setState({ anchorEl: null })
@@ -85,12 +79,6 @@ class Admins extends Component {
       }
     })
   }
-
-  // onSave() {
-  //   setTimeout(() => {
-  //     this.props.stopSaving(true)
-  //   }, 2000)
-  // }
 
   onToggleEditModal = (item) => {
     const newState = {}

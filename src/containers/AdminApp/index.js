@@ -34,7 +34,6 @@ class App extends Component {
   static contextType = UserContext
 
   state = {
-
     showSaveButton: false,
     saving: false,
     toolBarHidden: true,
@@ -58,9 +57,21 @@ class App extends Component {
     this.setState({ showSaveButton: saveButton, showDateFilter: dateFilter })
   }
 
-  onSaveClicked = () => this.setState({ saving: true })
+  onSaveClicked = () => {
+    this.saveFunction()
+    console.log('ON SAVE CLICKED...')
+    this.setState({ saving: true })
+  }
 
-  setStopSaving = () => this.setState({ saving: false })
+  setStopSaving = ({ success = true } = {}) => {
+    const newState = { saving: false }
+    
+    if (success) {
+      newState.showSaveButton = false
+    }
+    
+    this.setState(newState)
+  }
 
   onToggle = (name) => () => this.setState((prev) => ({ [name]: !prev[name] }))
 
@@ -75,12 +86,7 @@ class App extends Component {
     this.setState(this.getInitialState())
   }
 
-   onSave = async (passedFunction, data, callback) => {
-    console.log('ON SAVE RECIEVED', passedFunction, callback)
-    const response = await passedFunction()
-
-    callback(response)
-  }
+  setSaveFunction = (saveFunction) => this.saveFunction = saveFunction
 
   render() {
     const {
@@ -115,7 +121,7 @@ class App extends Component {
           stopSaving: this.setStopSaving,
           showDateFilter,
           onDateSelect: this.onDateSelect,
-          onSave: this.onSave
+          setSaveFunction: this.setSaveFunction
         }}
       >
         <Fragment>
@@ -134,6 +140,7 @@ class App extends Component {
               title={title}
               handleDayClick={this.handleDayClick}
               numberOfMonths={1}
+              onSaveClicked={this.onSaveClicked}
             />
             <Drawer
               onToggle={this.onToggle}

@@ -65,6 +65,10 @@ class NetworkOperation {
     return axios.patch(`${baseUrl}/v1/private/users/${username}/deactivate`)
   }
 
+  static reactivateUser(username) {
+    return axios.patch(`${baseUrl}/v1/private/users/${username}/activate`)
+  }
+
   /*
   A D M I N S
   */
@@ -95,6 +99,13 @@ class NetworkOperation {
 
   static generateAPIKey(username) {
     return axios.post(`${baseUrl}/v1/private/users/token/${username}`)
+  }
+
+  /*
+  R A T E S
+  */
+  static setRates(data) {
+    return axios.post(`${baseUrl}/v1/private/rates`, data)
   }
 }
 

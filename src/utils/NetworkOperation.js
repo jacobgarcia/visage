@@ -30,10 +30,10 @@ class NetworkOperation {
     return axios.post(`${baseUrl}/v1/private/authenticate`, {email, password})
   }
   /*
-  Signup
+  SIGNUP
   */
-  static self(invitation,{email, password, username, fullName}) {
-    return axios.get(`${baseUrl}/v1/private/signup/${invitation}`, {email, password, username, fullName})
+  static signup(invitation,{email, password, username, fullName}) {
+    return axios.post(`${baseUrl}/v1/private/signup/${invitation}`, {email, password, username, fullName})
   }
 
   // static self() {
@@ -67,6 +67,10 @@ class NetworkOperation {
 
   static reactivateUser(username) {
     return axios.patch(`${baseUrl}/v1/private/users/${username}/activate`)
+  }
+
+  static updateUser(username,{name, company, user, email}) {
+    return axios.put(`${baseUrl}/v1/private/users/${username}`, {name, company, username: user, email})
   }
 
   /*
@@ -104,8 +108,8 @@ class NetworkOperation {
   /*
   INVITE USER
   */
-  static inviteUser(username) {
-    return axios.post(`${baseUrl}/v1/private/users/invite/${username}`)
+  static inviteUser(email) {
+    return axios.post(`${baseUrl}/v1/private/users/invite`,{email})
   }
 
   /*

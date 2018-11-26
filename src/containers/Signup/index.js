@@ -3,7 +3,7 @@ import TextField from '@material-ui/core/TextField'
 import Button from '@material-ui/core/Button'
 import PropTypes from 'prop-types'
 import NetworkOperation from 'utils/NetworkOperation'
-
+import queryString from 'query-string'
 import './styles.pcss'
 import qboLogo from '../../assets/qbo-logo.svg'
 
@@ -29,10 +29,11 @@ class Signup extends Component {
   onSubmit = (event) => {
     event.preventDefault()
     const {email, invitation, username, password, second_password, fullName } = this.state
+    const {token} = queryString.parse(this.props.location.search)
     if (second_password !== password) {
         this.setState({error: 'Las contraseñas no coinciden'})
       } else {
-      NetworkOperation.signup(invitation ,{email, password, username, fullName})
+      NetworkOperation.signup(token ,{email, password, username, fullName})
         .then(({ data }) => {
           console.log(data)
           this.props.history.replace(this.state.return || '/login')
@@ -59,7 +60,6 @@ class Signup extends Component {
     const {
       state: {email, username, password, second_password , fullName, error },
     } = this
-
     return (
       <div className="login">
         <form onSubmit={this.onSubmit}>

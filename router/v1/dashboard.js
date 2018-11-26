@@ -533,9 +533,13 @@ router.route('/admins/export').get((req, res) => {
 // Rates endpoints
 // GET all rates of user
 router.route('/rates').get(async (req, res) => {
-  const { username } = req._user
+  const { _id: userId } = req._user
+  console.log(userId)
+
   try {
-    const rates = await User.findOne({ username }).select('searchRates indexRates')
+    const rates = await User.findOne({_id: userId}).select('searchRates indexRates')
+
+    console.log({rates})
 
     return res.status(200).json({ rates })
   } catch (error) {

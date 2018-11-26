@@ -664,17 +664,17 @@ router.route('/admins').get(async (req, res) => {
 router
   .route('/admins/:adminUsername')
   .put((req, res) => {
-    const { name, username, email } = req.body
+    const { name, username, email, services } = req.body
     const { adminUsername } = req.params
 
-    if (!name || !username || !email) {
+    if (!name || !username || !email || !services) {
       console.info({ name, username, email })
       return res.status(400).json({ error: { message: 'Malformed request' } })
     }
 
     return Admin.findOneAndUpdate(
       { username: adminUsername },
-      { $set: { name, username, email } }
+      { $set: { name, username, email, services } }
     ).exec((error, admin) => {
       if (error) {
         console.error('Could not update admin information')

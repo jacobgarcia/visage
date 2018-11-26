@@ -920,63 +920,64 @@ router.route('/admins/export').get((req, res) => {
 // Rates endpoints
 // GET all rates of user
 // TODO: deprecated
-router.route('/rates').get(async (req, res) => {
-  const { username } = req._user
-  try {
-    const rates = await User.findOne({ username }).select(
-      'searchRates indexRates'
-    )
+router
+  .route('/rates')
+  .get(async (req, res) => {
+    console.log('USER', req._user)
+    const { _id: userId } = req._user
 
-    return res.status(200).json({ rates })
-  } catch (error) {
-    console.error('Could not get rates', error)
-    return res.status(500).json({ error: { message: 'Could not get rates' } })
-  }
-})
+    try {
+      const rates = await User.findById(userId).select('searchRates indexRates')
 
-// Edit in bulk all rates (this is the UX stablished in the mocks)
-// TODO: deprecated
-router.route('/rates').post(async (req, res) => {
-  const { username } = req._user
-  const { searchRates, indexRates } = req.body
-  if (
-    !searchRates ||
-    !indexRates ||
-    searchRates.length === 0 ||
-    indexRates.length === 0
-  ) return res.status(400).json({ error: { message: 'Malformed Request' } })
-  try {
-    // Validate that searchRates and indexRates are well formed
-    if (searchRates[0].min > 0 || indexRates[0].min > 0) return res
-        .status(403)
-        .json({ error: { message: 'Cannot insert a search invalid rate' } })
-
-    for (let index = 1; index < searchRates.length; index += 1) {
-      if (searchRates[index].min !== searchRates[index - 1].max + 1) return res
+      return res.status(200).json({ rates })
+    } catch (error) {
+      console.error('Could not get rates', error)
+      return res.status(500).json({ error: { message: 'Could not get rates' } })
+    }
+  })
+  // Edit in bulk all rates (this is the UX stablished in the mocks)
+  // TODO: deprecated
+  .post(async (req, res) => {
+    const { username } = req._user
+    const { searchRates, indexRates } = req.body
+    if (
+      !searchRates ||
+      !indexRates ||
+      searchRates.length === 0 ||
+      indexRates.length === 0
+    ) return res.status(400).json({ error: { message: 'Malformed Request' } })
+    try {
+      // Validate that searchRates and indexRates are well formed
+      if (searchRates[0].min > 0 || indexRates[0].min > 0) return res
           .status(403)
           .json({ error: { message: 'Cannot insert a search invalid rate' } })
-    }
 
-    for (let index = 1; index < indexRates.length; index += 1) {
-      if (indexRates[index].min !== indexRates[index - 1].max + 1) return res
-          .status(403)
-          .json({ error: { message: 'Cannot insert an search invalid rate' } })
-    }
+      for (let index = 1; index < searchRates.length; index += 1) {
+        if (searchRates[index].min !== searchRates[index - 1].max + 1) return res
+            .status(403)
+            .json({ error: { message: 'Cannot insert a search invalid rate' } })
+      }
 
-    await User.findOneAndUpdate(
-      { username },
-      { $set: { indexRates, searchRates } }
-    )
-    return res
-      .status(200)
-      .json({ success: true, message: 'Successfully updated rates' })
-  } catch (error) {
-    console.error('Could not update rates', error)
-    return res
-      .status(500)
-      .json({ error: { message: 'Could not update rates' } })
-  }
-})
+      for (let index = 1; index < indexRates.length; index += 1) {
+        if (indexRates[index].min !== indexRates[index - 1].max + 1) return res.status(403).json({
+            error: { message: 'Cannot insert an search invalid rate' },
+          })
+      }
+
+      await User.findOneAndUpdate(
+        { username },
+        { $set: { indexRates, searchRates } }
+      )
+      return res
+        .status(200)
+        .json({ success: true, message: 'Successfully updated rates' })
+    } catch (error) {
+      console.error('Could not update rates', error)
+      return res
+        .status(500)
+        .json({ error: { message: 'Could not update rates' } })
+    }
+  })
 
 // Add new search rate
 // TODO: deprecated

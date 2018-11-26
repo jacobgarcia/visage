@@ -30,6 +30,8 @@ class Rates extends Component {
     try {
       const { data } = await NetworkOperation.getRates()
 
+      console.log({ data })
+
       this.setState({
         indexRates: data.rates?.indexRates,
         searchRates: data.rates?.searchRates,
@@ -75,6 +77,8 @@ class Rates extends Component {
     const {
       state: { searchRates, indexRates },
     } = this
+
+    console.log(this.state)
 
     return (
       <div className="tarifs">

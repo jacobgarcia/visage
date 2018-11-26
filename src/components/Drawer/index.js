@@ -15,6 +15,7 @@ import SecurityIcon from '@material-ui/icons/Security'
 import ExitIcon from '@material-ui/icons/ExitToApp'
 
 import qboLogo from 'assets/qbo-logo-mono.svg'
+import { UserContext } from 'utils/context'
 
 function listItem(text, Component) {
   return (
@@ -31,31 +32,50 @@ function DrawerComponent(props) {
   const { toolBarHidden, onToggle, onLinkClick, onCloseClick } = props
 
   return (
-    <Drawer
-      className={`drawer ${toolBarHidden ? '--hidden' : ''}`}
-      variant="permanent"
-      anchor="left"
-    >
-      <div className={'toolbar__logo'}>
-        <img src={qboLogo} alt="QBO" />
-        <div onClick={onToggle('toolBarHidden')} className={'toggle-button'} />
-      </div>
-      <NavLink onClick={onLinkClick} exact to="/">
-        {listItem('Dashboard', DashboardIcon)}
-      </NavLink>
-      <NavLink onClick={onLinkClick} to="/clients">
-        {listItem('Clientes', PeopleIcon)}
-      </NavLink>
-      <NavLink onClick={onLinkClick} to="/admins">
-        {listItem('Administradores', SecurityIcon)}
-      </NavLink>
-      <NavLink onClick={onLinkClick} to="/tarifs">
-        {listItem('Tarifas', AttachMoneyIcon)}
-      </NavLink>
-      <NavLink onClick={onCloseClick} to="/login" className="login">
-        {listItem('Cerrar sesión', ExitIcon)}
-      </NavLink>
-    </Drawer>
+    <UserContext.Consumer>
+      {(data) => {
+        const services = data?.user?.services
+        return (
+          <Drawer
+            className={`drawer ${toolBarHidden ? '--hidden' : ''}`}
+            variant="permanent"
+            anchor="left"
+          >
+            {console.log('USER CONTEXT', data)}
+            <div className={'toolbar__logo'}>
+              <img src={qboLogo} alt="QBO" />
+              <div
+                onClick={onToggle('toolBarHidden')}
+                className={'toggle-button'}
+              />
+            </div>
+            {services?.dashboard && (
+              <NavLink onClick={onLinkClick} exact to="/">
+                {listItem('Dashboard', DashboardIcon)}
+              </NavLink>
+            )}
+            {services?.clients !== 0 && (
+              <NavLink onClick={onLinkClick} to="/clients">
+                {listItem('Clientes', PeopleIcon)}
+              </NavLink>
+            )}
+            {services?.admins !== 0 && (
+              <NavLink onClick={onLinkClick} to="/admins">
+                {listItem('Administradores', SecurityIcon)}
+              </NavLink>
+            )}
+            {services?.rates && (
+              <NavLink onClick={onLinkClick} to="/tarifs">
+                {listItem('Tarifas', AttachMoneyIcon)}
+              </NavLink>
+            )}
+            <NavLink onClick={onCloseClick} to="/login" className="login">
+              {listItem('Cerrar sesión', ExitIcon)}
+            </NavLink>
+          </Drawer>
+        )
+      }}
+    </UserContext.Consumer>
   )
 }
 

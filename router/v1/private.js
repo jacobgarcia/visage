@@ -795,7 +795,7 @@ router.route('/rates').put(async (req, res) => {
       if (indexRates[index].min !== indexRates[index - 1].max + 1) return res.status(403).json({ error: { message: 'Cannot insert an search invalid rate' } })
     }
 
-    await User.findOneAndUpdate({ _id: req._user._id }, { $set: { indexRates, searchRates } })
+    await User.updateMany({}, { $set: { indexRates, searchRates } })
     return res.status(200).json({ success: true, message: 'Successfully updated rates' })
   } catch (error) {
     console.error('Could not update rates', error)
@@ -820,7 +820,7 @@ router.route('/rates/search').post(async (req, res) => {
         rate.max > searchRates[searchRates.length - 1].max) ||
       rate.min === searchRates[searchRates.length - 1].max + 1
     ) {
-      await User.findOneAndUpdate({ _id: req._user._id }, { $push: { searchRates: rate } })
+      await User.updateMany({}, { $push: { searchRates: rate } })
       return res.status(200).json({ success: true, message: 'Successfully added search rate' })
     }
     return res.status(403).json({ error: { message: 'Cannot insert an search invalid rate' } })
@@ -846,7 +846,7 @@ router.route('/rates/index').post(async (req, res) => {
       (rate.min < indexRates[0].min && rate.max < indexRates[0].min) ||
       rate.min === indexRates[indexRates.length - 1].max + 1
     ) {
-      await User.findOneAndUpdate({ _id: req._user._id }, { $push: { indexRates: rate } })
+      await User.updateMany({}, { $push: { indexRates: rate } })
       return res.status(200).json({ success: true, message: 'Successfully added index rate' })
     }
     return res.status(403).json({ error: { message: 'Cannot insert an invalid index rate' } })
@@ -860,7 +860,7 @@ router.route('/rates/index').post(async (req, res) => {
 router.route('/rates/search/:rateId').delete(async (req, res) => {
   const _id = req.params.rateId.toString()
   try {
-    await User.findOneAndUpdate({ _id: req._user._id }, { $pull: { searchRates: { _id } } })
+    await User.updateMany({}, { $pull: { searchRates: { _id } } })
     return res.status(200).json({ success: true, message: 'Successfully deleted search rate' })
   } catch (error) {
     console.error('Could not delete search rate', error)
@@ -872,7 +872,7 @@ router.route('/rates/search/:rateId').delete(async (req, res) => {
 router.route('/rates/index/:rateId').delete(async (req, res) => {
   const _id = req.params.rateId.toString()
   try {
-    await User.findOneAndUpdate({ _id: req._user._id }, { $pull: { indexRates: { _id } } })
+    await User.updateMany({}, { $pull: { indexRates: { _id } } })
     return res.status(200).json({ success: true, message: 'Successfully deleted index rate' })
   } catch (error) {
     console.error('Could not delete index rate', error)

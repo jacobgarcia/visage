@@ -82,7 +82,7 @@ class NetworkOperation {
   }
 
   static createAdmin(data) {
-    return axios.post(`${baseUrl}/v1/private/admins`, data)
+    return axios.post(`${baseUrl}/v1/private/admins/invite`, data)
   }
 
   static deleteAdmin(username) {
@@ -110,7 +110,7 @@ class NetworkOperation {
   }
 
   /*
-  INVITE USER
+  I N V I T E   U S E R
   */
   static inviteUser(email) {
     return axios.post(`${baseUrl}/v1/private/users/invite`,{email})

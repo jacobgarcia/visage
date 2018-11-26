@@ -102,6 +102,13 @@ class NetworkOperation {
   }
 
   /*
+  INVITE USER
+  */
+  static inviteUser(username) {
+    return axios.post(`${baseUrl}/v1/private/users/invite/${username}`)
+  }
+
+  /*
   R A T E S
   */
   static setRates(data) {

@@ -72,7 +72,7 @@ const adminFields = [
 
 nev.configure(
   {
-    verificationURL: 'http://localhost:8080/signup/${URL}',
+    verificationURL: 'http://localhost:8080/signup?token=${URL}',
     // mongo configuration
     persistentUserModel: User,
     tempUserModel: Guest,

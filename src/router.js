@@ -76,7 +76,7 @@ class Routes extends PureComponent {
               <Route component={SessionLoader} />
               <Switch>
                 <Route exact path="/login" component={Login} />
-                <Route exact path="/signup" component={Signup} />
+                <Route path="/signup" component={Signup} />
                 {this.state.user === null ? (
                   <div className="loading-screen">
                     <img src={qboLogoColor} alt="QBO" />

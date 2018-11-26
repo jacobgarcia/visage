@@ -59,7 +59,7 @@ class ClientModal extends Component {
   }
 
   onSave = () => {
-    console.log('ON SAVE')
+
   }
 
   render() {

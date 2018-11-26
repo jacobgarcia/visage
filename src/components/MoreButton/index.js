@@ -7,7 +7,6 @@ import PropTypes from 'prop-types'
 
 function MoreButton(props) {
   const { anchorEl, isActive, user } = props
-
   return (
     <div style={{ display: 'inline-block' }}>
       <IconButton
@@ -31,14 +30,14 @@ function MoreButton(props) {
         >
           Editar
         </MenuItem>
-        <MenuItem
+        {!user.services && <MenuItem
           onClick={() => {
             props.onToggleActive(isActive)
             props.handleClose()
           }}
         >
           {isActive ? 'Desactivar' : 'Reactivar'}
-        </MenuItem>
+        </MenuItem>}
         <MenuItem
           onClick={() => {
             props.onDelete()

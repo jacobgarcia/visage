@@ -4,16 +4,35 @@ import PropTypes from 'prop-types'
 import TextInput from 'components/TextInput'
 import './styles.pcss'
 
+import { UserContext } from 'utils/context'
+
 class Profile extends Component {
   static propTypes = {}
 
-  state = {}
+  static contextType = UserContext
+
+  state = {
+    name: this.context?.user?.name,
+    company: this.context?.user?.company,
+    email: this.context?.user?.email,
+    username: this.context?.user?.username,
+  }
 
   onLogout = () => {
     this.props.history.replace('/login')
   }
 
+  onChange = ({ target: { name, value } }) => {
+    this.setState({ [name]: value })
+  }
+
   render() {
+    const {
+      state: { name, company, email, username },
+    } = this
+
+    console.log(this.context)
+
     return (
       <div className="profile-content">
         <div>
@@ -22,25 +41,25 @@ class Profile extends Component {
             <TextInput
               name="name"
               label="Nombre"
-              value={''}
+              value={name}
               onChange={this.onChange}
             />
             <TextInput
               name="user"
               label="Nombre de usuario"
-              value={''}
+              value={username}
               onChange={this.onChange}
             />
             <TextInput
               name="company"
               label="Empresa"
-              value={''}
+              value={company}
               onChange={this.onChange}
             />
             <TextInput
               name="email"
               label="Email"
-              value={''}
+              value={email}
               onChange={this.onChange}
             />
           </div>
@@ -57,15 +76,25 @@ class Profile extends Component {
           <h5>Rangos de consultas</h5>
           <div className="consults-range">
             <label>Consultas</label>
-            <p>
-              $0.89MXN <span>Entre 1000 y 9999</span>
-            </p>
+            {this.context?.user?.searchRates?.map((rate) => (
+              <p>
+                ${rate.cost}MXN{' '}
+                <span>
+                  Entre {rate.min} y {rate.max}
+                </span>
+              </p>
+            ))}
           </div>
           <div className="consults-range">
             <label>Indexación</label>
-            <p>
-              $0.89MXN <span>Entre 1000 y 9999</span>
-            </p>
+            {this.context?.user?.indexRates?.map((rate) => (
+              <p>
+                ${rate.cost}MXN{' '}
+                <span>
+                  Entre {rate.min} y {rate.max}
+                </span>
+              </p>
+            ))}
           </div>
         </div>
         <div>

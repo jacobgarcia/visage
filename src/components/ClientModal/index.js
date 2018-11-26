@@ -16,6 +16,9 @@ function getInitialState() {
     _id: null,
     name: '',
     username: '',
+    email: '',
+    company: '',
+    valid: false,
   }
 }
 
@@ -25,10 +28,6 @@ class ClientModal extends Component {
   state = {
     ...getInitialState,
   }
-
-  handlecheckChange = (name) => () => this.setState({ [name]: false })
-
-  onChange = () => {}
 
   componentDidUpdate(prevProps) {
     if (
@@ -45,15 +44,28 @@ class ClientModal extends Component {
       !this.props.addUserModalOpen &&
       this.state.username
     ) {
-      console.log('SETTING INTIAL STATE')
       this.setState(getInitialState)
     }
+  }
+
+  handlecheckChange = (name) => () => this.setState({ [name]: false })
+
+  onChange = (name) => ({ target: { value } }) => {
+    this.setState({ [name]: value }, () => {
+      this.setState({
+        valid: this.state.name && this.state.email && this.state.username,
+      })
+    })
+  }
+
+  onSave = () => {
+    console.log('ON SAVE')
   }
 
   render() {
     const {
       props: { addUserModalOpen, toggleUserAddModal },
-      state: { username, name, _id },
+      state: { username, name, valid, _id, email, company },
     } = this
 
     return (
@@ -68,13 +80,15 @@ class ClientModal extends Component {
             <div>
               <TextField
                 required
-                label="Nombre del usuario"
+                label="Nombre"
                 margin="normal"
                 variant="outlined"
                 value={name}
                 onChange={this.onChange('name')}
                 className="user-name"
               />
+            </div>
+            <div>
               <TextField
                 required
                 label="Nombre de usuario"
@@ -84,6 +98,34 @@ class ClientModal extends Component {
                 onChange={this.onChange('username')}
               />
             </div>
+            <div>
+              <TextField
+                required
+                label="Email"
+                margin="normal"
+                variant="outlined"
+                value={email}
+                onChange={this.onChange('email')}
+              />
+            </div>
+            <div>
+              <TextField
+                required
+                label="Company"
+                margin="normal"
+                variant="outlined"
+                value={company}
+                onChange={this.onChange('company')}
+              />
+            </div>
+            <Button
+              disabled={!valid}
+              onClick={this.onSave}
+              variant="contained"
+              color="secondary"
+            >
+              {_id ? 'Guardar' : 'Añadir'}
+            </Button>
           </div>
         </div>
       </Modal>

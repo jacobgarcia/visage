@@ -27,6 +27,7 @@ class Clients extends Component {
   state = {
     search: '',
     rows: [],
+    filteredRows: [],
     anchorEl: null,
     addUserModalOpen: false,
     admin: true,
@@ -40,7 +41,7 @@ class Clients extends Component {
       let users = await NetworkOperation.getUsers()
       users = users.data.users || []
 
-      this.setState({ rows: users })
+      this.setState({ rows: users, filteredRows: users })
     } catch (error) {
       console.log({ error })
     }
@@ -84,9 +85,25 @@ class Clients extends Component {
     this.setState({ selectedClient: client, addUserModalOpen: true })
   }
 
+  onChange = (name) => ({ target: { value } }) => {
+    this.setState({ [name]: value }, () => {
+      if (name === 'search') {
+        this.setState((prevState) => ({
+          filteredRows: prevState.search
+            ? prevState.rows.filter(({ name }) =>
+                String(name)
+                  .toLowerCase()
+                  .includes(String(prevState.search).toLowerCase())
+              )
+            : prevState.rows,
+        }))
+      }
+    })
+  }
+
   render() {
     const {
-      state: { search, rows, addUserModalOpen, selectedClient },
+      state: { search, filteredRows, addUserModalOpen, selectedClient },
     } = this
 
     return (
@@ -102,7 +119,7 @@ class Clients extends Component {
             label="Buscar"
             className="text-field"
             value={search}
-            onChange={() => {}}
+            onChange={this.onChange('search')}
             margin="normal"
           />
           <div className="buttons">
@@ -131,7 +148,7 @@ class Clients extends Component {
               </TableRow>
             </TableHead>
             <TableBody>
-              {rows.map((item) => (
+              {filteredRows.map((item) => (
                 <ClientRow
                   client={item}
                   selectedClient={selectedClient}

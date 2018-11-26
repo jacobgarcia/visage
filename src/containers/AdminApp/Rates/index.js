@@ -90,7 +90,7 @@ class Rates extends Component {
             </Button>
           </div>
 
-          {searchRates.map((rate) => {
+          {searchRates?.map((rate) => {
             return (
               <div className="row" key={rate._id}>
                 <div>
@@ -153,7 +153,7 @@ class Rates extends Component {
               Nueva tarifa
             </Button>
           </div>
-          {indexRates.map((rate) => {
+          {indexRates?.map((rate) => {
             return (
               <div className="row" key={rate._id}>
                 <div>

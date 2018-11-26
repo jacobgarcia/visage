@@ -12,6 +12,7 @@ function TextInput(props) {
         name={props.name}
         type="text"
         placeholder={props.label}
+        value={props.value}
       />
     </div>
   )

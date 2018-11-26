@@ -26,8 +26,14 @@ const schema = new Schema({
   username: { type: String },
   company: String,
   password: { type: String, required: true },
-  searchRates: { type: [Rate], default: [{ min: 1, max: 1000, cost: 1 }] },
-  indexRates: { type: [Rate], default: [{ min: 1, max: 1000, cost: 1 }] },
+  searchRates: {
+    type: [Rate],
+    default: [{ _id: mongoose.Types.ObjectId(), min: 1, max: 1000, cost: 1 }],
+  },
+  indexRates: {
+    type: [Rate],
+    default: [{ _id: mongoose.Types.ObjectId(), min: 1, max: 1000, cost: 1 }],
+  },
   isIndexing: { type: Boolean, default: false },
   apiKey: {
     value: String,

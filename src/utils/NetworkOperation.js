@@ -89,8 +89,8 @@ class NetworkOperation {
     return axios.delete(`${baseUrl}/v1/private/admins/${username}`)
   }
 
-  static updateAdmin(admin) {
-    return axios.put(`${baseUrl}/v1/private/admins/${admin.username}`, admin)
+  static updateAdmin(admin, oldUsername) {
+    return axios.put(`${baseUrl}/v1/private/admins/${oldUsername}`, admin)
   }
 
   /*

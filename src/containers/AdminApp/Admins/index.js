@@ -86,18 +86,22 @@ class Admins extends Component {
     this.setState(({ openAdmin }) => ({ openAdmin: !openAdmin, ...newState }))
   }
 
-  onSaveAdmin = async (newAdmin) => {
+  onSaveAdmin = async (newAdmin, oldUsername) => {
     const { _id: newAdminId, ...data } = newAdmin
+
+    console.log({ newAdmin })
 
     try {
       let response
       if (newAdminId) {
-        response = await NetworkOperation.updateAdmin(data)
+        response = await NetworkOperation.updateAdmin(data, oldUsername)
       } else {
         response = await NetworkOperation.createAdmin(data)
       }
 
       console.log({ response })
+
+      this.reloadData()
     } catch (error) {
       console.error(error)
     }

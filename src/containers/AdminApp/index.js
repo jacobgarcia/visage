@@ -59,17 +59,16 @@ class App extends Component {
 
   onSaveClicked = () => {
     this.saveFunction()
-    console.log('ON SAVE CLICKED...')
     this.setState({ saving: true })
   }
 
   setStopSaving = ({ success = true } = {}) => {
     const newState = { saving: false }
-    
+
     if (success) {
       newState.showSaveButton = false
     }
-    
+
     this.setState(newState)
   }
 

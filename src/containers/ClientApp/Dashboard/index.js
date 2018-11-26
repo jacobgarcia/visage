@@ -13,17 +13,34 @@ const data02 = [
 ]
 import UsageBar from 'components/UsageBar'
 import Card from 'components/Card'
+import ProfileModal from 'components/ProfileModal'
 
 import './styles.pcss'
 
 class Dashboard extends Component {
   static propTypes = {}
 
-  state = {}
+  state = {
+    profileModalOpen: false,
+  }
+
+  onToggleProfileModal = () => {
+    this.setState(({ profileModalOpen }) => ({
+      profileModalOpen: !profileModalOpen,
+    }))
+  }
 
   render() {
+    const {
+      state: { profileModalOpen },
+    } = this
+
     return (
       <div className="dashboard">
+        <ProfileModal
+          open={profileModalOpen}
+          onClose={this.onToggleProfileModal}
+        />
         <Card>
           <h4>Resumen de consumo de datos</h4>
         </Card>

@@ -8,8 +8,8 @@ import Checkbox from '@material-ui/core/Checkbox'
 import Button from '@material-ui/core/Button'
 import Card from '@material-ui/core/Card'
 import Radio from '@material-ui/core/Radio'
-import NetworkOperation from 'utils/NetworkOperation'
 
+import NetworkOperation from 'utils/NetworkOperation'
 import '../EditAdminModal/styles.pcss'
 
 function getInitialState() {
@@ -37,7 +37,10 @@ class ClientModal extends Component {
       this.props.selectedClient &&
       !this.state.username
     ) {
-      this.setState({ ... this.props.selectedClient , pastUsername: this.props.selectedClient.username})
+      this.setState({
+        ...this.props.selectedClient,
+        pastUsername: this.props.selectedClient.username,
+      })
       return
     }
 
@@ -53,79 +56,50 @@ class ClientModal extends Component {
   handlecheckChange = (name) => () => this.setState({ [name]: false })
 
   onChange = (name) => ({ target: { value } }) => {
-    this.setState({ [name]: value }, () => {
+    this.setState({ [name]: value, error: null }, () => {
       this.setState({
         valid: this.state._id && this.state.name && this.state.email && this.state.username && this.state.company || !this.state._id && this.state.email ,
       })
     })
   }
+  onSave = async () => {
+    this.setState({ error: null })
+    const data = {
+      name: this.state.name,
+      username: this.state.username,
+      email: this.state.email,
+      company: this.state.company,
+    }
 
-  onSave = () => {
-    if (this.state._id) {
-      NetworkOperation.updateUser(this.state.pastUsername, {
-        name: this.state.name,
-        username: this.state.username,
-        email: this.state.email,
-        company: this.state.company,
-      })
-        .then(({data}) => {
-          this.setState({
-            error: 'Invtacion enviada',
-          })
-        })
-        .catch(({ response = {}}) => {
-          const { status = 500 } = response
-          switch (status) {
-            case 200:
-              this.setState({
-                error: 'Invitacion enviada',
-              })
-            case 409:
-              this.setState({
-                error: 'Usuario ya registrado',
-              })
-              break
-            case 401:
-              this.setState({
-                error: 'El nombre ya fue definido',
-              })
-              break
-            default:
-              this.setState({
-                error: 'Problemas al registrar usuario',
-              })
-          }
-        })
-    } else {
-      NetworkOperation.inviteUser(this.state.email)
-        .then(({data}) => {
-          this.setState({
-            error: 'Invtacion enviada',
-          })
-        })
-        .catch(({ response = {}}) => {
-          const { status = 500 } = response
-          switch (status) {
-            case 200:
-              this.setState({
-                error: 'Invitacion enviada',
-              })
-            case 409:
-              this.setState({
-                error: 'Usuario ya registrado',
-              })
-              break
-            case 401:
-              this.setState({
-                error: 'El nombre ya fue definido',
-              })
-              break
-            default:
-              this.setState({
-                error: 'Problemas al registrar usuario',
-              })
-          }
-        })
+    try {
+      let response
+      if (this.state._id) {
+        response = await NetworkOperation.updateClient(data)
+      } else {
+        response = await NetworkOperation.inviteUser(this.state.email)
+      }
+      console.log({ response })
+      this.props.toggleUserAddModal(false)()
+      this.props.reloadData()
+    } catch ({ response }) {
+      const { status = 500 } = response
+
+      let message
+      switch (status) {
+        case 200:
+          message = 'Invitacion enviada'
+          break
+        case 409:
+          message = 'Usuario ya registrado'
+          break
+        case 401:
+          message = 'El nombre ya fue definido'
+          break
+        default:
+          message = 'Problemas al registrar usuario'
+      }
+
+      this.setState({ error: message })
     }
   }
 
@@ -185,14 +159,13 @@ class ClientModal extends Component {
                 onChange={this.onChange('email')}
               />
             </div>
-            {error ? <p>{error}</p> : ''}
+            {error && <p>{error}</p>}
             <Button
               disabled={!valid}
               onClick={this.onSave}
               variant="contained"
               color="secondary"
             >
-
               {_id ? 'Guardar' : 'Añadir'}
             </Button>
           </div>

@@ -31,6 +31,10 @@ class Dashboard extends Component {
     }))
   }
 
+  onLogout = () => {
+    this.props.history.replace('/login')
+  }
+
   render() {
     const {
       state: { profileModalOpen },
@@ -45,6 +49,7 @@ class Dashboard extends Component {
         <div className="dashboard">
           <ProfileModal
             open={profileModalOpen}
+            onLogout={this.onLogout}
             onClose={this.onToggleProfileModal}
           />
           <Card>

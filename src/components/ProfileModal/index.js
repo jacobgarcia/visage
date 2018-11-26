@@ -19,10 +19,6 @@ class ProfileModal extends Component {
     username: this.context?.user?.username,
   }
 
-  onLogout = () => {
-    this.props.history.replace('/login')
-  }
-
   onChange = ({ target: { name, value } }) => {
     this.setState({ [name]: value })
   }
@@ -31,8 +27,6 @@ class ProfileModal extends Component {
     const {
       state: { name, company, email, username },
     } = this
-
-    console.log(this.context)
 
     return (
       <Modal
@@ -110,7 +104,7 @@ class ProfileModal extends Component {
             <TextInput label="CP" />
           </div>
           <div>
-            <p onClick={this.onLogout}>Cerrar sesión</p>
+            <p onClick={this.props.onLogout}>Cerrar sesión</p>
           </div>
         </div>
       </Modal>

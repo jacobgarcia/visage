@@ -371,35 +371,22 @@ router.route('/users/invite').post((req, res) => {
   )
 })
 
-router.route('/admin/invite').post((req, res) => {
-  const { email, services } = req.body
-  const guest = new Admin({
+router.route('/admins/invite').post((req, res) => {
+  const { email, services, username, name } = req.body
+  var admin = Admin({
+    username,
+    name,
     email,
     services,
     host: req._user,
   })
-  nev.createTempUser(
-    guest,
-    (error, existingPersistentUser, newTempUser) => {
-      if (error) {
-        console.error({ error })
-        return res.status(500).json({ error })
-      }
-      if (existingPersistentUser) return res.status(409).json({ error: 'Admin already registered' })
-      if (newTempUser) {
-        const URL = newTempUser[nev.options.URLFieldName]
-        return nev.sendVerificationEmail(email, URL, (error) => {
-          if (error) return res.status(500).json({ error })
-          return res.status(200).json({ message: 'Invitation successfully sent' })
-        })
-      }
-      // user already have been invited
-      return res.status(409).json({ error: 'Admin already invited' })
-    },
-    (error) => {
-      console.error({ error })
+  return admin.save((error) => {
+    if (error) {
+        console.error('error saving admin, verify email not repited', error )
+        return res.status(500).json({error: { message: 'could not save admin, email repited'} })
     }
-  )
+    return res.status(200).json({ success: true, message: 'admin added' })
+  })
 })
 
 router.post('/signup/:invitation', (req, res) => {

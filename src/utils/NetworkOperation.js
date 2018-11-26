@@ -32,8 +32,8 @@ class NetworkOperation {
   /*
   S I G N   U P
   */
-  static self(invitation,{email, password, username, fullName}) {
-    return axios.get(`${baseUrl}/v1/private/signup/${invitation}`, {email, password, username, fullName})
+  static signup(invitation,{email, password, username, fullName}) {
+    return axios.post(`${baseUrl}/v1/private/signup/${invitation}`, {email, password, username, fullName})
   }
 
 
@@ -70,7 +70,6 @@ class NetworkOperation {
   }
 
   static updateClient(data) {
-    console.log(`${baseUrl}/v1/private/users/${data.username}`, data)
     return axios.put(`${baseUrl}/v1/private/users/${data.username}`, data)
   }
 
@@ -109,8 +108,8 @@ class NetworkOperation {
   /*
   INVITE USER
   */
-  static inviteUser(username) {
-    return axios.post(`${baseUrl}/v1/private/users/invite/${username}`)
+  static inviteUser(email) {
+    return axios.post(`${baseUrl}/v1/private/users/invite`,{email})
   }
 
   /*

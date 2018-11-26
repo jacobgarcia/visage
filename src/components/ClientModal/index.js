@@ -20,6 +20,7 @@ function getInitialState() {
     email: '',
     company: '',
     valid: false,
+    pastUsername: '',
   }
 }
 
@@ -36,7 +37,10 @@ class ClientModal extends Component {
       this.props.selectedClient &&
       !this.state.username
     ) {
-      this.setState(this.props.selectedClient)
+      this.setState({
+        ...this.props.selectedClient,
+        pastUsername: this.props.selectedClient.username,
+      })
       return
     }
 
@@ -52,39 +56,57 @@ class ClientModal extends Component {
   handlecheckChange = (name) => () => this.setState({ [name]: false })
 
   onChange = (name) => ({ target: { value } }) => {
-    this.setState({ [name]: value }, () => {
+    this.setState({ [name]: value, error: null }, () => {
       this.setState({
         valid: this.state.name && this.state.email && this.state.username,
       })
     })
   }
-
   onSave = async () => {
+    this.setState({ error: null })
     const data = {
       name: this.state.name,
       username: this.state.username,
       email: this.state.email,
       company: this.state.company,
     }
+
     try {
       let response
       if (this.state._id) {
         response = await NetworkOperation.updateClient(data)
       } else {
-        response = await NetworkOperation.inviteClient(data)
+        response = await NetworkOperation.inviteUser(this.state.email)
       }
       console.log({ response })
       this.props.toggleUserAddModal(false)()
       this.props.reloadData()
-    } catch (error) {
-      console.error(error)
+    } catch ({ response }) {
+      const { status = 500 } = response
+
+      let message
+      switch (status) {
+        case 200:
+          message = 'Invitacion enviada'
+          break
+        case 409:
+          message = 'Usuario ya registrado'
+          break
+        case 401:
+          message = 'El nombre ya fue definido'
+          break
+        default:
+          message = 'Problemas al registrar usuario'
+      }
+
+      this.setState({ error: message })
     }
   }
 
   render() {
     const {
       props: { addUserModalOpen, toggleUserAddModal },
-      state: { username, name, valid, _id, email, company },
+      state: { username, name, valid, _id, email, company, error },
     } = this
 
     return (
@@ -137,6 +159,7 @@ class ClientModal extends Component {
                 onChange={this.onChange('company')}
               />
             </div>
+            {error && <p>{error}</p>}
             <Button
               disabled={!valid}
               onClick={this.onSave}

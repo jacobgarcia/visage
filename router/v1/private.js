@@ -415,7 +415,7 @@ router.post('/signup/:invitation', (req, res) => {
         message:
           'Invalid invitation. Please ask your administrator to send you an invitation again',
       })
-
+    console.log("defining gUest")
     guest.name = name
     guest.username = username
     guest.password = await bcrypt.hash(`${password}${config.secret}`, 10)

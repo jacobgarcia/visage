@@ -41,7 +41,6 @@ function DrawerComponent(props) {
             variant="permanent"
             anchor="left"
           >
-            {console.log('USER CONTEXT', data)}
             <div className={'toolbar__logo'}>
               <img src={qboLogo} alt="QBO" />
               <div

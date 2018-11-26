@@ -14,12 +14,13 @@ export function withSaver(Component) {
   return function ComponentWithSaver(props) {
     return (
       <SaverConsumer>
-        {({ toggle, saving, stopSaving }) => (
+        {({ toggle, saving, stopSaving, onSave }) => (
           <Component
             {...props}
             toggle={toggle}
             saving={saving}
             stopSaving={stopSaving}
+            onSave={onSave}
           />
         )}
       </SaverConsumer>

@@ -75,6 +75,10 @@ class App extends Component {
     this.setState(this.getInitialState())
   }
 
+  onSave = (args) => {
+    console.log('ON SAVE', args)
+  }
+
   render() {
     const {
       state: {
@@ -108,6 +112,7 @@ class App extends Component {
           stopSaving: this.setStopSaving,
           showDateFilter,
           onDateSelect: this.onDateSelect,
+          onSave: this.onSave
         }}
       >
         <Fragment>
@@ -138,7 +143,7 @@ class App extends Component {
                 <Route exact path="/" component={Dashboard} />
                 <Route exact path="/clients" component={Clients} />
                 <Route exact path="/admins" component={Admins} />
-                <Route exact path="/rates" component={Rates} />
+                <Route exact path="/tarifs" component={Rates} />
               </Switch>
             </main>
           </div>

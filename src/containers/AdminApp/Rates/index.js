@@ -25,6 +25,7 @@ class Rates extends Component {
   }
 
   async componentDidMount() {
+    console.log(this.props)
     this.props.toggle({ saveButton: false })
 
     try {
@@ -48,7 +49,7 @@ class Rates extends Component {
   }
 
   componentWillUnmount() {
-    this.props.stopSaving(null)
+    // this.props.stopSaving(null)
   }
 
   onSave() {
@@ -61,15 +62,17 @@ class Rates extends Component {
     this.props.toggle({ saveButton: true })
   }
 
-  deleteItem = (element, index) => {
+  deleteItem = (element, rateId) => {
+    this.props.toggle({ saveButton: true })
     this.setState((prevState) => ({
-      [element]: prevState[element].filter((_, $0) => $0 !== index),
+      [element]: prevState[element].filter(({ _id }) => _id !== rateId),
     }))
   }
 
   onAddItem = (element) => {
+    this.props.toggle({ saveButton: true })
     this.setState((prevState) => ({
-      [element]: prevState[element].concat([{}]),
+      [element]: prevState[element].concat([{ _id: String(Date.now()) }]),
     }))
   }
 
@@ -78,15 +81,13 @@ class Rates extends Component {
       state: { searchRates, indexRates },
     } = this
 
-    console.log(this.state)
-
     return (
       <div className="tarifs">
         <Card className="card">
           <div className="actions-container">
             <h3>Consultas</h3>
             <Button
-              onClick={() => this.onAddItem('consults')}
+              onClick={() => this.onAddItem('searchRates')}
               color="primary"
               className="button"
             >
@@ -137,7 +138,7 @@ class Rates extends Component {
                     }}
                   />
                   <IconButton
-                    onClick={() => this.deleteItem('consults', rate._id)}
+                    onClick={() => this.deleteItem('searchRates', rate._id)}
                   >
                     <DeleteIcon />
                   </IconButton>
@@ -150,7 +151,7 @@ class Rates extends Component {
           <div className="actions-container">
             <h3>Indexación de imágenes</h3>
             <Button
-              onClick={() => this.onAddItem('imageIndexing')}
+              onClick={() => this.onAddItem('indexRates')}
               color="primary"
               className="button"
             >
@@ -200,7 +201,7 @@ class Rates extends Component {
                     }}
                   />
                   <IconButton
-                    onClick={() => this.deleteItem('imageIndexing', index)}
+                    onClick={() => this.deleteItem('indexRates', rate._id)}
                   >
                     <DeleteIcon />
                   </IconButton>

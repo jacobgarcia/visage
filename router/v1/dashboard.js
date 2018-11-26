@@ -16,6 +16,10 @@ const Admin = require(path.resolve('models/Admin'))
 
 const config = require(path.resolve('config'))
 
+function getUserData(data) {
+  return { ...data.toObject(), access: data.services ? 'admin' : 'user' }
+}
+
 let URL
 
 const fields = [
@@ -237,16 +241,10 @@ router.route('/authenticate').post(async (req, res) => {
           },
           config.secret
         )
-        const { _id, name, surname, defaultPosition } = admin
+
         if (result) return res.status(200).json({
             token,
-            user: {
-              _id,
-              name,
-              surname,
-              admin: 'true',
-              defaultPosition,
-            },
+            user: getUserData(admin),
           })
 
         return res.status(401).json({ message: 'Authentication failed. Wrong admin or password' })
@@ -268,16 +266,10 @@ router.route('/authenticate').post(async (req, res) => {
             },
             config.secret
           )
-          const { _id, name, surname, defaultPosition } = user
+
           if (result) return res.status(200).json({
               token,
-              user: {
-                _id,
-                name,
-                surname,
-                admin: false,
-                defaultPosition,
-              },
+              user: getUserData(user),
             })
 
           return res.status(401).json({ message: 'Authentication failed. Wrong user or password' })
@@ -320,15 +312,15 @@ router.use((req, res, next) => {
 })
 
 router.route('/self').get(async (req, res) => {
-  const user = await User.findOne({ _id: req._user._id })
-  const admin = await Admin.findOne({ _id: req._user._id })
+  const user = await User.findOne({ _id: req._user._id }, '-apiKey -password -toIndex')
+  const admin = await Admin.findOne({ _id: req._user._id }, '-apiKey -password -toIndex')
+
   if (admin) {
-    const { apiKey, password, _id, toIndex, ...userData} = admin.toObject()
-    return res.status(200).json(userData)
+    return res.status(200).json({ user: getUserData(admin) })
   } else if (user) {
-    const { apiKey, password, _id, toIndex, ...userData} = user.toObject()
-    return res.status(200).json(userData)
+    return res.status(200).json({ user: getUserData(user) })
   }
+
   winston.info('No user found')
   return res.status(400).json({ message: 'No user found' })
 })

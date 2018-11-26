@@ -1,5 +1,5 @@
 import axios from 'axios'
-let baseUrl = 'http://localhost:8080'
+let baseUrl = 'http://localhost:8081'
 // baseUrl = 'https://4b0490a5.ngrok.io'
 let token = null
 
@@ -30,20 +30,16 @@ class NetworkOperation {
     return axios.post(`${baseUrl}/v1/private/authenticate`, {email, password})
   }
   /*
-  Signup
+  S I G N   U P
   */
   static self(invitation,{email, password, username, fullName}) {
     return axios.get(`${baseUrl}/v1/private/signup/${invitation}`, {email, password, username, fullName})
   }
 
-  // static self() {
-  //   return axios.get(`${baseUrl}/v1/private/self`)
-  // }
 
   static generateAPIToken(username) {
     return axios.post(`${baseUrl}/v1/private/users/token/${username}`)
   }
-
 
   /*
   R A T E S
@@ -54,7 +50,7 @@ class NetworkOperation {
   }
 
   /*
-  U S E R S
+  C L I E N T S
   */
 
   static getUsers() {
@@ -67,6 +63,15 @@ class NetworkOperation {
 
   static reactivateUser(username) {
     return axios.patch(`${baseUrl}/v1/private/users/${username}/activate`)
+  }
+
+  static inviteClient(data) {
+    return axios.post(`${baseUrl}/v1/private/users/invite`,data)
+  }
+
+  static updateClient(data) {
+    console.log(`${baseUrl}/v1/private/users/${data.username}`, data)
+    return axios.put(`${baseUrl}/v1/private/users/${data.username}`, data)
   }
 
   /*
@@ -112,7 +117,7 @@ class NetworkOperation {
   R A T E S
   */
   static setRates(data) {
-    return axios.post(`${baseUrl}/v1/private/rates`, data)
+    return axios.put(`${baseUrl}/v1/private/rates`, data)
   }
 }
 

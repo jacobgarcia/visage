@@ -60,11 +60,10 @@ class Clients extends Component {
         addUserModalOpen: isOpen !== null ? isOpen : !prev.addUserModalOpen,
       }),
       () =>
-        this.setState(
-          ({ addUserModalOpen, selectedClient }) =>
-            addUserModalOpen === false && selectedClient
-              ? { selectedClient: null }
-              : null
+        this.setState(({ addUserModalOpen, selectedClient }) =>
+          addUserModalOpen === false && selectedClient
+            ? { selectedClient: null }
+            : null
         )
     )
 
@@ -99,6 +98,7 @@ class Clients extends Component {
           selectedClient={selectedClient}
           toggleUserAddModal={this.toggleUserAddModal}
           addUserModalOpen={addUserModalOpen}
+          reloadData={this.reloadData}
         />
         <div className="actions">
           <TextField

@@ -9,6 +9,7 @@ import Button from '@material-ui/core/Button'
 import Card from '@material-ui/core/Card'
 import Radio from '@material-ui/core/Radio'
 
+import NetworkOperation from 'utils/NetworkOperation'
 import '../EditAdminModal/styles.pcss'
 
 function getInitialState() {
@@ -58,8 +59,26 @@ class ClientModal extends Component {
     })
   }
 
-  onSave = () => {
-
+  onSave = async () => {
+    const data = {
+      name: this.state.name,
+      username: this.state.username,
+      email: this.state.email,
+      company: this.state.company,
+    }
+    try {
+      let response
+      if (this.state._id) {
+        response = await NetworkOperation.updateClient(data)
+      } else {
+        response = await NetworkOperation.inviteClient(data)
+      }
+      console.log({ response })
+      this.props.toggleUserAddModal(false)()
+      this.props.reloadData()
+    } catch (error) {
+      console.error(error)
+    }
   }
 
   render() {

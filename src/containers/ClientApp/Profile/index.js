@@ -4,16 +4,29 @@ import PropTypes from 'prop-types'
 import TextInput from 'components/TextInput'
 import './styles.pcss'
 
+import { UserContext } from 'utils/context'
+
 class Profile extends Component {
   static propTypes = {}
 
-  state = {}
+  static contextType = UserContext
+
+  state = {
+    name: this.context?.user?.name,
+    company: this.context?.user?.company,
+    email: this.context?.user?.email,
+    username: this.context?.user?.username,
+  }
 
   onLogout = () => {
     this.props.history.replace('/login')
   }
 
   render() {
+    const {
+      state: { name, company, email, username },
+    } = this
+
     return (
       <div className="profile-content">
         <div>
@@ -22,25 +35,25 @@ class Profile extends Component {
             <TextInput
               name="name"
               label="Nombre"
-              value={''}
+              value={name}
               onChange={this.onChange}
             />
             <TextInput
               name="user"
               label="Nombre de usuario"
-              value={''}
+              value={username}
               onChange={this.onChange}
             />
             <TextInput
               name="company"
               label="Empresa"
-              value={''}
+              value={company}
               onChange={this.onChange}
             />
             <TextInput
               name="email"
               label="Email"
-              value={''}
+              value={email}
               onChange={this.onChange}
             />
           </div>

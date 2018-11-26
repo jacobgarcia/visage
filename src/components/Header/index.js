@@ -21,9 +21,7 @@ function Header(props) {
               {isInDashboard ? (
                 <div className="user-container--info">
                   <h3>{data?.user?.name}</h3>
-                  <span>
-                    {data?.user?.apiKey?.active ? 'Activo' : 'Inactivo'}
-                  </span>
+                  <span>{data?.user?.active ? 'Activo' : 'Inactivo'}</span>
                 </div>
               ) : (
                 <div>

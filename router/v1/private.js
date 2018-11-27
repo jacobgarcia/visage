@@ -373,6 +373,10 @@ router.route('/users/invite').post((req, res) => {
 
 router.route('/admins/invite').post((req, res) => {
   const { email, services, username, name } = req.body
+  if (!name || !username || !email || !services) {
+    console.info({ name, username, email })
+    return res.status(400).json({ error: { message: 'Malformed request' } })
+  }
   var admin = Admin({
     username,
     name,
@@ -391,7 +395,9 @@ router.route('/admins/invite').post((req, res) => {
 
 router.post('/signup/:invitation', (req, res) => {
   const { invitation } = req.params
-  const { email, password, username, name } = req.body
+  const { email, password, username, fullName } = req.body
+  console.log("datos de sign up")
+  console.log(email,password,username, fullName)
   if (!invitation) return res.status(401).json({ message: 'No invitation token provided' })
   return Guest.findOne({ invitation }).exec(async (error, guest) => {
     if (error) {
@@ -403,7 +409,7 @@ router.post('/signup/:invitation', (req, res) => {
           'Invalid invitation. Please ask your administrator to send you an invitation again',
       })
     console.log("defining gUest")
-    guest.name = name
+    guest.name = fullName
     guest.username = username
     guest.password = await bcrypt.hash(`${password}${config.secret}`, 10)
     return guest.save(() => {

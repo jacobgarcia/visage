@@ -41,6 +41,7 @@
     "multer": "^1.4.1",
     "pm2": "^3.2.2",
     "react": "^16.6.3",
+    "request": "^2.88.0",
     "request-promise": "^4.2.2",
     "winston": "^3.1.0"
   },

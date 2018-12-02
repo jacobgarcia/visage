@@ -46,18 +46,20 @@ class AdminRow extends Component {
             {isSuperAdmin ? 'SUPERADMIN' : 'ADMIN'}
           </Button>
         </TableCell>
-        <TableCell numeric>
-          <MoreButton
-            user={props}
-            anchorEl={anchorEl}
-            onDelete={props.onDelete}
-            onEdit={() => {
-              props.onToggleEditModal(props.admin)
-            }}
-            handleClick={this.handleClick}
-            handleClose={this.handleClose}
-          />
-        </TableCell>
+        {props.canEdit && (
+          <TableCell numeric>
+            <MoreButton
+              user={props}
+              anchorEl={anchorEl}
+              onDelete={props.onDelete}
+              onEdit={() => {
+                props.onToggleEditModal(props.admin)
+              }}
+              handleClick={this.handleClick}
+              handleClose={this.handleClose}
+            />
+          </TableCell>
+        )}
       </TableRow>
     )
   }

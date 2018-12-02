@@ -15,6 +15,7 @@ import NetworkOperation from 'utils/NetworkOperation'
 import { withSaver } from 'utils/portals'
 import EditAdminModal from 'components/EditAdminModal'
 import AdminRow from 'components/AdminRow'
+import { UserContext } from 'utils/context'
 
 import './styles.pcss'
 
@@ -22,6 +23,8 @@ class Admins extends Component {
   static propTypes = {
     toggle: PropTypes.function,
   }
+
+  static contextType = UserContext
 
   state = {
     anchorEl: null,
@@ -98,7 +101,6 @@ class Admins extends Component {
     const { _id: newAdminId, ...data } = newAdmin
 
     try {
-      console.log({ data })
       if (newAdminId) {
         await NetworkOperation.updateAdmin(data, oldUsername)
         this.setState({ message: 'Usuario actualizado con éxito' })
@@ -125,6 +127,8 @@ class Admins extends Component {
         message,
       },
     } = this
+
+    const canEdit = this.context?.user?.services?.admins === 2
 
     return (
       <div className="admins">
@@ -170,7 +174,7 @@ class Admins extends Component {
                 <TableCell>Username</TableCell>
                 <TableCell>Mail</TableCell>
                 <TableCell>Rol</TableCell>
-                <TableCell numeric />
+                {canEdit && <TableCell numeric />}
               </TableRow>
             </TableHead>
             <TableBody>
@@ -182,6 +186,7 @@ class Admins extends Component {
                     key={item._id}
                     onDelete={this.onDelete}
                     onToggleEditModal={this.onToggleEditModal}
+                    canEdit={canEdit}
                   />
                 )
               })}

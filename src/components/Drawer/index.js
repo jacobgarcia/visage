@@ -63,11 +63,11 @@ function DrawerComponent(props) {
                 {listItem('Administradores', SecurityIcon)}
               </NavLink>
             )}
-            {services?.rates && (
-              <NavLink onClick={onLinkClick} to="/rates">
-                {listItem('Tarifas', AttachMoneyIcon)}
-              </NavLink>
-            )}
+
+            <NavLink onClick={onLinkClick} to="/rates">
+              {listItem('Tarifas', AttachMoneyIcon)}
+            </NavLink>
+
             <NavLink onClick={onCloseClick} to="/login" className="login">
               {listItem('Cerrar sesión', ExitIcon)}
             </NavLink>

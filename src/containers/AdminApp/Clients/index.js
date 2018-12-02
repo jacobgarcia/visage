@@ -14,6 +14,7 @@ import ClientRow from 'components/ClientRow'
 import ClientModal from 'components/ClientModal'
 import NetworkOperation from 'utils/NetworkOperation'
 import { withSaver } from 'utils/portals'
+import { UserContext } from 'utils/context'
 
 import './styles.pcss'
 
@@ -22,6 +23,8 @@ class Clients extends Component {
     saving: PropTypes.any,
     toggle: PropTypes.any,
   }
+
+  static contextType = UserContext
 
   state = {
     search: '',
@@ -99,6 +102,8 @@ class Clients extends Component {
       state: { search, filteredRows, addUserModalOpen, selectedClient },
     } = this
 
+    const canEdit = this.context?.user?.services?.clients === 2
+
     return (
       <div className="clients">
         <ClientModal
@@ -138,7 +143,7 @@ class Clients extends Component {
                 <TableCell>Mail</TableCell>
                 <TableCell>Indexación</TableCell>
                 <TableCell>API Keys</TableCell>
-                <TableCell numeric />
+                {canEdit && <TableCell numeric />}
               </TableRow>
             </TableHead>
             <TableBody>
@@ -149,6 +154,7 @@ class Clients extends Component {
                   selectedClient={selectedClient}
                   onSelectClient={this.onSelectClient}
                   key={item._id}
+                  canEdit={canEdit}
                 />
               ))}
             </TableBody>

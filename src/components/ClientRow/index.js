@@ -1,4 +1,4 @@
-import React, { Component } from 'react'
+import React, { Component ,Fragment } from 'react'
 import PropTypes from 'prop-types'
 
 import TableRow from '@material-ui/core/TableRow'
@@ -109,13 +109,16 @@ class ClientRow extends Component {
     const { props, state: { anchorEl, generateKeyLoading, revokeKeyLoading, renewKeyLoading, message } } = this
 
     return (
+      <Fragment>
+        <SnackMessage open={message} message={message} onClose={this.onCloseSnack} />
+
       <TableRow
         key={props.client._id}
         className={`user-row ${
           props.client.active ? 'active' : 'deactive'
         }`}
       >
-        <SnackMessage open={message} message={message} onClose={this.onCloseSnack} />
+
         <TableCell
           component="th"
           scope="item"
@@ -166,7 +169,7 @@ class ClientRow extends Component {
             </div>
           </IconButton>}
         </TableCell>
-        <TableCell numeric>
+        {props.canEdit && <TableCell numeric>
           <MoreButton
             isActive={props.client.active}
             anchorEl={anchorEl}
@@ -176,8 +179,9 @@ class ClientRow extends Component {
             handleClose={this.handleClose}
             onEdit={() => props.onSelectClient(props.client)}
           />
-        </TableCell>
+        </TableCell>}
       </TableRow>
+      </Fragment>
     )
   }
 }

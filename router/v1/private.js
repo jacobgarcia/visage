@@ -20,6 +20,8 @@ const config = require(path.resolve('config'))
 
 const serviceUrl = 'https://admin.vs-01-dev.qbo.tech'
 
+const JWT_SECRET = process.env.JWT_SECRET
+
 function getUserData(data) {
   return { ...data.toObject(), access: data.services ? 'admin' : 'user' }
 }
@@ -120,7 +122,7 @@ router.route('/users/token/:username').post((req, res) => {
     }
     const value = jwt.sign(
       { _id: user._id, email: user.email, username: user.username },
-      config.secret
+      JWT_SECRET
     )
     const apiKey = {
       value,
@@ -411,7 +413,7 @@ router.post('/signup/:invitation', (req, res) => {
     console.log("defining gUest")
     guest.name = fullName
     guest.username = username
-    guest.password = await bcrypt.hash(`${password}${config.secret}`, 10)
+    guest.password = await bcrypt.hash(`${password}${JWT_SECRET}`, 10)
     return guest.save(() => {
       nev.confirmTempUser(invitation, (error, user) => {
         if (error) {
@@ -432,7 +434,7 @@ router.post('/signup/:invitation', (req, res) => {
             acc: user.access,
             cmp: user.company,
           },
-          config.secret
+          JWT_SECRET
         )
 
         const userObject = user.toObject()
@@ -461,7 +463,7 @@ router.route('/authenticate').post(async (req, res) => {
   }
   try {
     return bcrypt
-      .compare(`${password}${config.secret}`, admin.password)
+      .compare(`${password}${JWT_SECRET}`, admin.password)
       .then((result) => {
         const token = jwt.sign(
           {
@@ -469,7 +471,7 @@ router.route('/authenticate').post(async (req, res) => {
             admin: true,
             cmp: admin.company,
           },
-          config.secret
+          JWT_SECRET
         )
 
         if (result) return res.status(200).json({
@@ -486,7 +488,7 @@ router.route('/authenticate').post(async (req, res) => {
   } catch (error) {
     try {
       return bcrypt
-        .compare(`${password}${config.secret}`, user.password)
+        .compare(`${password}${JWT_SECRET}`, user.password)
         .then((result) => {
           const token = jwt.sign(
             {
@@ -494,7 +496,7 @@ router.route('/authenticate').post(async (req, res) => {
               admin: false,
               cmp: user.company,
             },
-            config.secret
+            JWT_SECRET
           )
 
           if (result) return res.status(200).json({
@@ -529,7 +531,7 @@ router.use((req, res, next) => {
     return res.status(401).send({ error: { message: 'No bearer token provided' } })
   }
 
-  return jwt.verify(token, config.secret, (err, decoded) => {
+  return jwt.verify(token, JWT_SECRET, (err, decoded) => {
     if (err) {
       console.error('Failed to authenticate token', err, token)
       return res.status(401).json({ error: { message: 'Failed to authenticate  bearer token' } })

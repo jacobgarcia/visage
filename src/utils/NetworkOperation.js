@@ -86,6 +86,10 @@ class NetworkOperation {
     return axios.put(`${baseUrl}/v1/private/users/${data.username}`, data)
   }
 
+  static deleteUser(username) {
+    return axios.delete(`${baseUrl}/v1/private/users/${username}`)
+  }
+
   /*
   A D M I N S
   */

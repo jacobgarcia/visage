@@ -2,7 +2,7 @@ import axios from 'axios'
 
 let baseUrl = 'https://4b0490a5.ngrok.io'
 if (process.env.NODE_ENV === 'development') {
-  baseUrl = 'http://localhost:8081'
+  baseUrl = 'http://localhost:8080'
 }
 
 let token = null
@@ -75,6 +75,10 @@ class NetworkOperation {
 
   static updateClient(data) {
     return axios.put(`${baseUrl}/v1/private/users/${data.username}`, data)
+  }
+
+  static deleteUser(username) {
+    return axios.delete(`${baseUrl}/v1/private/users/${username}`)
   }
 
   /*

@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import { Link } from 'react-router-dom'
 
 import './style.pcss'
+import qboLogo from 'assets/qbo-logo.svg'
 
 class NotFound extends Component {
   static propTypes = {}
@@ -11,15 +12,14 @@ class NotFound extends Component {
   render() {
     return (
       <div className="not-found">
-        <h1 className="not-found__header">Not found</h1>
-        <p>This is a dynamic imported component.</p>
-        <p>
-          Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quaerat qui
-          distinctio molestias aliquid asperiores quibusdam, voluptatibus omnis
-          laboriosam aperiam, possimus, fugiat consequuntur illo ad ipsum,
-          architecto deserunt labore perspiciatis praesentium.
-        </p>
-        <Link to="/">Back home</Link>
+        <div className="message-container">
+          <img src={qboLogo} alt="" />
+          <h2 className="not-found__header">No encontrado</h2>
+          <p>La página que estás buscando no existe</p>
+          <div className="reload">
+            <Link to="/">Regresar</Link>
+          </div>
+        </div>
       </div>
     )
   }

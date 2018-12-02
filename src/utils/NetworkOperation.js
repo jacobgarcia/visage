@@ -2,7 +2,7 @@ import axios from 'axios'
 
 let baseUrl = 'https://4b0490a5.ngrok.io'
 if (process.env.NODE_ENV === 'development') {
-  baseUrl = 'http://localhost:8081'
+  baseUrl = 'http://localhost:8080'
 }
 
 let token = null

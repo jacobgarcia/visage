@@ -1,8 +1,46 @@
 .not-found {
-  &__header {
-    background-color: var(--tint-color);
-    color: white;
-    padding: 10px;
-    margin-bottom: 10px;
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  text-align: center;
+  background-color: gray;
+  .message-container {
+    display: inline-block;
+    max-width: 500px;
+    margin: 0 auto;
+    border-radius: 8px;
+    background-color: white;
+    img {
+      max-width: 100px;
+      padding-top: 16px;
+    }
+    h2,
+    p {
+      padding: 22px;
+      color: #292929;
+    }
+    h2 {
+      font-weight: 400;
+      padding-bottom: 0;
+    }
+    p.message {
+      padding-top: 8px;
+      padding-bottom: 22px;
+    }
+    .reload {
+      cursor: pointer;
+      background-color: #98b2ce;
+      border-radius: 0 0 8px 8px;
+      font-weight: 600;
+      padding: 22px;
+      a {
+        display: block;
+        width: 100%;
+        height: 100%;
+        color: white;
+      }
+    }
   }
 }

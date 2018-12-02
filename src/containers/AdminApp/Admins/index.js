@@ -10,10 +10,12 @@ import Card from '@material-ui/core/Card'
 
 import PropTypes from 'prop-types'
 
+import SnackMessage from 'components/SnackMessage'
 import NetworkOperation from 'utils/NetworkOperation'
 import { withSaver } from 'utils/portals'
 import EditAdminModal from 'components/EditAdminModal'
-import MoreButton from 'components/MoreButton'
+import AdminRow from 'components/AdminRow'
+import { UserContext } from 'utils/context'
 
 import './styles.pcss'
 
@@ -21,6 +23,8 @@ class Admins extends Component {
   static propTypes = {
     toggle: PropTypes.function,
   }
+
+  static contextType = UserContext
 
   state = {
     anchorEl: null,
@@ -30,6 +34,7 @@ class Admins extends Component {
     openAdmin: false,
     isSaving: false,
     selectedUser: null,
+    message: null,
   }
 
   componentDidMount() {
@@ -38,19 +43,16 @@ class Admins extends Component {
     this.reloadData()
   }
 
-  componentDidUpdate(prevProps) {
-    // if (this.props.saving && !prevProps.saving) {
-    //   this.onSave()
-    // }
-  }
-
-  handleClose = () => this.setState({ anchorEl: null })
-
-  handleClick = (evt, user) => {
-    this.setState({
-      anchorEl: evt.currentTarget,
-      selectedUser: user,
-    })
+  onDelete = async ({ username }) => {
+    try {
+      await NetworkOperation.deleteAdmin(username)
+      this.setState({ message: 'Administrador eliminado con éxito' })
+    } catch (error) {
+      console.error(error)
+      this.setState({ message: 'Error al eliminar administrador' })
+    } finally {
+      this.reloadData()
+    }
   }
 
   reloadData = async () => {
@@ -93,21 +95,23 @@ class Admins extends Component {
     this.setState(({ openAdmin }) => ({ openAdmin: !openAdmin, ...newState }))
   }
 
+  onCloseSnack = () => this.setState({ message: null })
+
   onSaveAdmin = async (newAdmin, oldUsername) => {
     const { _id: newAdminId, ...data } = newAdmin
 
     try {
-      let response
       if (newAdminId) {
-        response = await NetworkOperation.updateAdmin(data, oldUsername)
+        await NetworkOperation.updateAdmin(data, oldUsername)
+        this.setState({ message: 'Usuario actualizado con éxito' })
       } else {
-        response = await NetworkOperation.createAdmin(data)
+        await NetworkOperation.createAdmin(data)
+        this.setState({ message: 'Usuario creado con éxito' })
       }
-
-      console.log({ response })
 
       this.reloadData()
     } catch (error) {
+      this.setState({ message: 'Error al crear/actualizar usuario' })
       console.error(error)
     }
   }
@@ -115,17 +119,24 @@ class Admins extends Component {
   render() {
     const {
       state: {
-        anchorEl,
         search,
         filteredRows,
         openAdmin,
         isSaving,
         selectedUser,
+        message,
       },
     } = this
 
+    const canEdit = this.context?.user?.services?.admins === 2
+
     return (
       <div className="admins">
+        <SnackMessage
+          open={message}
+          message={message}
+          onClose={this.onCloseSnack}
+        />
         <EditAdminModal
           user={selectedUser}
           loading={isSaving}
@@ -163,35 +174,20 @@ class Admins extends Component {
                 <TableCell>Username</TableCell>
                 <TableCell>Mail</TableCell>
                 <TableCell>Rol</TableCell>
-                <TableCell numeric />
+                {canEdit && <TableCell numeric />}
               </TableRow>
             </TableHead>
             <TableBody>
               {filteredRows.map((item) => {
                 return (
-                  <TableRow key={item._id}>
-                    <TableCell component="th" scope="item">
-                      {item.name}
-                    </TableCell>
-                    <TableCell>{item.username}</TableCell>
-                    <TableCell>{item.email}</TableCell>
-                    <TableCell>
-                      <Button variant="outlined" disabled>
-                        {item.superAdmin ? 'SUPERADMIN' : 'ADMIN'}
-                      </Button>
-                    </TableCell>
-                    <TableCell numeric>
-                      <MoreButton
-                        user={item}
-                        anchorEl={anchorEl}
-                        onEdit={() => {
-                          this.onToggleEditModal(selectedUser)
-                        }}
-                        handleClick={(e, user) => this.handleClick(e, user)}
-                        handleClose={this.handleClose}
-                      />
-                    </TableCell>
-                  </TableRow>
+                  <AdminRow
+                    {...item}
+                    admin={item}
+                    key={item._id}
+                    onDelete={this.onDelete}
+                    onToggleEditModal={this.onToggleEditModal}
+                    canEdit={canEdit}
+                  />
                 )
               })}
             </TableBody>

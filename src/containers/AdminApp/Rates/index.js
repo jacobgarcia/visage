@@ -7,8 +7,10 @@ import InputAdornment from '@material-ui/core/InputAdornment'
 import DeleteIcon from '@material-ui/icons/Delete'
 import PropTypes from 'prop-types'
 
+import SnackMessage from 'components/SnackMessage'
 import NetworkOperation from 'utils/NetworkOperation'
 import { withSaver } from 'utils/portals'
+import { UserContext } from 'utils/context'
 
 import './styles.pcss'
 
@@ -37,9 +39,12 @@ class Rates extends Component {
     toggle: PropTypes.function,
   }
 
+  static contextType = UserContext
+
   state = {
     searchRates: [],
     indexRates: [],
+    message: null,
   }
 
   async componentDidMount() {
@@ -64,17 +69,18 @@ class Rates extends Component {
       indexRates: this.state.indexRates.map(parseRates),
     }
 
-    console.log(rates)
-
     try {
-      const response = await NetworkOperation.setRates(rates)
+      await NetworkOperation.setRates(rates)
 
-      console.log({ response })
+      this.setState({ message: 'Cambios guardados' })
 
       this.props.stopSaving({ success: true })
     } catch (error) {
       console.error(error)
       this.props.stopSaving({ success: false })
+      this.setState({
+        message: 'Error al guardar cambios, verificar la información',
+      })
     }
   }
 
@@ -113,23 +119,34 @@ class Rates extends Component {
     }))
   }
 
+  onCloseSnack = () => this.setState({ message: null })
+
   render() {
     const {
-      state: { searchRates, indexRates },
+      state: { searchRates, indexRates, message },
     } = this
+
+    const canEdit = this.context?.user?.services?.rates === true
 
     return (
       <div className="tarifs">
+        <SnackMessage
+          open={message}
+          message={message}
+          onClose={this.onCloseSnack}
+        />
         <Card className="card">
           <div className="actions-container">
             <h3>Consultas</h3>
-            <Button
-              onClick={() => this.onAddItem('searchRates')}
-              color="primary"
-              className="button"
-            >
-              Nueva tarifa
-            </Button>
+            {canEdit && (
+              <Button
+                onClick={() => this.onAddItem('searchRates')}
+                color="primary"
+                className="button"
+              >
+                Nueva tarifa
+              </Button>
+            )}
           </div>
 
           {searchRates?.map((rate) => {
@@ -141,7 +158,9 @@ class Rates extends Component {
                     label="Mínimo"
                     className="text-field"
                     value={rate.min}
-                    onChange={(evt) => this.onChange(evt, rate, 'searchRates')}
+                    onChange={(evt) =>
+                      canEdit && this.onChange(evt, rate, 'searchRates')
+                    }
                     margin="normal"
                     name="min"
                     variant="outlined"
@@ -152,7 +171,9 @@ class Rates extends Component {
                     label="Máximo"
                     className="text-field"
                     value={rate.max}
-                    onChange={(evt) => this.onChange(evt, rate, 'searchRates')}
+                    onChange={(evt) =>
+                      canEdit && this.onChange(evt, rate, 'searchRates')
+                    }
                     margin="normal"
                     name="max"
                     variant="outlined"
@@ -164,7 +185,9 @@ class Rates extends Component {
                     label="Costo"
                     className="text-field cost"
                     value={rate.cost}
-                    onChange={(evt) => this.onChange(evt, rate, 'searchRates')}
+                    onChange={(evt) =>
+                      canEdit && this.onChange(evt, rate, 'searchRates')
+                    }
                     margin="normal"
                     name="cost"
                     variant="outlined"
@@ -177,11 +200,13 @@ class Rates extends Component {
                       ),
                     }}
                   />
-                  <IconButton
-                    onClick={() => this.deleteItem('searchRates', rate._id)}
-                  >
-                    <DeleteIcon />
-                  </IconButton>
+                  {canEdit && (
+                    <IconButton
+                      onClick={() => this.deleteItem('searchRates', rate._id)}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  )}
                 </div>
               </div>
             )
@@ -190,13 +215,15 @@ class Rates extends Component {
         <Card className="card">
           <div className="actions-container">
             <h3>Indexación de imágenes</h3>
-            <Button
-              onClick={() => this.onAddItem('indexRates')}
-              color="primary"
-              className="button"
-            >
-              Nueva tarifa
-            </Button>
+            {canEdit && (
+              <Button
+                onClick={() => this.onAddItem('indexRates')}
+                color="primary"
+                className="button"
+              >
+                Nueva tarifa
+              </Button>
+            )}
           </div>
           {indexRates?.map((rate) => {
             return (
@@ -207,7 +234,9 @@ class Rates extends Component {
                     label="Mínimo"
                     className="text-field"
                     value={rate.min}
-                    onChange={(evt) => this.onChange(evt, rate, 'indexRates')}
+                    onChange={(evt) =>
+                      canEdit && this.onChange(evt, rate, 'indexRates')
+                    }
                     margin="normal"
                     variant="outlined"
                   />
@@ -217,7 +246,9 @@ class Rates extends Component {
                     label="Máximo"
                     className="text-field"
                     value={rate.max}
-                    onChange={(evt) => this.onChange(evt, rate, 'indexRates')}
+                    onChange={(evt) =>
+                      canEdit && this.onChange(evt, rate, 'indexRates')
+                    }
                     margin="normal"
                     variant="outlined"
                   />
@@ -228,7 +259,9 @@ class Rates extends Component {
                     label="Costo"
                     className="text-field cost"
                     value={rate.cost}
-                    onChange={(evt) => this.onChange(evt, rate, 'indexRates')}
+                    onChange={(evt) =>
+                      canEdit && this.onChange(evt, rate, 'indexRates')
+                    }
                     margin="normal"
                     variant="outlined"
                     InputProps={{
@@ -240,11 +273,13 @@ class Rates extends Component {
                       ),
                     }}
                   />
-                  <IconButton
-                    onClick={() => this.deleteItem('indexRates', rate._id)}
-                  >
-                    <DeleteIcon />
-                  </IconButton>
+                  {canEdit && (
+                    <IconButton
+                      onClick={() => this.deleteItem('indexRates', rate._id)}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  )}
                 </div>
               </div>
             )

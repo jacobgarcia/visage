@@ -84,7 +84,7 @@ class Dashboard extends Component {
                       },
                     ]}
                     cx="50%"
-                    cy={180}
+                    cy={170}
                     innerRadius={90}
                     outerRadius={150}
                     fill="#8884d8"

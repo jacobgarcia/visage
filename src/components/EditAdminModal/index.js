@@ -34,13 +34,23 @@ class EditAdminModal extends Component {
     const user = nextProps.user
 
     if (user?._id && !state._id) {
+      const isSuperAdmin =
+        user.services.admins === 2 &&
+        user.services.clients === 2 &&
+        user.services.dashboard &&
+        user.services.rates
+
       return {
         name: user?.name || '',
         email: user?.email || '',
-        superAdmin: user?.superAdmin,
+        superAdmin: isSuperAdmin,
         _id: user?._id,
         valid: true,
         username: user?.username,
+        dashboardAccess: user.services.dashboard ? 1 : 0,
+        clientsAccess: user.services.clients,
+        adminsAccess: user.services.admins,
+        ratesAccess: user.services.rates ? 1 : 0,
       }
     }
 

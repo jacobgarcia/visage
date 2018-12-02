@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { Fragment } from 'react'
 import PropTypes from 'prop-types'
 
 import { NavLink } from 'react-router-dom'
@@ -13,6 +13,7 @@ import PeopleIcon from '@material-ui/icons/People'
 import AttachMoneyIcon from '@material-ui/icons/AttachMoney'
 import SecurityIcon from '@material-ui/icons/Security'
 import ExitIcon from '@material-ui/icons/ExitToApp'
+import PersonIcon from '@material-ui/icons/Person'
 
 import qboLogo from 'assets/qbo-logo-mono.svg'
 import { UserContext } from 'utils/context'
@@ -29,7 +30,7 @@ function listItem(text, Component) {
 }
 
 function DrawerComponent(props) {
-  const { toolBarHidden, onToggle, onLinkClick, onCloseClick } = props
+  const { toolBarHidden, onToggle, onLinkClick, onCloseClick, isClient } = props
 
   return (
     <UserContext.Consumer>
@@ -48,26 +49,35 @@ function DrawerComponent(props) {
                 className={'toggle-button'}
               />
             </div>
-            {services?.dashboard && (
+            {(services?.dashboard || isClient) && (
               <NavLink onClick={onLinkClick} exact to="/">
                 {listItem('Dashboard', DashboardIcon)}
               </NavLink>
             )}
-            {services?.clients !== 0 && (
-              <NavLink onClick={onLinkClick} to="/clients">
-                {listItem('Clientes', PeopleIcon)}
+            {isClient && (
+              <NavLink onClick={onLinkClick} exact to="/profile">
+                {listItem('Mi información', PersonIcon)}
               </NavLink>
             )}
-            {services?.admins !== 0 && (
-              <NavLink onClick={onLinkClick} to="/admins">
-                {listItem('Administradores', SecurityIcon)}
-              </NavLink>
+            {!isClient && (
+              <Fragment>
+                {services?.clients !== 0 && (
+                  <NavLink onClick={onLinkClick} to="/clients">
+                    {listItem('Clientes', PeopleIcon)}
+                  </NavLink>
+                )}
+                {services?.admins !== 0 && (
+                  <NavLink onClick={onLinkClick} to="/admins">
+                    {listItem('Administradores', SecurityIcon)}
+                  </NavLink>
+                )}
+
+                <NavLink onClick={onLinkClick} to="/rates">
+                  {listItem('Tarifas', AttachMoneyIcon)}
+                </NavLink>
+              </Fragment>
             )}
-            {services?.rates && (
-              <NavLink onClick={onLinkClick} to="/rates">
-                {listItem('Tarifas', AttachMoneyIcon)}
-              </NavLink>
-            )}
+
             <NavLink onClick={onCloseClick} to="/login" className="login">
               {listItem('Cerrar sesión', ExitIcon)}
             </NavLink>
@@ -79,5 +89,9 @@ function DrawerComponent(props) {
 }
 
 DrawerComponent.propTypes = {}
+
+DrawerComponent.defaultProps = {
+  isClient: false,
+}
 
 export default DrawerComponent

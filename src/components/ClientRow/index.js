@@ -1,4 +1,4 @@
-import React, { Component } from 'react'
+import React, { Component ,Fragment } from 'react'
 import PropTypes from 'prop-types'
 
 import TableRow from '@material-ui/core/TableRow'
@@ -12,6 +12,7 @@ import RefreshIcon from '@material-ui/icons/Refresh'
 import KeyIcon from '@material-ui/icons/VpnKey'
 
 import LoadingButton from 'components/LoadingButton'
+import SnackMessage from 'components/SnackMessage'
 import MoreButton from 'components/MoreButton'
 import NetworkOperation from 'utils/NetworkOperation'
 
@@ -31,9 +32,11 @@ class ClientRow extends Component {
     this.setState({ revokeKeyLoading: true })
     try {
       const response = await NetworkOperation.revokeAPIKey(this.props.client.username)
-      console.log({response})
+
+      this.setState({ message: 'Llave revocada' })
     } catch(error) {
       console.log({ error })
+      this.setState({ message: 'Error al revocar llave' })
     } finally {
       this.setState({ revokeKeyLoading: false })
       this.props.reloadData()
@@ -44,9 +47,11 @@ class ClientRow extends Component {
     this.setState({ renewKeyLoading: true })
     try {
       const response = await NetworkOperation.generateAPIKey(this.props.client.username)
-      console.log({response})
+
+      this.setState({ message: 'Llave regenerada' })
     } catch(error) {
       console.log({ error })
+      this.setState({ message: 'Error al regenerar llave' })
     } finally {
       this.setState({ renewKeyLoading: false })
       this.props.reloadData()
@@ -57,9 +62,11 @@ class ClientRow extends Component {
     this.setState({ generateKeyLoading: true })
     try {
       const response = await NetworkOperation.generateAPIKey(this.props.client.username)
-      console.log({response})
+
+      this.setState({ message: 'Llaves generadas' })
     } catch(error) {
       console.error(error)
+      this.setState({ message: 'Error al generar llaves' })
     } finally {
       this.setState({ generateKeyLoading: false })
       this.props.reloadData()
@@ -71,9 +78,10 @@ class ClientRow extends Component {
 
     try {
       const response = isActive ? await NetworkOperation.deactivateUser(this.props.client.username) : await NetworkOperation.reactivateUser(this.props.client.username)
-      console.log(response)
+      this.setState({ message: `Usuario ${isActive ? 'desactivado' : 'activado' } con éxito` })
     } catch (error) {
       console.error(error)
+      this.setState({ message: 'Error al desactivar usuario' })
     } finally {
       this.setState({ toggleActiveLoading: false })
       this.props.reloadData()
@@ -85,30 +93,35 @@ class ClientRow extends Component {
 
     try {
       const response = await NetworkOperation.deleteUser(this.props.client.username)
-      console.log(response)
+      this.setState({ message: 'Usuario eliminado' })
     } catch (error) {
       console.error(error)
+      this.setState({ message: 'Error al eliminar usuario' })
     } finally {
-      this.setState({ loadingDelte: false })
+      this.setState({ loadingDelete: false })
       this.props.reloadData()
     }
   }
+
+  onCloseSnack = () => this.setState({message: null})
 
   handleClose = () => this.setState({ anchorEl: null })
   handleClick = (event) => this.setState({ anchorEl: event.currentTarget })
 
   render() {
-    const { props, state: { anchorEl, generateKeyLoading, revokeKeyLoading, renewKeyLoading } } = this
-
-    console.log({props})
+    const { props, state: { anchorEl, generateKeyLoading, revokeKeyLoading, renewKeyLoading, message } } = this
 
     return (
+      <Fragment>
+        <SnackMessage open={message} message={message} onClose={this.onCloseSnack} />
+
       <TableRow
         key={props.client._id}
         className={`user-row ${
           props.client.active ? 'active' : 'deactive'
         }`}
       >
+
         <TableCell
           component="th"
           scope="item"
@@ -159,7 +172,7 @@ class ClientRow extends Component {
             </div>
           </IconButton>}
         </TableCell>
-        <TableCell numeric>
+        {props.canEdit && <TableCell numeric>
           <MoreButton
             isActive={props.client.active}
             anchorEl={anchorEl}
@@ -169,8 +182,9 @@ class ClientRow extends Component {
             handleClose={this.handleClose}
             onEdit={() => props.onSelectClient(props.client)}
           />
-        </TableCell>
+        </TableCell>}
       </TableRow>
+      </Fragment>
     )
   }
 }

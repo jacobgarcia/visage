@@ -28,14 +28,20 @@ class Signup extends Component {
 
   onSubmit = (event) => {
     event.preventDefault()
-    const {email, invitation, username, password, second_password, fullName } = this.state
-    const {token} = queryString.parse(this.props.location.search)
+    const {
+      email,
+      invitation,
+      username,
+      password,
+      second_password,
+      fullName,
+    } = this.state
+    const { token } = queryString.parse(this.props.location.search)
     if (second_password !== password) {
-        this.setState({error: 'Las contraseñas no coinciden'})
-      } else {
-      NetworkOperation.signup(token ,{email, password, username, fullName})
+      this.setState({ error: 'Las contraseñas no coinciden' })
+    } else {
+      NetworkOperation.signup(token, { email, password, username, fullName })
         .then(({ data }) => {
-          console.log(data)
           this.props.history.replace(this.state.return || '/login')
         })
         .catch(({ response = {} }) => {
@@ -53,25 +59,25 @@ class Signup extends Component {
               })
           }
         })
-      }
+    }
   }
 
   render() {
     const {
-      state: {email, username, password, second_password , fullName, error },
+      state: { email, username, password, second_password, fullName, error },
     } = this
     return (
       <div className="login">
         <form onSubmit={this.onSubmit}>
           <img src={qboLogo} alt="" />
           <TextField
-          id="standard-name"
-          label="Nombre completo"
-          value={fullName}
-          name="fullName"
-          onChange={this.onChange}
-          margin="normal"
-          variant="outlined"
+            id="standard-name"
+            label="Nombre completo"
+            value={fullName}
+            name="fullName"
+            onChange={this.onChange}
+            margin="normal"
+            variant="outlined"
           />
           <TextField
             id="standard-name"

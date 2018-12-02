@@ -34,7 +34,6 @@ class ClientRow extends Component {
       const response = await NetworkOperation.revokeAPIKey(this.props.client.username)
 
       this.setState({ message: 'Llave revocada' })
-      console.log({response})
     } catch(error) {
       console.log({ error })
       this.setState({ message: 'Error al revocar llave' })

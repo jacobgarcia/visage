@@ -87,7 +87,6 @@ class Admins extends Component {
   }
 
   onToggleEditModal = (item) => {
-    console.log({ item })
     const newState = {}
     if (item) newState.selectedUser = item
     this.setState(({ openAdmin }) => ({ openAdmin: !openAdmin, ...newState }))

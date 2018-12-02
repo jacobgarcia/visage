@@ -36,7 +36,7 @@ class App extends Component {
   state = {
     showSaveButton: false,
     saving: false,
-    toolBarHidden: true,
+    toolBarHidden: false,
     showDateFilter: true,
     showDayPicker: false,
     ...this.getInitialState(),

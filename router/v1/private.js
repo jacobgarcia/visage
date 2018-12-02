@@ -19,7 +19,6 @@ const Searching = require(path.resolve('models/Searching'))
 const serviceUrl = 'https://admin.vs-01-dev.qbo.tech'
 
 const JWT_SECRET = process.env.JWT_SECRET
-console.log('JWT_SECRET', JWT_SECRET)
 
 function getUserData(data) {
   return { ...data.toObject(), access: data.services ? 'admin' : 'user' }

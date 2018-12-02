@@ -1,15 +1,14 @@
 /* eslint-env node */
-const path = require('path') // Native node.js path resolver
-const express = require('express') // API framework
-const helmet = require('helmet') // Basic headers protection
-const hpp = require('hpp') // Protection against parameter pollution
+const path = require('path')
+const express = require('express')
+const helmet = require('helmet')
+const hpp = require('hpp')
+const winston = require('winston')
+const dotenv = require('dotenv')
+const mongoose = require('mongoose')
+const bodyParser = require('body-parser')
 
-const winston = require('winston') // Logger tool
-const dotenv = require('dotenv') // Manager for evironment variables
-const mongoose = require('mongoose') // Mongo object modeling
-const bodyParser = require('body-parser') // Parser for incoming requests
-
-const { databaseUri } = require(path.resolve('config')) // Configuration variables
+const v1 = require(path.resolve('router/v1'))
 
 /* Winston logger object */
 const logger = winston.createLogger({
@@ -21,53 +20,44 @@ const logger = winston.createLogger({
   ],
 })
 
-const v1 = require(path.resolve('router/v1')) // API router location
-
-/* Environment variables */
-const { PORT = 8080, SERVER_ONLY = false } = process.env
 const mode = process.env.NODE_ENV
 const isProduction = mode === 'production'
 
-/* Environment configuration based on file */
+// MARK: Environment variables setup
 dotenv.config({
   path: path.resolve(
     `config/.env${isProduction ? '.production' : '.development'}`
   ),
 })
 
-/* Connecting to Database */
+// MARK: Environment variables definition
+const { PORT = 8080, SERVER_ONLY = false, DB_URI } = process.env
 
+// MARK: DB Connection
 mongoose
   .connect(
-    databaseUri,
-    {
-      useNewUrlParser: true,
-    }
+    DB_URI,
+    { useNewUrlParser: true, dbName: 'visual-search', useCreateIndex: true }
   )
-  .then(() => {
-    logger.info('Connected to DB')
-  })
-  .catch(() => {
-    logger.error('\n|\n|  Could not connect to DB\n|')
-  })
+  .then(() => logger.info('Connected to DB'))
+  .catch(() => logger.error('\n|\n|  Could not connect to DB\n|'))
 
-const app = express() // App definition
+const app = express()
 
-/* App configurations */
 app.use(helmet())
 app.use(hpp())
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
 app.use('/v1', v1)
 
-if (!isProduction && !SERVER_ONLY) app.use(require(path.resolve('config/webpackDevServer'))) // Use webpackDevServer if development environment
-// Send compilated version for the index if has been build with server flag (yarn build:prod)
+// Bundle state based on env
+if (!isProduction && !SERVER_ONLY) app.use(require(path.resolve('config/webpackDevServer')))
 if (isProduction && !SERVER_ONLY) {
   app.use(express.static(path.resolve('dist')))
   app.get('*', (req, res) => res.sendFile(path.resolve('dist/index.html')))
 }
 
-// Start server
+// Server
 app.listen(PORT, () =>
   console.info(`React boilerplate is now running\n
     Port: \t\t${PORT}

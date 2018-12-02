@@ -1,5 +1,6 @@
 # Bundles
 dist/**
+.env*
 
 *.DS_Store
 

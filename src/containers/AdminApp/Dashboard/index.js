@@ -83,17 +83,18 @@ class Dashboard extends Component {
                         value: this.state?.requestsStats?.indexings || 0,
                       },
                     ]}
-                    cx={200}
-                    cy={200}
+                    cx="50%"
+                    cy={180}
                     innerRadius={90}
                     outerRadius={150}
                     fill="#8884d8"
                     label
                   >
                     <Cell fill={'#A4CFD7'} />
-                    <Legend verticalAlign="top" height={36} />
+
                     <Cell fill={'#98B1CE'} />
                   </Pie>
+                  <Legend verticalAlign="bottom" height={36} />
                   <Tooltip />
                 </PieChart>
               </ResponsiveContainer>

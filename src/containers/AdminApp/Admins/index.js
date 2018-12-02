@@ -46,9 +46,9 @@ class Admins extends Component {
 
   handleClose = () => this.setState({ anchorEl: null })
 
-  handleClick = (e, user) => {
+  handleClick = (evt, user) => {
     this.setState({
-      anchorEl: e.currentTarget,
+      anchorEl: evt.currentTarget,
       selectedUser: user,
     })
   }
@@ -69,10 +69,17 @@ class Admins extends Component {
       if (name === 'search') {
         this.setState((prevState) => ({
           filteredRows: prevState.search
-            ? prevState.rows.filter(({ name }) =>
-                String(name)
-                  .toLowerCase()
-                  .includes(String(prevState.search).toLowerCase())
+            ? prevState.rows.filter(
+                ({ name, username, email }) =>
+                  String(name)
+                    .toLowerCase()
+                    .includes(String(prevState.search).toLowerCase()) ||
+                  String(username)
+                    .toLowerCase()
+                    .includes(String(prevState.search).toLowerCase()) ||
+                  String(email)
+                    .toLowerCase()
+                    .includes(String(prevState.search).toLowerCase())
               )
             : prevState.rows,
         }))
@@ -88,8 +95,6 @@ class Admins extends Component {
 
   onSaveAdmin = async (newAdmin, oldUsername) => {
     const { _id: newAdminId, ...data } = newAdmin
-
-    console.log({ newAdmin })
 
     try {
       let response
@@ -162,7 +167,7 @@ class Admins extends Component {
               </TableRow>
             </TableHead>
             <TableBody>
-              {filteredRows.map((item, index) => {
+              {filteredRows.map((item) => {
                 return (
                   <TableRow key={item._id}>
                     <TableCell component="th" scope="item">

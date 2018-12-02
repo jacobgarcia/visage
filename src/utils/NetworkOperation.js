@@ -23,9 +23,18 @@ axios.interceptors.request.use(
 )
 
 class NetworkOperation {
+  static getRequestStats() {
+    return axios.get(`${baseUrl}/v1/private/stats/requests`)
+  }
+
+  static getUserBillingStats() {
+    return axios.get(`${baseUrl}/v1/private/stats/users/billing`)
+  }
+
   static getSelf() {
     return axios.get(`${baseUrl}/v1/private/users/self`)
   }
+
   /*
   L O G I N
   */

@@ -14,10 +14,14 @@ import {
   PolarGrid,
   PolarAngleAxis,
   PolarRadiusAxis,
-  Radar
+  Radar,
+  PieChart,
+  Pie,
+  Cell
 } from 'recharts'
 import PropTypes from 'prop-types'
 
+import NetworkOperation from 'utils/NetworkOperation'
 import { withSaver } from 'utils/portals'
 
 import './styles.pcss'
@@ -42,8 +46,20 @@ class Dashboard extends Component {
 
   state = {}
 
-  componentDidMount() {
+  async componentDidMount() {
     this.props.toggle({ saveButton: false, dateFilter: true })
+    try {
+      const { data: requestsStats } = await NetworkOperation.getRequestStats()
+      const {
+        data: billingStats,
+      } = await NetworkOperation.getUserBillingStats()
+
+      this.setState({
+        requestsStats: requestsStats.requests,
+      })
+    } catch (error) {
+      console.log({ error })
+    }
   }
 
   render() {
@@ -54,24 +70,31 @@ class Dashboard extends Component {
             <Card className="card">
               <h4>Total de peticiones e imágenes indexadas</h4>
               <ResponsiveContainer width="100%" height={400}>
-                <AreaChart
-                  width={600}
-                  height={400}
-                  data={data}
-                  margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Area
-                    type="monotone"
-                    dataKey="uv"
-                    stroke="#8884d8"
-                    fill="#8884d8"
+                <PieChart>
+                  <Pie
                     isAnimationActive={false}
-                  />
-                </AreaChart>
+                    data={[
+                      {
+                        name: 'Búsquedas',
+                        value: this.state?.requestsStats?.searches || 0,
+                      },
+                      {
+                        name: 'Indexaciones',
+                        value: this.state?.requestsStats?.indexings || 0,
+                      },
+                    ]}
+                    cx={200}
+                    cy={200}
+                    innerRadius={90}
+                    outerRadius={150}
+                    fill="#8884d8"
+                    label
+                  >
+                    <Cell fill={'#A4CFD7'} />
+                    <Cell fill={'#98B1CE'} />
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
               </ResponsiveContainer>
             </Card>
           </div>

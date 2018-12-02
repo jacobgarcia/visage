@@ -18,16 +18,15 @@ class Login extends Component {
   state = {
     email: '',
     password: '',
-    error: '',
+    error: null,
   }
 
   componentDidMount() {
     localStorage.clear()
-
-    console.log('PROPS', this.context)
   }
 
-  onChange = ({ target: { name, value } }) => this.setState({ [name]: value })
+  onChange = ({ target: { name, value } }) =>
+    this.setState({ [name]: value, error: null })
 
   onSubmit = (event) => {
     event.preventDefault()

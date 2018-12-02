@@ -76,10 +76,17 @@ class Clients extends Component {
       if (name === 'search') {
         this.setState((prevState) => ({
           filteredRows: prevState.search
-            ? prevState.rows.filter(({ name }) =>
-                String(name)
-                  .toLowerCase()
-                  .includes(String(prevState.search).toLowerCase())
+            ? prevState.rows.filter(
+                ({ name, company, email }) =>
+                  String(name)
+                    .toLowerCase()
+                    .includes(String(prevState.search).toLowerCase()) ||
+                  String(company)
+                    .toLowerCase()
+                    .includes(String(prevState.search).toLowerCase()) ||
+                  String(email)
+                    .toLowerCase()
+                    .includes(String(prevState.search).toLowerCase())
               )
             : prevState.rows,
         }))

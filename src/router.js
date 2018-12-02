@@ -65,7 +65,40 @@ class Routes extends PureComponent {
     }
   }
 
+  static getDerivedStateFromError(error) {
+    console.log('DERIVED STATE ', error)
+    // Update state so the next render will show the fallback UI.
+    return { hasError: true }
+  }
+
+  componentDidCatch(error, info) {
+    console.log('COMPONENT DID CATCH', error, info)
+  }
+
   render() {
+    const {
+      state: { hasError },
+    } = this
+
+    if (hasError) {
+      return (
+        <div className="error">
+          <div className="message-container">
+            <h2>Error en la aplicación</h2>
+            <p className="message">Favor de recargar la página</p>
+            <p
+              onClick={() => {
+                window.location.reload(true)
+              }}
+              className="reload"
+            >
+              Recargar
+            </p>
+          </div>
+        </div>
+      )
+    }
+
     return (
       <MuiThemeProvider theme={theme}>
         <UserContext.Provider

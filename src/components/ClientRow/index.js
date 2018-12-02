@@ -111,7 +111,7 @@ class ClientRow extends Component {
           scope="item"
           className="user-row__body"
         >
-          {props.client.name} {props.client.surname}
+          {props.client.name}
         </TableCell>
         <TableCell className="user-row__body">
           {props.client.company}

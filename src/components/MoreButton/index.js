@@ -10,6 +10,7 @@ function MoreButton(props) {
   return (
     <div style={{ display: 'inline-block' }}>
       <IconButton
+        id={Date.now()}
         aria-owns={anchorEl ? 'simple-menu' : null}
         aria-haspopup="true"
         onClick={(evt) => props.handleClick(evt, user)}
@@ -30,17 +31,19 @@ function MoreButton(props) {
         >
           Editar
         </MenuItem>
-        {!user.services && <MenuItem
-          onClick={() => {
-            props.onToggleActive(isActive)
-            props.handleClose()
-          }}
-        >
-          {isActive ? 'Desactivar' : 'Reactivar'}
-        </MenuItem>}
+        {!user.services && (
+          <MenuItem
+            onClick={() => {
+              props.onToggleActive(isActive)
+              props.handleClose()
+            }}
+          >
+            {isActive ? 'Desactivar' : 'Reactivar'}
+          </MenuItem>
+        )}
         <MenuItem
           onClick={() => {
-            props.onDelete()
+            props.onDelete(props.user)
             props.handleClose()
           }}
         >

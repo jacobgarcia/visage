@@ -466,12 +466,10 @@ router.post('/signup/:invitation', async (req, res) => {
 
 router.route('/authenticate').post(async (req, res) => {
   const { email, password } = req.body
-  const user = await User.findOne({ email })
+  const user = await User.findOne({ email, active : true  })
   const admin = await Admin.findOne({ email })
   if (user === null && admin === null) {
-    console.info('user not found')
-    console.info('Failed to authenticate admin email')
-    return res.status(400).json({ message: 'Authentication failed. Wrong user password.' })
+    return res.status(409).json({ message: 'Authentication failed. User deactivated or Eliminated' })
   }
   try {
     return bcrypt

@@ -36,6 +36,7 @@ class ClientRow extends Component {
       console.log({ error })
     } finally {
       this.setState({ revokeKeyLoading: false })
+      this.props.reloadData()
     }
   }
 
@@ -48,6 +49,7 @@ class ClientRow extends Component {
       console.log({ error })
     } finally {
       this.setState({ renewKeyLoading: false })
+      this.props.reloadData()
     }
   }
 
@@ -60,6 +62,7 @@ class ClientRow extends Component {
       console.error(error)
     } finally {
       this.setState({ generateKeyLoading: false })
+      this.props.reloadData()
     }
   }
 
@@ -125,7 +128,7 @@ class ClientRow extends Component {
           </Button>
         </TableCell>
         <TableCell>
-          {!props.client.apiKey && <IconButton>
+          {!props.client.apiKey.active && <IconButton>
             <div className="circular-progress__container">
               {generateKeyLoading && <CircularProgress
                 size={48}
@@ -135,7 +138,7 @@ class ClientRow extends Component {
               <KeyIcon onClick={this.generateKey} className="circular-progress--button" />
             </div>
           </IconButton>}
-          {props.client.apiKey && <IconButton>
+          {props.client.apiKey.active && <IconButton>
             <div className="circular-progress__container">
               {renewKeyLoading && <CircularProgress
                 size={48}
@@ -145,7 +148,7 @@ class ClientRow extends Component {
               <RefreshIcon onClick={this.renewAPIKey} className="circular-progress--button" />
             </div>
           </IconButton>}
-          {props.client.apiKey && <IconButton>
+          {props.client.apiKey.active && <IconButton>
             <div className="circular-progress__container">
               {revokeKeyLoading && <CircularProgress
                 size={48}

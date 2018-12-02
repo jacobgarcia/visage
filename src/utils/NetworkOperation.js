@@ -82,8 +82,8 @@ class NetworkOperation {
     return axios.post(`${baseUrl}/v1/private/users/invite`,data)
   }
 
-  static updateClient(data) {
-    return axios.put(`${baseUrl}/v1/private/users/${data.username}`, data)
+  static updateClient(data, oldUsername) {
+    return axios.put(`${baseUrl}/v1/private/users/${oldUsername}`, data)
   }
 
   static deleteUser(username) {

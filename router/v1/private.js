@@ -340,35 +340,40 @@ router.route('/stats/users/billing').get((req, res) => {
     })
 })
 
-router.route('/users/invite').post((req, res) => {
+router.route('/users/invite').post(async (req, res) => {
   const { email } = req.body
   const guest = new User({
     email,
     host: req._user,
   })
-  nev.createTempUser(
-    guest,
-    (error, existingPersistentUser, newTempUser) => {
-      if (error) {
-        console.error({ error })
-        return res.status(500).json({ error })
-      }
-      if (existingPersistentUser) return res.status(409).json({ error: 'User already registered' })
+  const admin = await Admin.findOne({ email })
+  if (!admin){
+    nev.createTempUser(
+      guest,
+      (error, existingPersistentUser, newTempUser) => {
+        if (error) {
+          console.error({ error })
+          return res.status(500).json({ error })
+        }
+        if (existingPersistentUser) return res.status(409).json({ error: 'User already registered' })
 
-      if (newTempUser) {
-        const URL = newTempUser[nev.options.URLFieldName]
-        return nev.sendVerificationEmail(email, URL, (error) => {
-          if (error) return res.status(500).json({ error })
-          return res.status(200).json({ message: 'Invitation successfully sent' })
-        })
+        if (newTempUser) {
+          const URL = newTempUser[nev.options.URLFieldName]
+          return nev.sendVerificationEmail(email, URL, (error) => {
+            if (error) return res.status(500).json({ error })
+            return res.status(200).json({ message: 'Invitation successfully sent' })
+          })
+        }
+        // user already have been invited
+        return res.status(409).json({ error: 'User already invited' })
+      },
+      (error) => {
+        console.error({ error })
       }
-      // user already have been invited
-      return res.status(409).json({ error: 'User already invited' })
-    },
-    (error) => {
-      console.error({ error })
-    }
-  )
+    )
+  } else {
+    return res.status(409).json({ error: 'User is an admin' })
+  }
 })
 
 router.route('/admins/invite').post((req, res) => {
@@ -396,11 +401,10 @@ router.route('/admins/invite').post((req, res) => {
 router.post('/signup/:invitation', async (req, res) => {
   const { invitation } = req.params
   const { email, password, username, fullName } = req.body
-  console.log("datos de sign up")
-  console.log(email, password, username, fullName)
   if (!invitation) return res.status(401).json({ message: 'No invitation token provided' })
 
   try {
+    const admin = await Admin.findOne({ email })
     const guest = await Guest.findOne({ invitation })
 
     if (!guest || guest.email !== email) {
@@ -410,49 +414,50 @@ router.post('/signup/:invitation', async (req, res) => {
       })
     }
 
-    console.log("defining gUest")
+    if (!admin){
+      guest.name = fullName
+      guest.username = username
+      guest.password = await bcrypt.hash(`${password}${JWT_SECRET}`, 10)
 
-    guest.name = fullName
-    guest.username = username
-    guest.password = await bcrypt.hash(`${password}${JWT_SECRET}`, 10)
+      await guest.save()
 
-    await guest.save()
-
-    nev.confirmTempUser(invitation, (error, user) => {
-      if (error) {
-        console.error(error)
-        return res.status(500).json({ error })
-      }
-
-      if (!user) return res.status(500).json({ message: 'Could not send create user information' })
-
-      nev.sendConfirmationEmail(user.email, (error) => {
+      nev.confirmTempUser(invitation, (error, user) => {
         if (error) {
           console.error(error)
+          return res.status(500).json({ error })
         }
+
+        if (!user) return res.status(500).json({ message: 'Could not send create user information' })
+
+        nev.sendConfirmationEmail(user.email, (error) => {
+          if (error) {
+            console.error(error)
+          }
+        })
+
+        const token = jwt.sign(
+          {
+            _id: user._id,
+            acc: user.access,
+            cmp: user.company,
+          },
+          JWT_SECRET
+        )
+
+        const userObject = user.toObject()
+
+        return res.status(200).json({
+          token,
+          user: {
+            _id: userObject._id,
+            name: userObject.name || 'User',
+            access: userObject.access,
+          },
+        })
       })
-
-      const token = jwt.sign(
-        {
-          _id: user._id,
-          acc: user.access,
-          cmp: user.company,
-        },
-        JWT_SECRET
-      )
-
-      const userObject = user.toObject()
-
-      return res.status(200).json({
-        token,
-        user: {
-          _id: userObject._id,
-          name: userObject.name || 'User',
-          access: userObject.access,
-        },
-      })
-    })
-
+    } else {
+      return res.status(409).json({ error: 'Admin email alredy exist' })
+    }
   } catch(error)  {
     console.error(error)
     return res.status(500).json({ error: 'Could not invite' })

@@ -1,6 +1,5 @@
 import React, { Component } from 'react'
 import Card from '@material-ui/core/Card'
-import Button from '@material-ui/core/Button'
 import {
   AreaChart,
   Area,
@@ -17,6 +16,7 @@ import {
   Radar,
   PieChart,
   Pie,
+  Legend,
   Cell
 } from 'recharts'
 import PropTypes from 'prop-types'
@@ -91,6 +91,7 @@ class Dashboard extends Component {
                     label
                   >
                     <Cell fill={'#A4CFD7'} />
+                    <Legend verticalAlign="top" height={36} />
                     <Cell fill={'#98B1CE'} />
                   </Pie>
                   <Tooltip />

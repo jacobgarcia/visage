@@ -8,8 +8,6 @@ const dotenv = require('dotenv')
 const mongoose = require('mongoose')
 const bodyParser = require('body-parser')
 
-const v1 = require(path.resolve('router/v1'))
-
 /* Winston logger object */
 const logger = winston.createLogger({
   level: 'info',
@@ -29,6 +27,9 @@ dotenv.config({
     `config/.env${isProduction ? '.production' : '.development'}`
   ),
 })
+
+// Important to load all after dotenv config
+const v1 = require(path.resolve('router/v1'))
 
 // MARK: Environment variables definition
 const { PORT = 8080, SERVER_ONLY = false, DB_URI } = process.env

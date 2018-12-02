@@ -16,11 +16,10 @@ const Admin = require(path.resolve('models/Admin'))
 const Indexing = require(path.resolve('models/Indexing'))
 const Searching = require(path.resolve('models/Searching'))
 
-const config = require(path.resolve('config'))
-
 const serviceUrl = 'https://admin.vs-01-dev.qbo.tech'
 
 const JWT_SECRET = process.env.JWT_SECRET
+console.log('JWT_SECRET', JWT_SECRET)
 
 function getUserData(data) {
   return { ...data.toObject(), access: data.services ? 'admin' : 'user' }
@@ -395,61 +394,70 @@ router.route('/admins/invite').post((req, res) => {
   })
 })
 
-router.post('/signup/:invitation', (req, res) => {
+router.post('/signup/:invitation', async (req, res) => {
   const { invitation } = req.params
   const { email, password, username, fullName } = req.body
   console.log("datos de sign up")
-  console.log(email,password,username, fullName)
+  console.log(email, password, username, fullName)
   if (!invitation) return res.status(401).json({ message: 'No invitation token provided' })
-  return Guest.findOne({ invitation }).exec(async (error, guest) => {
-    if (error) {
-      console.error({ error })
-      return res.status(500).json({ error })
-    }
-    if (!guest || guest.email !== email) return res.status(401).json({
+
+  try {
+    const guest = await Guest.findOne({ invitation })
+
+    if (!guest || guest.email !== email) {
+      return res.status(401).json({
         message:
           'Invalid invitation. Please ask your administrator to send you an invitation again',
       })
+    }
+
     console.log("defining gUest")
+
     guest.name = fullName
     guest.username = username
     guest.password = await bcrypt.hash(`${password}${JWT_SECRET}`, 10)
-    return guest.save(() => {
-      nev.confirmTempUser(invitation, (error, user) => {
+
+    await guest.save()
+
+    nev.confirmTempUser(invitation, (error, user) => {
+      if (error) {
+        console.error(error)
+        return res.status(500).json({ error })
+      }
+
+      if (!user) return res.status(500).json({ message: 'Could not send create user information' })
+
+      nev.sendConfirmationEmail(user.email, (error) => {
         if (error) {
           console.error(error)
-          return res.status(500).json({ error })
         }
-        if (!user) return res.status(500).json({ message: 'Could not send create user information' })
+      })
 
-        nev.sendConfirmationEmail(user.email, (error) => {
-          if (error) {
-            console.error(error)
-          }
-        })
+      const token = jwt.sign(
+        {
+          _id: user._id,
+          acc: user.access,
+          cmp: user.company,
+        },
+        JWT_SECRET
+      )
 
-        const token = jwt.sign(
-          {
-            _id: user._id,
-            acc: user.access,
-            cmp: user.company,
-          },
-          JWT_SECRET
-        )
+      const userObject = user.toObject()
 
-        const userObject = user.toObject()
-
-        return res.status(200).json({
-          token,
-          user: {
-            _id: userObject._id,
-            name: userObject.name || 'User',
-            access: userObject.access,
-          },
-        })
+      return res.status(200).json({
+        token,
+        user: {
+          _id: userObject._id,
+          name: userObject.name || 'User',
+          access: userObject.access,
+        },
       })
     })
-  })
+
+  } catch(error)  {
+    console.error(error)
+    return res.status(500).json({ error: 'Could not invite' })
+  }
 })
 
 router.route('/authenticate').post(async (req, res) => {

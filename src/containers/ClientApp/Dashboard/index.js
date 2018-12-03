@@ -11,6 +11,7 @@ const data02 = [
   { name: 'B2', value: 80 },
   { name: 'B3', value: 40 },
 ]
+
 import UsageBar from 'components/UsageBar'
 import Card from 'components/Card'
 import ProfileModal from 'components/ProfileModal'

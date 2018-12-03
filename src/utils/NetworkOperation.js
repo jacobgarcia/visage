@@ -27,8 +27,8 @@ class NetworkOperation {
     return axios.get(`${baseUrl}/v1/private/stats/requests`, {
       params: {
         start: from,
-        end : to
-      }
+        end: to,
+      },
     })
   }
 
@@ -36,8 +36,8 @@ class NetworkOperation {
     return axios.get(`${baseUrl}/v1/private/stats/users/billing`, {
       params: {
         start: from,
-        end: to
-      }
+        end: to,
+      },
     })
   }
 
@@ -49,16 +49,21 @@ class NetworkOperation {
   L O G I N
   */
 
-  static login({email, password}) {
-    return axios.post(`${baseUrl}/v1/private/authenticate`, {email, password})
+  static login({ email, password }) {
+    return axios.post(`${baseUrl}/v1/private/authenticate`, { email, password })
   }
+
   /*
   S I G N   U P
   */
-  static signup(invitation,{email, password, username, fullName}) {
-    return axios.post(`${baseUrl}/v1/private/signup/${invitation}`, {email, password, username, fullName})
+  static signup(invitation, { email, password, username, fullName }) {
+    return axios.post(`${baseUrl}/v1/private/signup/${invitation}`, {
+      email,
+      password,
+      username,
+      fullName,
+    })
   }
-
 
   static generateAPIToken(username) {
     return axios.post(`${baseUrl}/v1/private/users/token/${username}`)
@@ -89,7 +94,7 @@ class NetworkOperation {
   }
 
   static inviteClient(data) {
-    return axios.post(`${baseUrl}/v1/private/users/invite`,data)
+    return axios.post(`${baseUrl}/v1/private/users/invite`, data)
   }
 
   static updateClient(data, oldUsername) {
@@ -140,7 +145,7 @@ class NetworkOperation {
   I N V I T E   U S E R
   */
   static inviteUser(email) {
-    return axios.post(`${baseUrl}/v1/private/users/invite`,{email})
+    return axios.post(`${baseUrl}/v1/private/users/invite`, { email })
   }
 
   /*
@@ -148,6 +153,13 @@ class NetworkOperation {
   */
   static setRates(data) {
     return axios.put(`${baseUrl}/v1/private/rates`, data)
+  }
+
+  /*
+  I N D E X I N G
+  */
+  static indexImages(username) {
+    return axios.post(`${baseUrl}/v1/private/images/index/${username}`)
   }
 }
 

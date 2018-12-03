@@ -11,7 +11,6 @@ import BlockIcon from '@material-ui/icons/Block'
 import RefreshIcon from '@material-ui/icons/Refresh'
 import KeyIcon from '@material-ui/icons/VpnKey'
 
-import LoadingButton from 'components/LoadingButton'
 import SnackMessage from 'components/SnackMessage'
 import MoreButton from 'components/MoreButton'
 import NetworkOperation from 'utils/NetworkOperation'
@@ -26,16 +25,17 @@ class ClientRow extends Component {
     renewKeyLoading: false,
     loadingDelte: false,
     toggleActiveLoading: false,
+    isIndexing: this.props.client.isIndexing,
   }
 
   revokeKey = async () => {
     this.setState({ revokeKeyLoading: true })
     try {
-      const response = await NetworkOperation.revokeAPIKey(this.props.client.username)
+      await NetworkOperation.revokeAPIKey(this.props.client.username)
 
       this.setState({ message: 'Llave revocada' })
     } catch (error) {
-      console.log({ error })
+      console.error({ error })
       this.setState({ message: 'Error al revocar llave' })
     } finally {
       this.setState({ revokeKeyLoading: false })
@@ -46,11 +46,11 @@ class ClientRow extends Component {
   renewAPIKey = async () => {
     this.setState({ renewKeyLoading: true })
     try {
-      const response = await NetworkOperation.generateAPIKey(this.props.client.username)
+      await NetworkOperation.generateAPIKey(this.props.client.username)
 
       this.setState({ message: 'Llave regenerada' })
     } catch (error) {
-      console.log({ error })
+      console.error({ error })
       this.setState({ message: 'Error al regenerar llave' })
     } finally {
       this.setState({ renewKeyLoading: false })
@@ -61,7 +61,7 @@ class ClientRow extends Component {
   generateKey = async () => {
     this.setState({ generateKeyLoading: true })
     try {
-      const response = await NetworkOperation.generateAPIKey(this.props.client.username)
+      await NetworkOperation.generateAPIKey(this.props.client.username)
 
       this.setState({ message: 'Llaves generadas' })
     } catch (error) {
@@ -77,10 +77,12 @@ class ClientRow extends Component {
     this.setState({ toggleActiveLoading: true })
 
     try {
-      const response = isActive
+      isActive
         ? await NetworkOperation.deactivateUser(this.props.client.username)
         : await NetworkOperation.reactivateUser(this.props.client.username)
-      this.setState({ message: `Usuario ${isActive ? 'desactivado' : 'activado'} con éxito` })
+      this.setState({
+        message: `Usuario ${isActive ? 'desactivado' : 'activado'} con éxito`,
+      })
     } catch (error) {
       console.error(error)
       this.setState({ message: 'Error al desactivar usuario' })
@@ -93,9 +95,13 @@ class ClientRow extends Component {
   onDelete = async () => {
     this.setState({ loadingDelte: true })
 
-    if (window.confirm(`Estas seguro de borrar al usuario ${this.props.client.username}`)) {
+    if (
+      window.confirm(
+        `Estas seguro de borrar al usuario ${this.props.client.username}`
+      )
+    ) {
       try {
-        const response = await NetworkOperation.deleteUser(this.props.client.username)
+        await NetworkOperation.deleteUser(this.props.client.username)
         this.setState({ message: 'Usuario eliminado' })
       } catch (error) {
         console.error(error)
@@ -107,6 +113,20 @@ class ClientRow extends Component {
     }
   }
 
+  onIndex = async () => {
+    try {
+      this.setState({ isIndexing: true })
+      await NetworkOperation.indexImages(this.props.client.username)
+      this.setState({ message: 'Imágenes indexadas exitósamente' })
+    } catch (error) {
+      console.error(error)
+      this.setState({ message: 'Error al indexar imágenes' })
+    } finally {
+      this.setState({ isIndexing: false })
+      this.props.reloadData()
+    }
+  }
+
   onCloseSnack = () => this.setState({ message: null })
 
   handleClose = () => this.setState({ anchorEl: null })
@@ -115,12 +135,30 @@ class ClientRow extends Component {
   render() {
     const {
       props,
-      state: { anchorEl, generateKeyLoading, revokeKeyLoading, renewKeyLoading, message },
+      state: {
+        anchorEl,
+        generateKeyLoading,
+        revokeKeyLoading,
+        renewKeyLoading,
+        message,
+        isIndexing,
+      },
     } = this
-
+    let label
+    if (isIndexing) {
+      label = 'INDEXANDO'
+    } else if (props.client.toIndex.length > 0) {
+      label = 'INDEXAR'
+    } else {
+      label = 'INDEXADO'
+    }
     return (
       <Fragment>
-        <SnackMessage open={message} message={message} onClose={this.onCloseSnack} />
+        <SnackMessage
+          open={message}
+          message={message}
+          onClose={this.onCloseSnack}
+        />
 
         <TableRow
           key={props.client._id}
@@ -129,20 +167,17 @@ class ClientRow extends Component {
           <TableCell component="th" scope="item" className="user-row__body">
             {props.client.name}
           </TableCell>
-          <TableCell className="user-row__body">{props.client.company}</TableCell>
+          <TableCell className="user-row__body">
+            {props.client.company}
+          </TableCell>
           <TableCell className="user-row__body">{props.client.email}</TableCell>
           <TableCell>
             <Button
               variant="outlined"
-              disabled={
-                props.client.isIndexing ? true : !(props.client.toIndex.length > 0)
-              }
+              disabled={isIndexing ? true : !(props.client.toIndex.length > 0)}
+              onClick={this.onIndex}
             >
-              {props.client.isIndexing
-                ? 'INDEXANDO'
-                : props.client.toIndex.length > 0
-                ? 'INDEXAR'
-                : 'INDEXADO'}
+              {label}
             </Button>
           </TableCell>
           <TableCell>
@@ -151,9 +186,16 @@ class ClientRow extends Component {
                 <IconButton>
                   <div className="circular-progress__container">
                     {generateKeyLoading && (
-                      <CircularProgress size={48} color="primary" className="circular-progress" />
+                      <CircularProgress
+                        size={48}
+                        color="primary"
+                        className="circular-progress"
+                      />
                     )}
-                    <KeyIcon onClick={this.generateKey} className="circular-progress--button" />
+                    <KeyIcon
+                      onClick={this.generateKey}
+                      className="circular-progress--button"
+                    />
                   </div>
                 </IconButton>
               )
@@ -161,9 +203,16 @@ class ClientRow extends Component {
               <IconButton>
                 <div className="circular-progress__container">
                   {generateKeyLoading && (
-                    <CircularProgress size={48} color="primary" className="circular-progress" />
+                    <CircularProgress
+                      size={48}
+                      color="primary"
+                      className="circular-progress"
+                    />
                   )}
-                  <KeyIcon onClick={this.generateKey} className="circular-progress--button" />
+                  <KeyIcon
+                    onClick={this.generateKey}
+                    className="circular-progress--button"
+                  />
                 </div>
               </IconButton>
             )}
@@ -172,7 +221,11 @@ class ClientRow extends Component {
                   <IconButton>
                     <div className="circular-progress__container">
                       {renewKeyLoading && (
-                        <CircularProgress size={48} color="primary" className="circular-progress" />
+                        <CircularProgress
+                          size={48}
+                          color="primary"
+                          className="circular-progress"
+                        />
                       )}
                       <RefreshIcon
                         onClick={this.renewAPIKey}
@@ -187,9 +240,16 @@ class ClientRow extends Component {
                   <IconButton>
                     <div className="circular-progress__container">
                       {revokeKeyLoading && (
-                        <CircularProgress size={48} color="primary" className="circular-progress" />
+                        <CircularProgress
+                          size={48}
+                          color="primary"
+                          className="circular-progress"
+                        />
                       )}
-                      <BlockIcon onClick={this.revokeKey} className="circular-progress--button" />
+                      <BlockIcon
+                        onClick={this.revokeKey}
+                        className="circular-progress--button"
+                      />
                     </div>
                   </IconButton>
                 )
@@ -212,6 +272,11 @@ class ClientRow extends Component {
       </Fragment>
     )
   }
+}
+
+ClientRow.propTypes = {
+  client: PropTypes.object,
+  reloadData: PropTypes.func,
 }
 
 export default ClientRow

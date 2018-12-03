@@ -588,7 +588,7 @@ router.use((req, res, next) => {
 
 router.route('/users/self').get(async (req, res) => {
   const user = await User.findOne({ _id: req._user._id }, '-apiKey -password -toIndex').populate(
-    'indexings'
+    'indexings searches'
   )
   const admin = await Admin.findOne({ _id: req._user._id }, '-apiKey -password -toIndex')
   if (admin) {

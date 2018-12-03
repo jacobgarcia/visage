@@ -6,6 +6,8 @@ const Item = new Schema({
   id: Number,
   sku: Number,
   similarity: Number,
+  cl: String,
+  score: Number,
 })
 
 const schema = new Schema({

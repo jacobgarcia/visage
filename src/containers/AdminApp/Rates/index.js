@@ -97,14 +97,13 @@ class Rates extends Component {
             $0._id === rate._id ? { ...$0, [name]: value } : $0
           ),
         }))
-        return
+      } else {
+        this.setState((prev) => ({
+          indexRates: prev.indexRates.map(($0) =>
+            $0._id === rate._id ? { ...$0, [name]: value } : $0
+          ),
+        }))
       }
-
-      this.setState((prev) => ({
-        indexRates: prev.indexRates.map(($0) =>
-          $0._id === rate._id ? { ...$0, [name]: value } : $0
-        ),
-      }))
     }
   }
 
@@ -241,6 +240,7 @@ class Rates extends Component {
                       canEdit && this.onChange(evt, rate, 'indexRates')
                     }
                     margin="normal"
+                    name="min"
                     variant="outlined"
                   />
                   <span className="dash">-</span>
@@ -253,6 +253,7 @@ class Rates extends Component {
                       canEdit && this.onChange(evt, rate, 'indexRates')
                     }
                     margin="normal"
+                    name="max"
                     variant="outlined"
                   />
                 </div>
@@ -266,6 +267,7 @@ class Rates extends Component {
                       canEdit && this.onChange(evt, rate, 'indexRates')
                     }
                     margin="normal"
+                    name="cost"
                     variant="outlined"
                     InputProps={{
                       startAdornment: (

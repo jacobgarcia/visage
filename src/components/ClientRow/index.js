@@ -1,4 +1,4 @@
-import React, { Component ,Fragment } from 'react'
+import React, { Component, Fragment } from 'react'
 import PropTypes from 'prop-types'
 
 import TableRow from '@material-ui/core/TableRow'
@@ -25,7 +25,7 @@ class ClientRow extends Component {
     revokeKeyLoading: false,
     renewKeyLoading: false,
     loadingDelte: false,
-    toggleActiveLoading: false
+    toggleActiveLoading: false,
   }
 
   revokeKey = async () => {
@@ -34,7 +34,7 @@ class ClientRow extends Component {
       const response = await NetworkOperation.revokeAPIKey(this.props.client.username)
 
       this.setState({ message: 'Llave revocada' })
-    } catch(error) {
+    } catch (error) {
       console.log({ error })
       this.setState({ message: 'Error al revocar llave' })
     } finally {
@@ -49,7 +49,7 @@ class ClientRow extends Component {
       const response = await NetworkOperation.generateAPIKey(this.props.client.username)
 
       this.setState({ message: 'Llave regenerada' })
-    } catch(error) {
+    } catch (error) {
       console.log({ error })
       this.setState({ message: 'Error al regenerar llave' })
     } finally {
@@ -64,7 +64,7 @@ class ClientRow extends Component {
       const response = await NetworkOperation.generateAPIKey(this.props.client.username)
 
       this.setState({ message: 'Llaves generadas' })
-    } catch(error) {
+    } catch (error) {
       console.error(error)
       this.setState({ message: 'Error al generar llaves' })
     } finally {
@@ -77,8 +77,10 @@ class ClientRow extends Component {
     this.setState({ toggleActiveLoading: true })
 
     try {
-      const response = isActive ? await NetworkOperation.deactivateUser(this.props.client.username) : await NetworkOperation.reactivateUser(this.props.client.username)
-      this.setState({ message: `Usuario ${isActive ? 'desactivado' : 'activado' } con éxito` })
+      const response = isActive
+        ? await NetworkOperation.deactivateUser(this.props.client.username)
+        : await NetworkOperation.reactivateUser(this.props.client.username)
+      this.setState({ message: `Usuario ${isActive ? 'desactivado' : 'activado'} con éxito` })
     } catch (error) {
       console.error(error)
       this.setState({ message: 'Error al desactivar usuario' })
@@ -91,7 +93,7 @@ class ClientRow extends Component {
   onDelete = async () => {
     this.setState({ loadingDelte: true })
 
-    if (window.confirm(`Estas seguro de borrar al usuario ${this.props.client.username}`)){
+    if (window.confirm(`Estas seguro de borrar al usuario ${this.props.client.username}`)) {
       try {
         const response = await NetworkOperation.deleteUser(this.props.client.username)
         this.setState({ message: 'Usuario eliminado' })
@@ -105,96 +107,108 @@ class ClientRow extends Component {
     }
   }
 
-  onCloseSnack = () => this.setState({message: null})
+  onCloseSnack = () => this.setState({ message: null })
 
   handleClose = () => this.setState({ anchorEl: null })
   handleClick = (event) => this.setState({ anchorEl: event.currentTarget })
 
   render() {
-    const { props, state: { anchorEl, generateKeyLoading, revokeKeyLoading, renewKeyLoading, message } } = this
+    const {
+      props,
+      state: { anchorEl, generateKeyLoading, revokeKeyLoading, renewKeyLoading, message },
+    } = this
 
     return (
       <Fragment>
         <SnackMessage open={message} message={message} onClose={this.onCloseSnack} />
 
-      <TableRow
-        key={props.client._id}
-        className={`user-row ${
-          props.client.active ? 'active' : 'deactive'
-        }`}
-      >
-
-        <TableCell
-          component="th"
-          scope="item"
-          className="user-row__body"
+        <TableRow
+          key={props.client._id}
+          className={`user-row ${props.client.active ? 'active' : 'deactive'}`}
         >
-          {props.client.name}
-        </TableCell>
-        <TableCell className="user-row__body">
-          {props.client.company}
-        </TableCell>
-        <TableCell className="user-row__body">
-          {props.client.email}
-        </TableCell>
-        <TableCell>
-          <Button variant="outlined" disabled={!props.client.isIndexing}>
-            {props.client.isIndexing ? 'INDEXANDO' : 'INDEXADO'}
-          </Button>
-        </TableCell>
-        <TableCell>
-          {props.client.apiKey ? !props.client.apiKey.active && <IconButton>
-            <div className="circular-progress__container">
-              {generateKeyLoading && <CircularProgress
-                size={48}
-                color="primary"
-                className="circular-progress"
-              />}
-              <KeyIcon onClick={this.generateKey} className="circular-progress--button" />
-            </div>
-          </IconButton> : <IconButton>
-            <div className="circular-progress__container">
-              {generateKeyLoading && <CircularProgress
-                size={48}
-                color="primary"
-                className="circular-progress"
-              />}
-              <KeyIcon onClick={this.generateKey} className="circular-progress--button" />
-            </div>
-          </IconButton> }
-          {props.client.apiKey ? props.client.apiKey.active && <IconButton>
-            <div className="circular-progress__container">
-              {renewKeyLoading && <CircularProgress
-                size={48}
-                color="primary"
-                className="circular-progress"
-              />}
-              <RefreshIcon onClick={this.renewAPIKey} className="circular-progress--button" />
-            </div>
-          </IconButton> : ""}
-          {props.client.apiKey ? props.client.apiKey.active && <IconButton>
-            <div className="circular-progress__container">
-              {revokeKeyLoading && <CircularProgress
-                size={48}
-                color="primary"
-                className="circular-progress"
-              />}
-              <BlockIcon onClick={this.revokeKey} className="circular-progress--button" />
-            </div>
-          </IconButton> : ""}
-        </TableCell>
-        {props.canEdit && <TableCell numeric>
-          <MoreButton
-            isActive={props.client.active}
-            anchorEl={anchorEl}
-            onToggleActive={this.onToggleActive}
-            onDelete={this.onDelete}
-            handleClick={this.handleClick}
-            handleClose={this.handleClose}
-            onEdit={() => props.onSelectClient(props.client)}
-          />
-        </TableCell>}
-      </TableRow>
+          <TableCell component="th" scope="item" className="user-row__body">
+            {props.client.name}
+          </TableCell>
+          <TableCell className="user-row__body">{props.client.company}</TableCell>
+          <TableCell className="user-row__body">{props.client.email}</TableCell>
+          <TableCell>
+            <Button
+              variant="outlined"
+              disabled={
+                props.client.isIndexing ? true : !(props.client.toIndex.length > 0)
+              }
+            >
+              {props.client.isIndexing
+                ? 'INDEXANDO'
+                : props.client.toIndex.length > 0
+                ? 'INDEXAR'
+                : 'INDEXADO'}
+            </Button>
+          </TableCell>
+          <TableCell>
+            {props.client.apiKey ? (
+              !props.client.apiKey.active && (
+                <IconButton>
+                  <div className="circular-progress__container">
+                    {generateKeyLoading && (
+                      <CircularProgress size={48} color="primary" className="circular-progress" />
+                    )}
+                    <KeyIcon onClick={this.generateKey} className="circular-progress--button" />
+                  </div>
+                </IconButton>
+              )
+            ) : (
+              <IconButton>
+                <div className="circular-progress__container">
+                  {generateKeyLoading && (
+                    <CircularProgress size={48} color="primary" className="circular-progress" />
+                  )}
+                  <KeyIcon onClick={this.generateKey} className="circular-progress--button" />
+                </div>
+              </IconButton>
+            )}
+            {props.client.apiKey
+              ? props.client.apiKey.active && (
+                  <IconButton>
+                    <div className="circular-progress__container">
+                      {renewKeyLoading && (
+                        <CircularProgress size={48} color="primary" className="circular-progress" />
+                      )}
+                      <RefreshIcon
+                        onClick={this.renewAPIKey}
+                        className="circular-progress--button"
+                      />
+                    </div>
+                  </IconButton>
+                )
+              : ''}
+            {props.client.apiKey
+              ? props.client.apiKey.active && (
+                  <IconButton>
+                    <div className="circular-progress__container">
+                      {revokeKeyLoading && (
+                        <CircularProgress size={48} color="primary" className="circular-progress" />
+                      )}
+                      <BlockIcon onClick={this.revokeKey} className="circular-progress--button" />
+                    </div>
+                  </IconButton>
+                )
+              : ''}
+          </TableCell>
+          {props.canEdit && (
+            <TableCell numeric>
+              <MoreButton
+                isActive={props.client.active}
+                anchorEl={anchorEl}
+                onToggleActive={this.onToggleActive}
+                onDelete={this.onDelete}
+                handleClick={this.handleClick}
+                handleClose={this.handleClose}
+                onEdit={() => props.onSelectClient(props.client)}
+              />
+            </TableCell>
+          )}
+        </TableRow>
       </Fragment>
     )
   }

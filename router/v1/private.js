@@ -605,7 +605,7 @@ router.route('/users/self').get(async (req, res) => {
 router.route('/users').get(async (req, res) => {
   try {
     const users = await User.find({}).select(
-      'username name surname company email isIndexing active apiKey.active'
+      'username name surname company email isIndexing active apiKey.active toIndex'
     )
 
     return res.status(200).json({ users })

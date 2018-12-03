@@ -48,11 +48,19 @@ class Login extends Component {
         const { status = 500 } = response
         switch (status) {
           case 400:
+          this.setState({
+            error: 'Error General',
+          })
           case 401:
             this.setState({
               error: 'Correo o contraseña incorrectos',
             })
             break
+          case 409:
+              this.setState({
+                error: 'Usuario No existe o Ha sido Desactivado',
+              })
+              break
           default:
             this.setState({
               error: 'Problemas al iniciar sesión, intenta nuevamente',

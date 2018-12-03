@@ -74,7 +74,7 @@ class ClientModal extends Component {
     try {
       let response
       if (this.state._id) {
-        response = await NetworkOperation.updateClient(data)
+        response = await NetworkOperation.updateClient(data, this.state.pastUsername)
       } else {
         response = await NetworkOperation.inviteUser(this.state.email)
       }

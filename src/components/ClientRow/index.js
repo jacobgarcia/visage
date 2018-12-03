@@ -144,7 +144,14 @@ class ClientRow extends Component {
         isIndexing,
       },
     } = this
-
+    let label
+    if (isIndexing) {
+      label = 'INDEXANDO'
+    } else if (props.client.toIndex.length > 0) {
+      label = 'INDEXAR'
+    } else {
+      label = 'INDEXADO'
+    }
     return (
       <Fragment>
         <SnackMessage
@@ -170,11 +177,7 @@ class ClientRow extends Component {
               disabled={isIndexing ? true : !(props.client.toIndex.length > 0)}
               onClick={this.onIndex}
             >
-              {isIndexing
-                ? 'INDEXANDO'
-                : props.client.toIndex.length > 0
-                ? 'INDEXAR'
-                : 'INDEXADO'}
+              {label}
             </Button>
           </TableCell>
           <TableCell>

@@ -91,15 +91,17 @@ class ClientRow extends Component {
   onDelete = async () => {
     this.setState({ loadingDelte: true })
 
-    try {
-      const response = await NetworkOperation.deleteUser(this.props.client.username)
-      this.setState({ message: 'Usuario eliminado' })
-    } catch (error) {
-      console.error(error)
-      this.setState({ message: 'Error al eliminar usuario' })
-    } finally {
-      this.setState({ loadingDelete: false })
-      this.props.reloadData()
+    if (window.confirm(`Estas seguro de borrar al usuario ${this.props.client.username}`)){
+      try {
+        const response = await NetworkOperation.deleteUser(this.props.client.username)
+        this.setState({ message: 'Usuario eliminado' })
+      } catch (error) {
+        console.error(error)
+        this.setState({ message: 'Error al eliminar usuario' })
+      } finally {
+        this.setState({ loadingDelete: false })
+        this.props.reloadData()
+      }
     }
   }
 
@@ -141,7 +143,7 @@ class ClientRow extends Component {
           </Button>
         </TableCell>
         <TableCell>
-          {!props.client.apiKey.active && <IconButton>
+          {props.client.apiKey ? !props.client.apiKey.active && <IconButton>
             <div className="circular-progress__container">
               {generateKeyLoading && <CircularProgress
                 size={48}
@@ -150,8 +152,17 @@ class ClientRow extends Component {
               />}
               <KeyIcon onClick={this.generateKey} className="circular-progress--button" />
             </div>
-          </IconButton>}
-          {props.client.apiKey.active && <IconButton>
+          </IconButton> : <IconButton>
+            <div className="circular-progress__container">
+              {generateKeyLoading && <CircularProgress
+                size={48}
+                color="primary"
+                className="circular-progress"
+              />}
+              <KeyIcon onClick={this.generateKey} className="circular-progress--button" />
+            </div>
+          </IconButton> }
+          {props.client.apiKey ? props.client.apiKey.active && <IconButton>
             <div className="circular-progress__container">
               {renewKeyLoading && <CircularProgress
                 size={48}
@@ -160,8 +171,8 @@ class ClientRow extends Component {
               />}
               <RefreshIcon onClick={this.renewAPIKey} className="circular-progress--button" />
             </div>
-          </IconButton>}
-          {props.client.apiKey.active && <IconButton>
+          </IconButton> : ""}
+          {props.client.apiKey ? props.client.apiKey.active && <IconButton>
             <div className="circular-progress__container">
               {revokeKeyLoading && <CircularProgress
                 size={48}
@@ -170,7 +181,7 @@ class ClientRow extends Component {
               />}
               <BlockIcon onClick={this.revokeKey} className="circular-progress--button" />
             </div>
-          </IconButton>}
+          </IconButton> : ""}
         </TableCell>
         {props.canEdit && <TableCell numeric>
           <MoreButton

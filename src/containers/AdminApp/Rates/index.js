@@ -68,25 +68,28 @@ class Rates extends Component {
       searchRates: this.state.searchRates.map(parseRates),
       indexRates: this.state.indexRates.map(parseRates),
     }
+    if (window.confirm('Estas seguro de modificar las tarifas')) {
+      try {
+        await NetworkOperation.setRates(rates)
 
-    try {
-      await NetworkOperation.setRates(rates)
+        this.setState({ message: 'Cambios guardados' })
 
-      this.setState({ message: 'Cambios guardados' })
-
-      this.props.stopSaving({ success: true })
-    } catch (error) {
-      console.error(error)
-      this.props.stopSaving({ success: false })
-      this.setState({
-        message: 'Error al guardar cambios, verificar la información',
-      })
+        this.props.stopSaving({ success: true })
+      } catch (error) {
+        console.error(error)
+        this.props.stopSaving({ success: false })
+        this.setState({
+          message: 'Error al guardar cambios, verificar la información',
+        })
+      }
     }
   }
 
   onChange = ({ target: { name, value } }, rate, field) => {
     this.props.toggle({ [name]: value, saveButton: true })
-
+    // These lines follow Cesar's enigmatic paradigm,
+    // it just updates rates values and uses RETURN as an ELSE.
+    console.log(rate, field, name, value)
     if (rate && field) {
       if (field === 'searchRates') {
         this.setState((prev) => ({
@@ -98,7 +101,7 @@ class Rates extends Component {
       }
 
       this.setState((prev) => ({
-        searchRates: prev.searchRates.map(($0) =>
+        indexRates: prev.indexRates.map(($0) =>
           $0._id === rate._id ? { ...$0, [name]: value } : $0
         ),
       }))

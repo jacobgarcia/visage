@@ -3,6 +3,8 @@ import Card from '@material-ui/core/Card'
 import {
   AreaChart,
   Area,
+  BarChart,
+  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -44,24 +46,31 @@ class Dashboard extends Component {
     saving: PropTypes.bool,
     to: PropTypes.instanceOf(Date),
     toggle: PropTypes.function,
+    barChatData: PropTypes.object,
   }
 
   state = {
     from: this.props.from,
     to: this.props.to,
+    barChatData: {}
   }
 
   async componentDidMount() {
     this.props.toggle({ saveButton: false, dateFilter: true })
     try {
+      const barChatData = []
       const { data: requestsStats } = await NetworkOperation.getRequestStats(this.state.from.getTime(), this.state.to.getTime())
       const {
         data: billingStats,
       } = await NetworkOperation.getUserBillingStats(this.state.from.getTime(), this.state.to.getTime())
-
+      billingStats.users.map( user => {
+        barChatData.push({name: user.username, index: user.indexings.length, search: user.searches.length})
+      })
       this.setState({
         requestsStats: requestsStats.requests,
+        barChatData: barChatData,
       })
+
     } catch (error) {
       console.log({ error })
     }
@@ -109,10 +118,10 @@ class Dashboard extends Component {
             <Card className="card">
               <h4>Consumo de datos por usuario</h4>
               <ResponsiveContainer width="100%" height={400}>
-                <AreaChart
+                <BarChart
                   width={600}
                   height={400}
-                  data={data}
+                  data={this.state.barChatData}
                   margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
                   isAnimationActive={false}
                 >
@@ -120,14 +129,10 @@ class Dashboard extends Component {
                   <XAxis dataKey="name" />
                   <YAxis />
                   <Tooltip />
-                  <Area
-                    type="monotone"
-                    dataKey="uv"
-                    stroke="#8884d8"
-                    fill="#8884d8"
-                    isAnimationActive={false}
-                  />
-                </AreaChart>
+                  <Legend />
+                 <Bar dataKey="index" fill="#A4CFD7" />
+                 <Bar dataKey="search" fill="#98B1CE" />
+                </BarChart>
               </ResponsiveContainer>
             </Card>
           </div>

@@ -2,19 +2,8 @@ import React, { Component } from 'react'
 import { Route } from 'react-router-dom'
 import PropTypes from 'prop-types'
 
-import { PieChart, Pie, Cell } from 'recharts'
-
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#242424']
-const data02 = [
-  { name: 'A1', value: 100 },
-  { name: 'A2', value: 300 },
-  { name: 'B1', value: 100 },
-  { name: 'B2', value: 80 },
-  { name: 'B3', value: 40 },
-]
 import Dashboard from 'containers/ClientApp/Dashboard'
 import Profile from 'containers/ClientApp/Profile'
-import ProfileModal from 'components/ProfileModal'
 import AppBar from 'components/AppBar'
 import Drawer from 'components/Drawer'
 

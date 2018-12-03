@@ -143,7 +143,6 @@ class App extends Component {
             />
             <Drawer
               onToggle={this.onToggle}
-              onLinkClick={this.onLinkClick}
               toolBarHidden={toolBarHidden}
               onCloseClick={this.onCloseClick}
             />

@@ -5,7 +5,7 @@ const Schema = mongoose.Schema
 const Item = new Schema({
   id: Number,
   sku: Number,
-  similarity: Number
+  similarity: Number,
 })
 
 const schema = new Schema({
@@ -13,15 +13,15 @@ const schema = new Schema({
   response: {
     success: Boolean,
     status: Number,
-    items: { type: [Item], default: [] }
+    items: { type: [Item], default: [] },
   },
   request: {
     route: Object,
     file: Object,
     token: String,
-    headers: Object
+    headers: Object,
   },
-  user: { type: Schema.Types.ObjectId, ref: 'User', required: true }
+  user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
 })
 
 schema.virtual('success').get(() => {

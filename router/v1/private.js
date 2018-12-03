@@ -265,14 +265,17 @@ router.route('/images/index/:username').post((req, res) => {
 
 // Statistics endpoint for dashboard
 router.route('/stats/requests').get((req, res) => {
-  Indexing.find({})
+  const end = req.param('end'),
+    start = req.param('start')
+
+  Indexing.find({ timestamp: { $gte: start, $lte: end } })
     .select('id')
     .exec((error, indexings) => {
       if (error) {
         console.info('Could not fetch indexings', error)
         return res.status(500).json({ error: { message: 'Could not fetch indexings' } })
       }
-      return Searching.find({})
+      return Searching.find({ timestamp: { $gte: start, $lte: end } })
         .select('id')
         .exec((error, searchings) => {
           if (error) {
@@ -292,52 +295,80 @@ router.route('/stats/requests').get((req, res) => {
 // Statistics endpoint for dashboard
 router.route('/stats/users/billing').get((req, res) => {
   // Find all users
-  User.find({})
-    .lean()
-    .select('searches indexings searchRates indexRates username email company')
-    .exec((error, users) => {
-      if (error) {
-        console.info('Could not fetch users', error)
-        return res.status(500).json({ error: { message: 'Could not fetch users' } })
-      }
+  const end = req.param('end'),
+    start = parseInt(req.param('start'), 10)
 
-      users.map((user) => {
-        let indexingCost = 0,
-          searchingCost = 0
+  User.aggregate([
+    {
+      $project: {
+        indexings: {
+          $filter: {
+            input: '$indexings',
+            as: 'item',
+            cond: {
+              $and: [{ $gte: [start, '$$item.timestamp'] }, { $lte: ['$$item.timestamp', end] }],
+            },
+          },
+        },
+        searches: {
+          $filter: {
+            input: '$searches',
+            as: 'item',
+            cond: {
+              $and: [{ $gte: [start, '$$item.timestamp'] }, { $lte: ['$$item.timestamp', end] }],
+            },
+          },
+        },
+        searchRates: 1,
+        indexRates: 1,
+        username: 1,
+        email: 1,
+        company: 1,
+      },
+    },
+  ]).exec((error, users) => {
+    if (error) {
+      console.info('Could not fetch users', error)
+      return res.status(500).json({ error: { message: 'Could not fetch users' } })
+    }
 
-        let indexing = user.indexings.length,
-          searching = user.searches.length
+    users.map((user) => {
+      let indexingCost = 0,
+        searchingCost = 0
 
-        user.indexRates.map((rate) => {
-          if (indexing >= rate.min && indexing <= rate.max) {
-            indexingCost += indexing * rate.cost
-          } else {
-            indexing -= rate.max
-            indexingCost += indexing * rate.cost
-          }
-        })
+      let indexing = 1,
+        searching = 1
 
-        user.searchRates.map((rate) => {
-          if (searching >= rate.min && searching <= rate.max) {
-            searchingCost += searching * rate.cost
-          } else {
-            searching -= rate.max
-            searchingCost += searching * rate.cost
-          }
-        })
-
-        user.indexingCost = indexingCost
-        user.searchingCost = searchingCost
-        user.billing = indexingCost + searchingCost
-        return user
+      user.indexRates.map((rate) => {
+        if (indexing >= rate.min && indexing <= rate.max) {
+          indexingCost += indexing * rate.cost
+        } else {
+          indexing -= rate.max
+          indexingCost += indexing * rate.cost
+        }
       })
 
-      // Finally sort users by billing
-      users.sort(($0, $1) => {
-        $0.billing - $1.billing
+      user.searchRates.map((rate) => {
+        if (searching >= rate.min && searching <= rate.max) {
+          searchingCost += searching * rate.cost
+        } else {
+          searching -= rate.max
+          searchingCost += searching * rate.cost
+        }
       })
-      return res.status(200).json({ users })
+
+      user.indexingCost = indexingCost
+      user.searchingCost = searchingCost
+      user.billing = indexingCost + searchingCost
+      return user
     })
+
+    // Finally sort users by billing
+    users.sort(($0, $1) => {
+      $0.billing - $1.billing
+    })
+    return res.status(200).json({ users })
+  })
 })
 
 router.route('/users/invite').post(async (req, res) => {
@@ -347,7 +378,7 @@ router.route('/users/invite').post(async (req, res) => {
     host: req._user,
   })
   const admin = await Admin.findOne({ email })
-  if (!admin){
+  if (!admin) {
     nev.createTempUser(
       guest,
       (error, existingPersistentUser, newTempUser) => {
@@ -391,8 +422,8 @@ router.route('/admins/invite').post((req, res) => {
   })
   return admin.save((error) => {
     if (error) {
-        console.error('error saving admin, verify email not repited', error )
-        return res.status(500).json({error: { message: 'could not save admin, email repited'} })
+      console.error('error saving admin, verify email not repited', error)
+      return res.status(500).json({ error: { message: 'could not save admin, email repited' } })
     }
     return res.status(200).json({ success: true, message: 'admin added' })
   })
@@ -414,7 +445,7 @@ router.post('/signup/:invitation', async (req, res) => {
       })
     }
 
-    if (!admin){
+    if (!admin) {
       guest.name = fullName
       guest.username = username
       guest.password = await bcrypt.hash(`${password}${JWT_SECRET}`, 10)
@@ -458,7 +489,7 @@ router.post('/signup/:invitation', async (req, res) => {
     } else {
       return res.status(409).json({ error: 'Admin email alredy exist' })
     }
-  } catch(error)  {
+  } catch (error) {
     console.error(error)
     return res.status(500).json({ error: 'Could not invite' })
   }
@@ -466,10 +497,12 @@ router.post('/signup/:invitation', async (req, res) => {
 
 router.route('/authenticate').post(async (req, res) => {
   const { email, password } = req.body
-  const user = await User.findOne({ email, active : true  })
+  const user = await User.findOne({ email, active: true })
   const admin = await Admin.findOne({ email })
   if (user === null && admin === null) {
-    return res.status(409).json({ message: 'Authentication failed. User deactivated or Eliminated' })
+    return res
+      .status(409)
+      .json({ message: 'Authentication failed. User deactivated or Eliminated' })
   }
   try {
     return bcrypt
@@ -554,7 +587,9 @@ router.use((req, res, next) => {
 })
 
 router.route('/users/self').get(async (req, res) => {
-  const user = await User.findOne({ _id: req._user._id }, '-apiKey -password -toIndex')
+  const user = await User.findOne({ _id: req._user._id }, '-apiKey -password -toIndex').populate(
+    'indexings'
+  )
   const admin = await Admin.findOne({ _id: req._user._id }, '-apiKey -password -toIndex')
   if (admin) {
     return res.status(200).json({ user: getUserData(admin) })
@@ -778,7 +813,7 @@ router.route('/rates').get(async (req, res) => {
   try {
     const rates = await User.findOne()
 
-    console.log({rates})
+    console.log({ rates })
 
     return res.status(200).json({ rates })
   } catch (error) {

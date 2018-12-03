@@ -7,15 +7,15 @@ const schema = new Schema({
   response: {
     success: Boolean,
     status: Number,
-    features: Number
+    features: Number,
   },
   request: {
     route: Object,
     files: Object,
     token: String,
-    headers: Object
+    headers: Object,
   },
-  user: { type: Schema.Types.ObjectId, ref: 'User', required: true }
+  user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
 })
 
 module.exports = mongoose.model('Indexing', schema)

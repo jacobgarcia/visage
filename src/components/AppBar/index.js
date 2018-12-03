@@ -1,6 +1,11 @@
 import React, { PureComponent } from 'react'
 import PropTypes from 'prop-types'
 
+import { NavLink } from 'react-router-dom'
+
+import ListItem from '@material-ui/core/ListItem'
+import ListItemIcon from '@material-ui/core/ListItemIcon'
+import ListItemText from '@material-ui/core/ListItemText'
 import TextField from '@material-ui/core/TextField'
 import AppBar from '@material-ui/core/AppBar'
 import Toolbar from '@material-ui/core/Toolbar'
@@ -8,10 +13,22 @@ import Button from '@material-ui/core/Button'
 import Modal from '@material-ui/core/Modal'
 import DayPicker from 'react-day-picker'
 import CircularProgress from '@material-ui/core/CircularProgress'
+import ExitIcon from '@material-ui/icons/ExitToApp'
 import Typography from '@material-ui/core/Typography'
 import SaveIcon from '@material-ui/icons/Save'
 
 import { UserContext } from 'utils/context'
+
+function listItem(text, Component) {
+  return (
+    <ListItem button>
+      <ListItemIcon>
+        <Component color="secondary" />
+      </ListItemIcon>
+      <ListItemText primary={text} />
+    </ListItem>
+  )
+}
 
 class AppBarComponent extends PureComponent {
   state = {
@@ -112,6 +129,9 @@ class AppBarComponent extends PureComponent {
                       readOnly
                     />
                   </div>
+                  <NavLink to="/login" className="logot">
+                    {listItem('Cerrar sesión', ExitIcon)}
+                  </NavLink>
                 </div>
               </div>
             </Modal>

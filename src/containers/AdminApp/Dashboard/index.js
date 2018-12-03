@@ -28,17 +28,57 @@ import { withSaver } from 'utils/portals'
 
 import './styles.pcss'
 
-const data = [
-  { name: 'Page A', uv: 4000, pv: 2400, amt: 2400 },
-  { name: 'Page B', uv: 3000, pv: 1398, amt: 2210 },
-  { name: 'Page C', uv: 2000, pv: 9800, amt: 2290 },
-  { name: 'Page D', uv: 2780, pv: 3908, amt: 2000 },
-  { name: 'Page E', uv: 1890, pv: 4800, amt: 2181 },
-  { name: 'Page F', uv: 2390, pv: 3800, amt: 2500 },
-  { name: 'Page G', uv: 3490, pv: 4300, amt: 2100 },
-]
-
 import { treeMapData, radarData } from './dummy'
+const COLORS = ['#BCD1E0', '#F4ECDD', '#BCD1E0', '#98B1CE', '#F9CC7A', '#E9666E']
+
+class CustomizedContent extends React.Component {
+  render() {
+    const { root, depth, x, y, width, height, index, payload, colors, rank, name } = this.props;
+
+    return (
+      <g>
+        <rect
+          x={x}
+          y={y}
+          width={width}
+          height={height}
+          style={{
+            fill: depth < 2 ? colors[Math.floor(index / (root.children?.length || 1) * 6)] : 'none',
+            stroke: '#fff',
+            strokeWidth: 2 / (depth + 1e-10),
+            strokeOpacity: 1 / (depth + 1e-10),
+          }}
+        />
+        {
+          depth === 1 ?
+          <text
+            x={x + width / 2}
+            y={y + height / 2 + 7}
+            textAnchor="middle"
+            fill="#fff"
+            fontSize={14}
+          >
+            {name}
+          </text>
+          : null
+        }
+        {
+          depth === 1 ?
+          <text
+            x={x + 4}
+            y={y + 18}
+            fill="#fff"
+            fontSize={16}
+            fillOpacity={0.9}
+          >
+            {index + 1}
+          </text>
+          : null
+        }
+      </g>
+    )
+  }
+}
 
 class Dashboard extends Component {
   static propTypes = {
@@ -46,29 +86,41 @@ class Dashboard extends Component {
     saving: PropTypes.bool,
     to: PropTypes.instanceOf(Date),
     toggle: PropTypes.function,
-    barChatData: PropTypes.object,
+    barChartData: PropTypes.object,
+    treeChartData: PropTypes.object,
   }
 
   state = {
     from: this.props.from,
     to: this.props.to,
-    barChatData: {}
+    barChartData: {},
+    treeChartData: {}
   }
 
   async componentDidMount() {
     this.props.toggle({ saveButton: false, dateFilter: true })
     try {
-      const barChatData = []
+      const barChartData = []
+      const treeChartData = []
       const { data: requestsStats } = await NetworkOperation.getRequestStats(this.state.from.getTime(), this.state.to.getTime())
       const {
         data: billingStats,
       } = await NetworkOperation.getUserBillingStats(this.state.from.getTime(), this.state.to.getTime())
-      billingStats.users.map( user => {
-        barChatData.push({name: user.username, index: user.indexings.length, search: user.searches.length})
+      await billingStats.users.map( user => {
+        barChartData.push({name: user.username, index: user.indexings.length, search: user.searches.length})
+        treeChartData.push({name: user.username,
+                            children: [{ name: 'index',
+                                         size: user.indexings.length },
+                                       { name: 'search',
+                                         size: user.searches.length}
+                                      ]
+                            }
+                          )
       })
       this.setState({
         requestsStats: requestsStats.requests,
-        barChatData: barChatData,
+        barChartData: barChartData,
+        treeChartData: treeChartData,
       })
 
     } catch (error) {
@@ -86,7 +138,7 @@ class Dashboard extends Component {
               <ResponsiveContainer width="100%" height={400}>
                 <PieChart>
                   <Pie
-                    isAnimationActive={false}
+                    isAnimationActive={true}
                     data={[
                       {
                         name: 'Búsquedas',
@@ -121,7 +173,7 @@ class Dashboard extends Component {
                 <BarChart
                   width={600}
                   height={400}
-                  data={this.state.barChatData}
+                  data={this.state.barChartData}
                   margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
                   isAnimationActive={false}
                 >
@@ -141,13 +193,14 @@ class Dashboard extends Component {
               <h4>Clientes con mayor facturación</h4>
               <ResponsiveContainer width="100%" height={400}>
                 <Treemap
-                  data={treeMapData}
+                	width={400}
+                  height={200}
+                  data={this.state.treeChartData || []}
                   dataKey="size"
-                  ratio={4 / 3}
+                  ratio={4/3}
                   stroke="#fff"
-                  fill="#8783D7"
-                  isAnimationActive={false}
-                  animationDuration={0}
+                  fill="#8884d8"
+                  content={<CustomizedContent colors={COLORS}/>}
                 />
               </ResponsiveContainer>
             </Card>

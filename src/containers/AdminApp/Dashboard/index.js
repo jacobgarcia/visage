@@ -40,19 +40,24 @@ import { treeMapData, radarData } from './dummy'
 
 class Dashboard extends Component {
   static propTypes = {
+    from: PropTypes.instanceOf(Date),
     saving: PropTypes.bool,
+    to: PropTypes.instanceOf(Date),
     toggle: PropTypes.function,
   }
 
-  state = {}
+  state = {
+    from: this.props.from,
+    to: this.props.to,
+  }
 
   async componentDidMount() {
     this.props.toggle({ saveButton: false, dateFilter: true })
     try {
-      const { data: requestsStats } = await NetworkOperation.getRequestStats()
+      const { data: requestsStats } = await NetworkOperation.getRequestStats(this.state.from.getTime(), this.state.to.getTime())
       const {
         data: billingStats,
-      } = await NetworkOperation.getUserBillingStats()
+      } = await NetworkOperation.getUserBillingStats(this.state.from.getTime(), this.state.to.getTime())
 
       this.setState({
         requestsStats: requestsStats.requests,

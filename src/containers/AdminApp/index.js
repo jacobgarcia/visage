@@ -43,9 +43,14 @@ class App extends Component {
   }
 
   getInitialState() {
+    let currentDate = new Date()
+    let pastDate = new Date()
+    pastDate.setMonth(pastDate.getMonth() - 1)
+    pastDate.setHours(0, 0, 0)
+    pastDate.setMilliseconds(0)
     return {
-      from: undefined,
-      to: undefined,
+      from: pastDate,
+      to: currentDate,
     }
   }
 
@@ -78,6 +83,7 @@ class App extends Component {
 
   handleDayClick = (day) => {
     const range = DateUtils.addDayToRange(day, this.state)
+    console.log(day, 'this day is ')
     this.setState(range)
   }
 
@@ -148,7 +154,7 @@ class App extends Component {
             />
             <main className={`content ${toolBarHidden ? '--full-width' : ''}`}>
               <Switch>
-                <Route exact path="/" component={Dashboard} />
+                <Route exact path="/" render={() => <Dashboard from={this.state.from} to={this.state.to}/>}/>
                 <Route exact path="/clients" component={Clients} />
                 <Route exact path="/admins" component={Admins} />
                 <Route exact path="/rates" component={Rates} />

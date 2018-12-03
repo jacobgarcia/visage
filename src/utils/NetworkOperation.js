@@ -23,12 +23,22 @@ axios.interceptors.request.use(
 )
 
 class NetworkOperation {
-  static getRequestStats() {
-    return axios.get(`${baseUrl}/v1/private/stats/requests`)
+  static getRequestStats(from, to) {
+    return axios.get(`${baseUrl}/v1/private/stats/requests`, {
+      params: {
+        start: from,
+        end : to
+      }
+    })
   }
 
-  static getUserBillingStats() {
-    return axios.get(`${baseUrl}/v1/private/stats/users/billing`)
+  static getUserBillingStats(from, to) {
+    return axios.get(`${baseUrl}/v1/private/stats/users/billing`, {
+      params: {
+        start: from,
+        end: to
+      }
+    })
   }
 
   static getSelf() {

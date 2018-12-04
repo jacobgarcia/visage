@@ -38,20 +38,21 @@ function listItem(text, Component) {
 class AppBarComponent extends PureComponent {
   state = {
     openUserModal: false,
-    anchorEl: null
+    anchorEl: null,
   }
 
-  toggleUserDataModal = (value) => () =>{
+  toggleUserDataModal = (value) => () => {
     this.setState(({ openUserModal }) => ({
       openUserModal: value === undefined ? !openUserModal : value,
-    }))}
+    }))
+  }
 
-    handleClick = event => {
-    this.setState({ anchorEl: event.currentTarget });
+  handleClick = (event) => {
+    this.setState({ anchorEl: event.currentTarget })
   }
 
   handleClose = () => {
-    this.setState({ anchorEl: null });
+    this.setState({ anchorEl: null })
   }
 
   render() {
@@ -72,10 +73,7 @@ class AppBarComponent extends PureComponent {
         numberOfMonths,
         isClient,
       },
-      state: {
-        openUserModal,
-        anchorEl
-      }
+      state: { openUserModal, anchorEl },
     } = this
 
     return (
@@ -85,7 +83,6 @@ class AppBarComponent extends PureComponent {
             position="absolute"
             className={`app-bar ${toolBarHidden ? '--full-width' : ''}`}
           >
-
             <Modal
               open={openUserModal}
               onClose={this.toggleUserDataModal(false)}
@@ -179,9 +176,15 @@ class AppBarComponent extends PureComponent {
                             onDayClick={handleDayClick}
                           />
                           <div className="button-container">
-                            <Button variant="contained" color="secondary" onClick={() => {
-                              this.props.onFilterRangeSet({ from, to })
-                            }}>Mostrar</Button>
+                            <Button
+                              variant="contained"
+                              color="secondary"
+                              onClick={() => {
+                                this.props.onFilterRangeSet({ from, to })
+                              }}
+                            >
+                              Mostrar
+                            </Button>
                           </div>
                         </div>
                       )}
@@ -209,12 +212,20 @@ class AppBarComponent extends PureComponent {
                     ))}
                 </div>
               </div>
-              {(isClient) && <div className={`indexing-status ${data?.user?.isIndexing ? '--indexing' : '--not-indexing' }`} />}
-              {isClient &&
+              {isClient && (
+                <div
+                  className={`indexing-status ${
+                    data?.user?.isIndexing ? '--indexing' : '--non-indexing'
+                  }`}
+                />
+              )}
+              {isClient && (
                 <div className="actions-container">
-                  <IconButton onClick={() => {
-                    this.props.history.push('/profile')
-                  }}>
+                  <IconButton
+                    onClick={() => {
+                      this.props.history.push('/profile')
+                    }}
+                  >
                     <SettingsIcon color="inherit" />
                   </IconButton>
                   <IconButton onClick={this.handleClick}>
@@ -229,7 +240,7 @@ class AppBarComponent extends PureComponent {
                     <h3>Bienvenido</h3>
                   </Menu>
                 </div>
-              }
+              )}
               <div
                 className="user-image"
                 onClick={this.toggleUserDataModal(true)}

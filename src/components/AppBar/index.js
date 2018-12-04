@@ -16,6 +16,11 @@ import CircularProgress from '@material-ui/core/CircularProgress'
 import ExitIcon from '@material-ui/icons/ExitToApp'
 import Typography from '@material-ui/core/Typography'
 import SaveIcon from '@material-ui/icons/Save'
+import SettingsIcon from '@material-ui/icons/Settings'
+import IconButton from '@material-ui/core/IconButton'
+import Menu from '@material-ui/core/Menu'
+import MenuItem from '@material-ui/core/MenuItem'
+import NotificationsIcon from '@material-ui/icons/Notifications'
 
 import { UserContext } from 'utils/context'
 
@@ -33,12 +38,21 @@ function listItem(text, Component) {
 class AppBarComponent extends PureComponent {
   state = {
     openUserModal: false,
+    anchorEl: null
   }
 
   toggleUserDataModal = (value) => () =>{
     this.setState(({ openUserModal }) => ({
       openUserModal: value === undefined ? !openUserModal : value,
     }))}
+
+    handleClick = event => {
+    this.setState({ anchorEl: event.currentTarget });
+  };
+
+  handleClose = () => {
+    this.setState({ anchorEl: null });
+  };
 
   render() {
     const {
@@ -56,9 +70,11 @@ class AppBarComponent extends PureComponent {
         onSaveClicked,
         handleDayClick,
         numberOfMonths,
+        isClient,
       },
       state: {
-        openUserModal
+        openUserModal,
+        anchorEl
       }
     } = this
 
@@ -192,6 +208,26 @@ class AppBarComponent extends PureComponent {
                     ))}
                 </div>
               </div>
+              {isClient &&
+                <div className="actions-container">
+                  <IconButton onClick={() => {
+                    this.props.history.push('/profile')
+                  }}>
+                    <SettingsIcon color="inherit" />
+                  </IconButton>
+                  <IconButton onClick={this.handleClick}>
+                    <NotificationsIcon color="inherit" />
+                  </IconButton>
+                  <Menu
+                    id="simple-menu"
+                    anchorEl={anchorEl}
+                    open={Boolean(anchorEl)}
+                    onClose={this.handleClose}
+                  >
+                    <h3>Bienvenido</h3>
+                  </Menu>
+                </div>
+              }
               <div
                 className="user-image"
                 onClick={this.toggleUserDataModal(true)}

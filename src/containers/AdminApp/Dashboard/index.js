@@ -37,64 +37,44 @@ const COLORS = [
   '#E9666E',
 ]
 
-class CustomizedContent extends React.Component {
-  render() {
-    const {
-      root,
-      depth,
-      x,
-      y,
-      width,
-      height,
-      index,
-      payload,
-      colors,
-      rank,
-      name,
-    } = this.props
+function CustomizedContent(props) {
+  const { root, depth, x, y, width, height, index, colors, name } = props
 
-    return (
-      <g>
-        <rect
-          x={x}
-          y={y}
-          width={width}
-          height={height}
-          style={{
-            fill:
-              depth < 2
-                ? colors[Math.floor((index / (root.children?.length || 1)) * 6)]
-                : 'none',
-            stroke: '#fff',
-            strokeWidth: 2 / (depth + 1e-10),
-            strokeOpacity: 1 / (depth + 1e-10),
-          }}
-        />
-        {depth === 1 ? (
-          <text
-            x={x + width / 2}
-            y={y + height / 2 + 7}
-            textAnchor="middle"
-            fill="#fff"
-            fontSize={14}
-          >
-            {name}
-          </text>
-        ) : null}
-        {depth === 1 ? (
-          <text
-            x={x + 4}
-            y={y + 18}
-            fill="#fff"
-            fontSize={16}
-            fillOpacity={0.9}
-          >
-            {index + 1}
-          </text>
-        ) : null}
-      </g>
-    )
-  }
+  return (
+    <g>
+      <rect
+        x={x}
+        y={y}
+        width={width}
+        height={height}
+        style={{
+          fill:
+            depth < 2
+              ? colors[Math.floor((index / (root.children?.length || 1)) * 6)]
+              : 'none',
+          stroke: '#fff',
+          strokeWidth: 2 / (depth + 1e-10),
+          strokeOpacity: 1 / (depth + 1e-10),
+        }}
+      />
+      {depth === 1 ? (
+        <text
+          x={x + width / 2}
+          y={y + height / 2 + 7}
+          textAnchor="middle"
+          fill="#fff"
+          fontSize={14}
+        >
+          {name}
+        </text>
+      ) : null}
+      {depth === 1 ? (
+        <text x={x + 4} y={y + 18} fill="#fff" fontSize={16} fillOpacity={0.9}>
+          {index + 1}
+        </text>
+      ) : null}
+    </g>
+  )
 }
 
 class Dashboard extends Component {
@@ -110,53 +90,54 @@ class Dashboard extends Component {
   state = {
     from: this.props.from,
     to: this.props.to,
-    barChartData: {},
-    treeChartData: {},
+    barChartData: [],
+    treeChartData: [],
   }
 
-  onFilter = (data) => {
-    console.log('ON FILTER FROM Dashboard', data)
+  componentDidMount() {
+    this.props.toggle({ saveButton: false, dateFilter: true })
+    this.props.setFilterFunction(this.onFilter)
+    this.reloadData()
+  }
 
+  onFilter = ({ from, to }) => {
+    this.reloadData(from, to)
     this.props.onToggle('showDayPicker')()
   }
 
-  async componentDidMount() {
-    this.props.toggle({ saveButton: false, dateFilter: true })
-
-    this.props.setFilterFunction(this.onFilter)
-
+  async reloadData(passedFrom = null, passedTo = null) {
     try {
       const barChartData = []
       const treeChartData = []
-      const { data: requestsStats } = await NetworkOperation.getRequestStats(
-        this.state.from.getTime(),
-        this.state.to.getTime()
-      )
-      const { data: billingStats } = await NetworkOperation.getUserBillingStats(
-        this.state.from.getTime(),
-        this.state.to.getTime()
-      )
-      await billingStats.users.map((user) => {
+
+      const from = passedFrom ? passedFrom.getTime() : this.state.from.getTime()
+      const to = passedTo ? passedTo.getTime() : this.state.to.getTime()
+
+      const statsRes = await NetworkOperation.getRequestStats(from, to)
+      const billingRes = await NetworkOperation.getUserBillingStats(from, to)
+
+      billingRes.data?.users?.map((user) => {
         barChartData.push({
-          name: user.username,
-          index: user.indexings.length,
-          search: user.searches.length,
+          name: user?.username,
+          index: user?.indexings?.length,
+          search: user?.searches?.length,
         })
         treeChartData.push({
-          name: user.username,
+          name: user?.username,
           children: [
-            { name: 'index', size: user.indexings.length },
-            { name: 'search', size: user.searches.length },
+            { name: 'index', size: user?.indexings?.length },
+            { name: 'search', size: user?.searches?.length },
           ],
         })
       })
+
       this.setState({
-        requestsStats: requestsStats.requests,
+        requestsStats: statsRes.data?.requests,
         barChartData: barChartData,
         treeChartData: treeChartData,
       })
     } catch (error) {
-      console.log({ error })
+      console.log(error)
     }
   }
 

@@ -1,8 +1,6 @@
 import React, { Component } from 'react'
 import Card from '@material-ui/core/Card'
 import {
-  AreaChart,
-  Area,
   BarChart,
   Bar,
   XAxis,
@@ -118,6 +116,7 @@ class Dashboard extends Component {
 
   onFilter = (data) => {
     console.log('ON FILTER FROM Dashboard', data)
+
     this.props.onToggle('showDayPicker')()
   }
 

@@ -16,6 +16,9 @@ import CircularProgress from '@material-ui/core/CircularProgress'
 import ExitIcon from '@material-ui/icons/ExitToApp'
 import Typography from '@material-ui/core/Typography'
 import SaveIcon from '@material-ui/icons/Save'
+import SettingsIcon from '@material-ui/icons/Settings'
+import IconButton from '@material-ui/core/IconButton'
+import NotificationsIcon from '@material-ui/icons/Notifications'
 
 import { UserContext } from 'utils/context'
 
@@ -56,6 +59,7 @@ class AppBarComponent extends PureComponent {
         onSaveClicked,
         handleDayClick,
         numberOfMonths,
+        isClient,
       },
       state: {
         openUserModal
@@ -192,6 +196,18 @@ class AppBarComponent extends PureComponent {
                     ))}
                 </div>
               </div>
+              {isClient &&
+                <div className="actions-container">
+                  <IconButton onClick={() => {
+                    this.props.history.push('/profile')
+                  }}>
+                    <SettingsIcon color="inherit" />
+                  </IconButton>
+                  <IconButton>
+                    <NotificationsIcon color="inherit" />
+                  </IconButton>
+                </div>
+              }
               <div
                 className="user-image"
                 onClick={this.toggleUserDataModal(true)}

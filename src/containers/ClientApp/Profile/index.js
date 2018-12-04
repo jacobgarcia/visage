@@ -104,7 +104,7 @@ class Profile extends Component {
               value={apitoken}
               name="password"
               onChange={this.onChange}
-              fullWidth
+              multiline={Boolean(this.state.showPassword)}
               endAdornment={
                 <InputAdornment position="start">
                   <IconButton

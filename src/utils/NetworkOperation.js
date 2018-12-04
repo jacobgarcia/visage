@@ -105,6 +105,9 @@ class NetworkOperation {
     return axios.delete(`${baseUrl}/v1/private/users/${username}`)
   }
 
+  static getApiToken() {
+    return axios.get(`${baseUrl}/v1/private/users/token`)
+  }
   /*
   A D M I N S
   */

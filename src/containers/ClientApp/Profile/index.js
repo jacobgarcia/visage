@@ -1,7 +1,14 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
+import NetworkOperation from 'utils/NetworkOperation'
 
 import TextInput from 'components/TextInput'
+
+import TextField from '@material-ui/core/TextField'
+import InputAdornment from '@material-ui/core/InputAdornment'
+import IconButton from '@material-ui/core/IconButton'
+import Visibility from '@material-ui/icons/Visibility'
+import VisibilityOff from '@material-ui/icons/VisibilityOff'
 
 import { UserContext } from 'utils/context'
 
@@ -15,15 +22,27 @@ class Profile extends Component {
     company: this.context?.user?.company,
     email: this.context?.user?.email,
     username: this.context?.user?.username,
+    apitoken: '',
+    showPassword: false,
   }
 
   onChange = ({ target: { name, value } }) => {
     this.setState({ [name]: value })
   }
 
+  async componentDidMount() {
+    const { data: data } = await NetworkOperation.getApiToken()
+    this.setState({
+      apitoken: data.user?.apiKey?.value || "Token no generado"
+    })
+  }
+
+  handleClickShowPassword = () => {
+    this.setState(state => ({ showPassword: !state.showPassword }));
+  }
   render() {
     const {
-      state: { name, company, email, username },
+      state: { name, company, email, username, apitoken },
     } = this
 
     return (

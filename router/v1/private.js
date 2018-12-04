@@ -601,6 +601,21 @@ router.route('/users/self').get(async (req, res) => {
   return res.status(400).json({ message: 'No user found' })
 })
 
+router.route('/users/token').get(async (req, res) => {
+  try {
+    const user = await User.findOne({ _id: req._user._id }).select(
+      'apiKey'
+    )
+    if (user) {
+      return res.status(200).json({ user })
+    }
+  } catch (error) {
+    return res.status(500).json({ error: { message: 'Could not fetch users' } })
+  }
+  console.info('No user found')
+  return res.status(400).json({ message: 'No user found' })
+})
+
 // Get all users information
 router.route('/users').get(async (req, res) => {
   try {

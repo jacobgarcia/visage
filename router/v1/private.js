@@ -116,7 +116,9 @@ router.route('/users/token/:username').post((req, res) => {
   User.findOne({ username }).exec((error, user) => {
     if (error || !user) {
       console.info('Failed to get user information', error)
-      return res.status(500).json({ error: { message: 'Could not fetch user information' } })
+      return res
+        .status(500)
+        .json({ error: { message: 'Could not fetch user information' } })
     }
     const value = jwt.sign(
       { _id: user._id, email: user.email, username: user.username },
@@ -130,7 +132,9 @@ router.route('/users/token/:username').post((req, res) => {
     return user.save((error) => {
       if (error) {
         console.info('Could not save api token ', error)
-        return res.status(500).json({ error: { message: 'Could not generate API token' } })
+        return res
+          .status(500)
+          .json({ error: { message: 'Could not generate API token' } })
       }
       return res.status(200).json({ success: true, apiKey })
     })
@@ -149,7 +153,9 @@ router.route('/users/token/:username').patch((req, res) => {
     return user.save((error) => {
       if (error) {
         console.error('Could not update user information', error)
-        return res.status(500).json({ error: { message: 'Could not update user information' } })
+        return res
+          .status(500)
+          .json({ error: { message: 'Could not update user information' } })
       }
       return res.status(200).json({
         success: true,
@@ -164,118 +170,130 @@ router.route('/images/index/:username').post((req, res) => {
   // Specific username to index images at the moment of petition
   const { username } = req.params
   let count = 0
-  User.findOneAndUpdate({ username }, { $set: { isIndexing: true } }).exec((error, user) => {
-    if (error) {
-      console.error('Could not get user information', error)
-      return res.status(500).json({ error: { message: 'Could not get user information' } })
-    }
-    if (!user) return res.status(404).json({ error: { message: 'User has not been found' } })
-    if (user.toIndex.length === 0) return res.status(200).json({ success: false, message: 'Nothing to index' })
-    // Iterate over the batch of images
-    const promises = user.toIndex.map(async (image) => {
-      const { id, sku, key } = image
-      const indexedImages = []
-      indexedImages.push(image)
-
-      // Create formData object to send to the service
-      const formData = {
-        id,
-        sku,
-        image: {
-          value: fs.createReadStream(
-            process.env.PWD + '/static/uploads/temp/' + key.substr(key.lastIndexOf('/') + 1)
-          ),
-          options: {
-            filename: image.filename,
-          },
-        },
+  User.findOneAndUpdate({ username }, { $set: { isIndexing: true } }).exec(
+    (error, user) => {
+      if (error) {
+        console.error('Could not get user information', error)
+        return res
+          .status(500)
+          .json({ error: { message: 'Could not get user information' } })
       }
+      if (!user) return res
+          .status(404)
+          .json({ error: { message: 'User has not been found' } })
+      if (user.toIndex.length === 0) return res
+          .status(200)
+          .json({ success: false, message: 'Nothing to index' })
+      // Iterate over the batch of images
+      const promises = user.toIndex.map(async (image) => {
+        const { id, sku, key } = image
+        const indexedImages = []
+        indexedImages.push(image)
 
-      // Call internal Flask service to process petition
+        // Create formData object to send to the service
+        const formData = {
+          id,
+          sku,
+          image: {
+            value: fs.createReadStream(
+              process.env.PWD +
+                '/static/uploads/temp/' +
+                key.substr(key.lastIndexOf('/') + 1)
+            ),
+            options: {
+              filename: image.filename,
+            },
+          },
+        }
 
-      await rp
-        .post({
-          url: serviceUrl + '/v1/images/index',
-          formData,
-          resolveWithFullResponse: true,
-        })
-        .then((resp) => {
-          console.info(resp.statusCode, resp.body)
-          if (resp.statusCode === 200) count += 1
-          // Build response object
-          const response = {
-            success: JSON.parse(resp.body).success,
-            status: resp.statusCode,
-            features: JSON.parse(resp.body).features,
-          }
+        // Call internal Flask service to process petition
 
-          // After getting response from internal server service, create a new Indexing Object
-          // First create the request custom Object
-          const request = {
-            route: req.route,
-            files: req.files,
-            token: req._token,
-            headers: req.headers,
-          }
-
-          // Create new Searching object
-          new Indexing({
-            response,
-            request,
-            user,
-          }).save((error, indexing) => {
-            if (error) {
-              console.info('Could not create indexing object', error)
-              return
+        await rp
+          .post({
+            url: serviceUrl + '/v1/images/index',
+            formData,
+            resolveWithFullResponse: true,
+          })
+          .then((resp) => {
+            console.info(resp.statusCode, resp.body)
+            if (resp.statusCode === 200) count += 1
+            // Build response object
+            const response = {
+              success: JSON.parse(resp.body).success,
+              status: resp.statusCode,
+              features: JSON.parse(resp.body).features,
             }
-            // Add Indexing object to User and move toIndex object to IndexedImages
-            // Remove item form the toIndex batch
-            User.findOneAndUpdate(
-              { username },
-              {
-                $push: { indexings: indexing._id, indexedImages },
-                $pull: { toIndex: image },
-              }
-            ).exec((error) => {
+
+            // After getting response from internal server service, create a new Indexing Object
+            // First create the request custom Object
+            const request = {
+              route: req.route,
+              files: req.files,
+              token: req._token,
+              headers: req.headers,
+            }
+
+            // Create new Searching object
+            new Indexing({
+              response,
+              request,
+              user,
+            }).save((error, indexing) => {
               if (error) {
-                console.error('Could not update user information')
+                console.info('Could not create indexing object', error)
+                return
               }
+              // Add Indexing object to User and move toIndex object to IndexedImages
+              // Remove item form the toIndex batch
+              User.findOneAndUpdate(
+                { username },
+                {
+                  $push: { indexings: indexing._id, indexedImages },
+                  $pull: { toIndex: image },
+                }
+              ).exec((error) => {
+                if (error) {
+                  console.error('Could not update user information')
+                }
+              })
             })
           })
-        })
-        .catch((error) => {
-          if (error) {
-            console.error('Could not index image', error)
-          }
-        })
-    })
-    return Promise.all(promises).then(() => {
-      User.findOneAndUpdate({ username }, { $set: { isIndexing: false } })
-        .select('indexRates indexCost indexings')
-        .exec((error, user) => {
-          if (error) {
-            console.error('Could not update user information')
-            return res.status(500).json({
-              error: { message: 'Could not update user information' },
-            })
-          }
-          // Get the search rate cost
-          let index = 0
-          for (index; index < user.indexRates.length; index += 1) {
-            if (user.indexings.length <= user.indexRates[index].max) break
-          }
-          user.indexCost += user.indexRates[index].cost
-          return user.save((error) => {
+          .catch((error) => {
             if (error) {
-              console.error('Could not save user information', error)
-              return res.status(500).json({ error: { message: 'Could not save user information' } })
+              console.error('Could not index image', error)
             }
-            // Then return response from internal server
-            return res.status(200).json({ success: true, count, user })
           })
-        })
-    })
-  })
+      })
+      return Promise.all(promises).then(() => {
+        User.findOneAndUpdate({ username }, { $set: { isIndexing: false } })
+          .select('indexRates indexCost indexings')
+          .exec((error, user) => {
+            if (error) {
+              console.error('Could not update user information')
+              return res.status(500).json({
+                error: { message: 'Could not update user information' },
+              })
+            }
+            // Get the search rate cost
+            let index = 0
+            for (index; index < user.indexRates.length; index += 1) {
+              if (user.indexings.length <= user.indexRates[index].max) break
+            }
+            user.indexCost += user.indexRates[index].cost
+            return user.save((error) => {
+              if (error) {
+                console.error('Could not save user information', error)
+                return res.status(500).json({
+                  error: { message: 'Could not save user information' },
+                })
+              }
+              // Then return response from internal server
+              return res.status(200).json({ success: true, count, user })
+            })
+          })
+      })
+    }
+  )
 })
 
 // Statistics endpoint for dashboard
@@ -288,14 +306,18 @@ router.route('/stats/requests').get((req, res) => {
     .exec((error, indexings) => {
       if (error) {
         console.info('Could not fetch indexings', error)
-        return res.status(500).json({ error: { message: 'Could not fetch indexings' } })
+        return res
+          .status(500)
+          .json({ error: { message: 'Could not fetch indexings' } })
       }
       return Searching.find({ timestamp: { $gte: start, $lte: end } })
         .select('id')
         .exec((error, searchings) => {
           if (error) {
             console.info('Could not fetch searches', error)
-            return res.status(500).json({ error: { message: 'Could not fetch searches' } })
+            return res
+              .status(500)
+              .json({ error: { message: 'Could not fetch searches' } })
           }
           const requests = {
             indexings: indexings.length,
@@ -309,22 +331,32 @@ router.route('/stats/requests').get((req, res) => {
 
 router.route('/stats/requests/:username').get(async (req, res) => {
   const end = req.param('end'),
-    start = req.param('start'),
-    username = req.params
-  const user = await User.findOne({username: username})
-  Indexing.find({ timestamp: { $gte: start, $lte: end }, _id: {$in: user.indexings } })
+    start = req.param('start')
+  const { username } = req.params
+  const user = await User.findOne({ username })
+  Indexing.find({
+    timestamp: { $gte: start, $lte: end },
+    _id: { $in: user.indexings },
+  })
     .select('id')
     .exec((error, indexings) => {
       if (error) {
         console.info('Could not fetch indexings', error)
-        return res.status(500).json({ error: { message: 'Could not fetch indexings' } })
+        return res
+          .status(500)
+          .json({ error: { message: 'Could not fetch indexings' } })
       }
-      return Searching.find({ timestamp: { $gte: start, $lte: end }, _id: {$in: user.searches } })
+      return Searching.find({
+        timestamp: { $gte: start, $lte: end },
+        _id: { $in: user.searches },
+      })
         .select('id')
         .exec((error, searchings) => {
           if (error) {
             console.info('Could not fetch searches', error)
-            return res.status(500).json({ error: { message: 'Could not fetch searches' } })
+            return res
+              .status(500)
+              .json({ error: { message: 'Could not fetch searches' } })
           }
           const requests = {
             indexings: indexings.length,
@@ -349,7 +381,10 @@ router.route('/stats/users/billing').get((req, res) => {
             input: '$indexings',
             as: 'item',
             cond: {
-              $and: [{ $gte: [start, '$$item.timestamp'] }, { $lte: ['$$item.timestamp', end] }],
+              $and: [
+                { $gte: [start, '$$item.timestamp'] },
+                { $lte: ['$$item.timestamp', end] },
+              ],
             },
           },
         },
@@ -358,7 +393,10 @@ router.route('/stats/users/billing').get((req, res) => {
             input: '$searches',
             as: 'item',
             cond: {
-              $and: [{ $gte: [start, '$$item.timestamp'] }, { $lte: ['$$item.timestamp', end] }],
+              $and: [
+                { $gte: [start, '$$item.timestamp'] },
+                { $lte: ['$$item.timestamp', end] },
+              ],
             },
           },
         },
@@ -372,7 +410,9 @@ router.route('/stats/users/billing').get((req, res) => {
   ]).exec((error, users) => {
     if (error) {
       console.info('Could not fetch users', error)
-      return res.status(500).json({ error: { message: 'Could not fetch users' } })
+      return res
+        .status(500)
+        .json({ error: { message: 'Could not fetch users' } })
     }
 
     users.map((user) => {
@@ -435,7 +475,9 @@ router.route('/users/invite').post(async (req, res) => {
           const URL = newTempUser[nev.options.URLFieldName]
           return nev.sendVerificationEmail(email, URL, (error) => {
             if (error) return res.status(500).json({ error })
-            return res.status(200).json({ message: 'Invitation successfully sent' })
+            return res
+              .status(200)
+              .json({ message: 'Invitation successfully sent' })
           })
         }
         // user already have been invited
@@ -465,7 +507,9 @@ router.route('/admins/invite').post((req, res) => {
   return admin.save((error) => {
     if (error) {
       console.error('error saving admin, verify email not repited', error)
-      return res.status(500).json({ error: { message: 'could not save admin, email repited' } })
+      return res
+        .status(500)
+        .json({ error: { message: 'could not save admin, email repited' } })
     }
     return res.status(200).json({ success: true, message: 'admin added' })
   })
@@ -499,7 +543,9 @@ router.post('/signup/:invitation', async (req, res) => {
           return res.status(500).json({ error })
         }
 
-        if (!user) return res.status(500).json({ message: 'Could not send create user information' })
+        if (!user) return res
+            .status(500)
+            .json({ message: 'Could not send create user information' })
 
         nev.sendConfirmationEmail(user.email, (error) => {
           if (error) {
@@ -540,9 +586,9 @@ router.route('/authenticate').post(async (req, res) => {
   const user = await User.findOne({ email, active: true })
   const admin = await Admin.findOne({ email })
   if (user === null && admin === null) {
-    return res
-      .status(409)
-      .json({ message: 'Authentication failed. User deactivated or Eliminated' })
+    return res.status(409).json({
+      message: 'Authentication failed. User deactivated or Eliminated',
+    })
   }
   try {
     return bcrypt
@@ -562,11 +608,15 @@ router.route('/authenticate').post(async (req, res) => {
             user: getUserData(admin),
           })
 
-        return res.status(401).json({ message: 'Authentication failed. Wrong admin or password' })
+        return res
+          .status(401)
+          .json({ message: 'Authentication failed. Wrong admin or password' })
       })
       .catch((error) => {
         console.info('Failed to authenticate admin password', error)
-        return res.status(401).json({ message: 'Authentication failed. Wrong admin or password' })
+        return res
+          .status(401)
+          .json({ message: 'Authentication failed. Wrong admin or password' })
       })
   } catch (error) {
     try {
@@ -587,11 +637,15 @@ router.route('/authenticate').post(async (req, res) => {
               user: getUserData(user),
             })
 
-          return res.status(401).json({ message: 'Authentication failed. Wrong user or password' })
+          return res
+            .status(401)
+            .json({ message: 'Authentication failed. Wrong user or password' })
         })
         .catch((error) => {
           console.info('Failed to authenticate user password', error)
-          return res.status(401).json({ message: 'Authentication failed. Wrong user or password' })
+          return res
+            .status(401)
+            .json({ message: 'Authentication failed. Wrong user or password' })
         })
     } catch (err) {
       console.error({ err })
@@ -602,7 +656,10 @@ router.route('/authenticate').post(async (req, res) => {
 
 router.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*')
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept')
+  res.header(
+    'Access-Control-Allow-Headers',
+    'Origin, X-Requested-With, Content-Type, Accept'
+  )
   next()
 })
 
@@ -611,13 +668,17 @@ router.use((req, res, next) => {
   const token = bearer.split(' ')[1]
 
   if (!token) {
-    return res.status(401).send({ error: { message: 'No bearer token provided' } })
+    return res
+      .status(401)
+      .send({ error: { message: 'No bearer token provided' } })
   }
 
   return jwt.verify(token, JWT_SECRET, (err, decoded) => {
     if (err) {
       console.error('Failed to authenticate token', err, token)
-      return res.status(401).json({ error: { message: 'Failed to authenticate  bearer token' } })
+      return res
+        .status(401)
+        .json({ error: { message: 'Failed to authenticate  bearer token' } })
     }
 
     req._user = decoded
@@ -627,10 +688,14 @@ router.use((req, res, next) => {
 })
 
 router.route('/users/self').get(async (req, res) => {
-  const user = await User.findOne({ _id: req._user._id }, '-apiKey -password -toIndex').populate(
-    'indexings searches'
+  const user = await User.findOne(
+    { _id: req._user._id },
+    '-apiKey -password -toIndex'
+  ).populate('indexings searches')
+  const admin = await Admin.findOne(
+    { _id: req._user._id },
+    '-apiKey -password -toIndex'
   )
-  const admin = await Admin.findOne({ _id: req._user._id }, '-apiKey -password -toIndex')
   if (admin) {
     return res.status(200).json({ user: getUserData(admin) })
   } else if (user) {
@@ -678,9 +743,13 @@ router.route('/users/:user').put((req, res) => {
   ).exec((error, user) => {
     if (error) {
       console.error('Could not update user information')
-      return res.status(500).json({ error: { message: 'Could not update user information' } })
+      return res
+        .status(500)
+        .json({ error: { message: 'Could not update user information' } })
     }
-    if (!user) return res.status(404).json({ success: false, message: 'User specified not found' })
+    if (!user) return res
+        .status(404)
+        .json({ success: false, message: 'User specified not found' })
     return res.status(200).json({
       success: true,
       message: 'Successfully updated user information',
@@ -695,42 +764,54 @@ router.route('/users/:username').delete((req, res) => {
   return User.findOneAndDelete({ username }).exec((error) => {
     if (error) {
       console.error('Could not delete user')
-      return res.status(500).json({ error: { message: 'Could not delete user' } })
+      return res
+        .status(500)
+        .json({ error: { message: 'Could not delete user' } })
     }
-    return res.status(200).json({ success: true, message: 'Successfully deleted user' })
+    return res
+      .status(200)
+      .json({ success: true, message: 'Successfully deleted user' })
   })
 })
 
 // Deactivate user
 router.route('/users/:username/deactivate').patch((req, res) => {
   const { username } = req.params
-  User.findOneAndUpdate({ username }, { $set: { active: false } }).exec((error, user) => {
-    if (error) {
-      console.error('Could not deactivate user')
-      return res.status(500).json({ error: { message: 'Could not deactivate user' } })
+  User.findOneAndUpdate({ username }, { $set: { active: false } }).exec(
+    (error, user) => {
+      if (error) {
+        console.error('Could not deactivate user')
+        return res
+          .status(500)
+          .json({ error: { message: 'Could not deactivate user' } })
+      }
+      return res.status(200).json({
+        success: true,
+        message: 'Successfully deactivated user',
+        user,
+      })
     }
-    return res.status(200).json({
-      success: true,
-      message: 'Successfully deactivated user',
-      user,
-    })
-  })
+  )
 })
 
 // activate user
 router.route('/users/:username/activate').patch((req, res) => {
   const { username } = req.params
-  User.findOneAndUpdate({ username }, { $set: { active: true } }).exec((error, user) => {
-    if (error) {
-      console.error('Could not activate user')
-      return res.status(500).json({ error: { message: 'Could not activate user' } })
+  User.findOneAndUpdate({ username }, { $set: { active: true } }).exec(
+    (error, user) => {
+      if (error) {
+        console.error('Could not activate user')
+        return res
+          .status(500)
+          .json({ error: { message: 'Could not activate user' } })
+      }
+      return res.status(200).json({
+        success: true,
+        message: 'Successfully activated user',
+        user,
+      })
     }
-    return res.status(200).json({
-      success: true,
-      message: 'Successfully activated user',
-      user,
-    })
-  })
+  )
 })
 
 // Export all users to CSV
@@ -738,7 +819,9 @@ router.route('/users/export').get((req, res) => {
   User.find({}).exec((error, users) => {
     if (error) {
       console.error('Could not export users', error)
-      return res.status(500).json({ error: { message: 'Could not export users' } })
+      return res
+        .status(500)
+        .json({ error: { message: 'Could not export users' } })
     }
 
     const json2csvParser = new Json2csvParser({ fields })
@@ -758,7 +841,9 @@ router.route('/users/export').get((req, res) => {
   User.find({}).exec((error, users) => {
     if (error) {
       console.error('Could not export users', error)
-      return res.status(500).json({ error: { message: 'Could not export users' } })
+      return res
+        .status(500)
+        .json({ error: { message: 'Could not export users' } })
     }
 
     const json2csvParser = new Json2csvParser({ fields })
@@ -773,19 +858,27 @@ router.route('/users/export').get((req, res) => {
   })
 })
 
-router.route('/users/notifications/read/:notification').patch(async (req, res) => {
-  const { notification } = req.params
-  try {
-    const user = await User.findOneAndUpdate(
-      { _id: req._user._id },
-      { $pull: { notifications: notification } }
-    )
-    return res.status(200).json({ success: true, message: 'Successfully read notification', user })
-  } catch (error) {
-    console.error('Could not update user information', error)
-    return res.status(500).json({ error: { message: 'Could not update user information' } })
-  }
-})
+router
+  .route('/users/notifications/read/:notification')
+  .patch(async (req, res) => {
+    const { notification } = req.params
+    try {
+      const user = await User.findOneAndUpdate(
+        { _id: req._user._id },
+        { $pull: { notifications: notification } }
+      )
+      return res.status(200).json({
+        success: true,
+        message: 'Successfully read notification',
+        user,
+      })
+    } catch (error) {
+      console.error('Could not update user information', error)
+      return res
+        .status(500)
+        .json({ error: { message: 'Could not update user information' } })
+    }
+  })
 
 router.route('/admins').get(async (req, res) => {
   try {
@@ -818,11 +911,15 @@ router
     ).exec((error, admin) => {
       if (error) {
         console.error('Could not update admin information')
-        return res.status(500).json({ error: { message: 'Could not update admin information' } })
+        return res
+          .status(500)
+          .json({ error: { message: 'Could not update admin information' } })
       }
 
       if (!admin) {
-        return res.status(404).json({ success: false, message: 'Admin specified not found' })
+        return res
+          .status(404)
+          .json({ success: false, message: 'Admin specified not found' })
       }
 
       return res.status(200).json({
@@ -837,41 +934,53 @@ router
 
     try {
       await Admin.findOneAndDelete({ username })
-      return res.status(200).json({ success: true, message: 'Successfully deleted admin' })
+      return res
+        .status(200)
+        .json({ success: true, message: 'Successfully deleted admin' })
     } catch (error) {
       console.error('Could not delete admin')
-      return res.status(500).json({ error: { message: 'Could not delete admin' } })
+      return res
+        .status(500)
+        .json({ error: { message: 'Could not delete admin' } })
     }
   })
 
 router.route('/admins/:username/deactivate').patch((req, res) => {
   const { username } = req.params
-  Admin.findOneAndUpdate({ username }, { $set: { active: false } }).exec((error, admin) => {
-    if (error) {
-      console.error('Could not deactivate admin')
-      return res.status(500).json({ error: { message: 'Could not deactivate admin' } })
+  Admin.findOneAndUpdate({ username }, { $set: { active: false } }).exec(
+    (error, admin) => {
+      if (error) {
+        console.error('Could not deactivate admin')
+        return res
+          .status(500)
+          .json({ error: { message: 'Could not deactivate admin' } })
+      }
+      return res.status(200).json({
+        success: true,
+        message: 'Successfully deactivated admin',
+        admin,
+      })
     }
-    return res.status(200).json({
-      success: true,
-      message: 'Successfully deactivated admin',
-      admin,
-    })
-  })
+  )
 })
 
 router.route('/admins/:username/activate').patch((req, res) => {
   const { username } = req.params
-  Admin.findOneAndUpdate({ username }, { $set: { active: true } }).exec((error, admin) => {
-    if (error) {
-      console.error('Could not activate admin')
-      return res.status(500).json({ error: { message: 'Could not activate admin' } })
+  Admin.findOneAndUpdate({ username }, { $set: { active: true } }).exec(
+    (error, admin) => {
+      if (error) {
+        console.error('Could not activate admin')
+        return res
+          .status(500)
+          .json({ error: { message: 'Could not activate admin' } })
+      }
+      return res.status(200).json({
+        success: true,
+        message: 'Successfully activated admin',
+        admin,
+      })
     }
-    return res.status(200).json({
-      success: true,
-      message: 'Successfully activated admin',
-      admin,
-    })
-  })
+  )
 })
 
 // Export all users to CSV
@@ -879,7 +988,9 @@ router.route('/admins/export').get((req, res) => {
   Admin.find({}).exec((error, admins) => {
     if (error) {
       console.error('Could not export admins', error)
-      return res.status(500).json({ error: { message: 'Could not export admins' } })
+      return res
+        .status(500)
+        .json({ error: { message: 'Could not export admins' } })
     }
 
     const json2csvParser = new Json2csvParser({ fields: adminFields })
@@ -912,24 +1023,39 @@ router.route('/rates').get(async (req, res) => {
 // Edit in bulk all rates (this is the UX stablished in the mocks)
 router.route('/rates').put(async (req, res) => {
   const { searchRates, indexRates } = req.body
-  if (!searchRates || !indexRates || searchRates.length === 0 || indexRates.length === 0) return res.status(400).json({ error: { message: 'Malformed Request' } })
+  if (
+    !searchRates ||
+    !indexRates ||
+    searchRates.length === 0 ||
+    indexRates.length === 0
+  ) return res.status(400).json({ error: { message: 'Malformed Request' } })
   try {
     // Validate that searchRates and indexRates are well formed
-    if (searchRates[0].min > 1 || indexRates[0].min > 1) return res.status(403).json({ error: { message: 'Cannot insert a search invalid rate' } })
+    if (searchRates[0].min > 1 || indexRates[0].min > 1) return res
+        .status(403)
+        .json({ error: { message: 'Cannot insert a search invalid rate' } })
 
     for (let index = 1; index < searchRates.length; index += 1) {
-      if (searchRates[index].min !== searchRates[index - 1].max + 1) return res.status(403).json({ error: { message: 'Cannot insert a search invalid rate' } })
+      if (searchRates[index].min !== searchRates[index - 1].max + 1) return res
+          .status(403)
+          .json({ error: { message: 'Cannot insert a search invalid rate' } })
     }
 
     for (let index = 1; index < indexRates.length; index += 1) {
-      if (indexRates[index].min !== indexRates[index - 1].max + 1) return res.status(403).json({ error: { message: 'Cannot insert an search invalid rate' } })
+      if (indexRates[index].min !== indexRates[index - 1].max + 1) return res
+          .status(403)
+          .json({ error: { message: 'Cannot insert an search invalid rate' } })
     }
 
     await User.updateMany({}, { $set: { indexRates, searchRates } })
-    return res.status(200).json({ success: true, message: 'Successfully updated rates' })
+    return res
+      .status(200)
+      .json({ success: true, message: 'Successfully updated rates' })
   } catch (error) {
     console.error('Could not update rates', error)
-    return res.status(500).json({ error: { message: 'Could not update rates' } })
+    return res
+      .status(500)
+      .json({ error: { message: 'Could not update rates' } })
   }
 })
 
@@ -951,12 +1077,18 @@ router.route('/rates/search').post(async (req, res) => {
       rate.min === searchRates[searchRates.length - 1].max + 1
     ) {
       await User.updateMany({}, { $push: { searchRates: rate } })
-      return res.status(200).json({ success: true, message: 'Successfully added search rate' })
+      return res
+        .status(200)
+        .json({ success: true, message: 'Successfully added search rate' })
     }
-    return res.status(403).json({ error: { message: 'Cannot insert an search invalid rate' } })
+    return res
+      .status(403)
+      .json({ error: { message: 'Cannot insert an search invalid rate' } })
   } catch (error) {
     console.error('Could not add search rate', error)
-    return res.status(500).json({ error: { message: 'Could not add search rate' } })
+    return res
+      .status(500)
+      .json({ error: { message: 'Could not add search rate' } })
   }
 })
 
@@ -977,12 +1109,18 @@ router.route('/rates/index').post(async (req, res) => {
       rate.min === indexRates[indexRates.length - 1].max + 1
     ) {
       await User.updateMany({}, { $push: { indexRates: rate } })
-      return res.status(200).json({ success: true, message: 'Successfully added index rate' })
+      return res
+        .status(200)
+        .json({ success: true, message: 'Successfully added index rate' })
     }
-    return res.status(403).json({ error: { message: 'Cannot insert an invalid index rate' } })
+    return res
+      .status(403)
+      .json({ error: { message: 'Cannot insert an invalid index rate' } })
   } catch (error) {
     console.error('Could not add search rate', error)
-    return res.status(500).json({ error: { message: 'Could not add index rate' } })
+    return res
+      .status(500)
+      .json({ error: { message: 'Could not add index rate' } })
   }
 })
 
@@ -991,10 +1129,14 @@ router.route('/rates/search/:rateId').delete(async (req, res) => {
   const _id = req.params.rateId.toString()
   try {
     await User.updateMany({}, { $pull: { searchRates: { _id } } })
-    return res.status(200).json({ success: true, message: 'Successfully deleted search rate' })
+    return res
+      .status(200)
+      .json({ success: true, message: 'Successfully deleted search rate' })
   } catch (error) {
     console.error('Could not delete search rate', error)
-    return res.status(500).json({ error: { message: 'Could not delete search rate' } })
+    return res
+      .status(500)
+      .json({ error: { message: 'Could not delete search rate' } })
   }
 })
 
@@ -1003,10 +1145,14 @@ router.route('/rates/index/:rateId').delete(async (req, res) => {
   const _id = req.params.rateId.toString()
   try {
     await User.updateMany({}, { $pull: { indexRates: { _id } } })
-    return res.status(200).json({ success: true, message: 'Successfully deleted index rate' })
+    return res
+      .status(200)
+      .json({ success: true, message: 'Successfully deleted index rate' })
   } catch (error) {
     console.error('Could not delete index rate', error)
-    return res.status(500).json({ error: { message: 'Could not delete index rate' } })
+    return res
+      .status(500)
+      .json({ error: { message: 'Could not delete index rate' } })
   }
 })
 

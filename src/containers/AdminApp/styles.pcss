@@ -150,6 +150,19 @@
     right: 0;
     width: 100%;
     box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.5);
+    .indexing-status {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-right: 14px;
+      background-color: black;
+      &.--indexing {
+        background-color: #e98d13;
+      }
+      &.--non-indexing {
+        background-color: #28da4a;
+      }
+    }
     .actions-container,
     .actions-container span {
       color: black !important;

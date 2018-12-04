@@ -24,37 +24,66 @@ class Profile extends Component {
     company: this.context?.user?.company,
     email: this.context?.user?.email,
     username: this.context?.user?.username,
-    apitoken: '',
+    apiToken: '',
     showPassword: false,
+    cp: '',
+    socialName: '',
+    rfc: '',
+    currentRange: null,
   }
 
   componentDidMount() {
     document.body.style.backgroundColor = '#fff'
-    console.log(this.context)
+
+    this.setToken()
+    this.setCurrentRate()
   }
 
   componentWillUnmount() {
     document.body.style.backgroundColor = '#f5f5f5'
   }
 
-  onChange = ({ target: { name, value } }) => {
-    this.setState({ [name]: value })
+  setToken = async () => {
+    try {
+      const tokenRes = await NetworkOperation.getApiToken()
+      const apiToken = tokenRes.data?.user?.apiKey?.value || 'Token no generado'
+
+      this.setState({ apiToken })
+    } catch (error) {
+      console.error('SET TOKEN ERROR', error)
+    }
   }
 
-  async componentDidMount() {
-    const { data } = await NetworkOperation.getApiToken()
-    this.setState({
-      apitoken: data.user?.apiKey?.value || 'Token no generado',
-    })
+  setCurrentRate = async () => {
+    try {
+      const userRateRes = await NetworkOperation.getUserRate(
+        this.context?.user?.username
+      )
+
+      this.setState({ currentRange: userRateRes.data })
+    } catch (error) {
+      console.error(error)
+    }
   }
 
-  handleClickShowPassword = () => {
+  onChange = ({ target: { name, value } }) => this.setState({ [name]: value })
+
+  handleClickShowPassword = () =>
     this.setState((state) => ({ showPassword: !state.showPassword }))
-  }
 
   render() {
     const {
-      state: { name, company, email, username, apitoken },
+      state: {
+        name,
+        company,
+        email,
+        username,
+        apiToken,
+        currentRange,
+        cp,
+        socialName,
+        rfc,
+      },
     } = this
 
     return (
@@ -101,10 +130,10 @@ class Profile extends Component {
             <Input
               id="adornment-password"
               type={this.state.showPassword ? 'text' : 'password'}
-              value={apitoken}
+              value={apiToken}
               name="password"
               onChange={this.onChange}
-              fullWidth
+              multiline={Boolean(this.state.showPassword)}
               endAdornment={
                 <InputAdornment position="start">
                   <IconButton
@@ -127,19 +156,12 @@ class Profile extends Component {
           <h2>Rangos de consultas</h2>
           <div className="consults-range">
             <label>Consultas</label>
-            {this.context?.user?.searchRates?.map((rate) => (
-              <p>
-                ${rate.cost}MXN{' '}
-                <span>
-                  Entre {rate.min} y {rate.max}
-                </span>
-              </p>
-            ))}
+            <div>{JSON.stringify(currentRange)}</div>
           </div>
           <div className="consults-range">
             <label>Indexación</label>
-            {this.context?.user?.indexRates?.map((rate) => (
-              <p>
+            {this.context?.user?.indexRates?.map((rate, index) => (
+              <p key={index}>
                 ${rate.cost}MXN{' '}
                 <span>
                   Entre {rate.min} y {rate.max}
@@ -152,9 +174,19 @@ class Profile extends Component {
         <div>
           <h2>Datos de facturación</h2>
           <div className="fields-container">
-            <TextField label="RFC" name="rfc" />
-            <TextField label="Razón social" name="social-name" />
-            <TextField label="CP" />
+            <TextField
+              onChange={this.onChange}
+              value={rfc}
+              label="RFC"
+              name="rfc"
+            />
+            <TextField
+              onChange={this.onChange}
+              value={socialName}
+              label="Razón social"
+              name="socialName"
+            />
+            <TextField onChange={this.onChange} value={cp} label="CP" />
           </div>
         </div>
       </div>

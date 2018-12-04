@@ -23,6 +23,10 @@ axios.interceptors.request.use(
 )
 
 class NetworkOperation {
+  static getUserRate(username) {
+    return axios.get(`${baseUrl}/v1/private/stats/requests/${username}`)
+  }
+
   static getRequestStats(from, to) {
     return axios.get(`${baseUrl}/v1/private/stats/requests`, {
       params: {

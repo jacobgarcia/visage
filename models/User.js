@@ -60,6 +60,7 @@ const schema = new Schema({
   },
   items: { type: [ItemSchema], default: [] },
   indexedImages: { type: [IndexedImage], default: [] },
+  notifications: { type: [Number], default: [0] },
 })
 
 module.exports = mongoose.model('User', schema)

@@ -49,7 +49,12 @@ class ClientApp extends Component {
 
     return (
       <div id="client-app">
-        <AppBar onToggle={this.onToggle} title={title} />
+        <AppBar
+          onToggle={this.onToggle}
+          title={title}
+          history={this.props.history}
+          isClient
+        />
         <Drawer
           isClient
           onToggle={this.onToggle}

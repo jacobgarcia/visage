@@ -42,14 +42,14 @@ class Profile extends Component {
   }
 
   async componentDidMount() {
-    const { data: data } = await NetworkOperation.getApiToken()
+    const { data } = await NetworkOperation.getApiToken()
     this.setState({
-      apitoken: data.user?.apiKey?.value || "Token no generado"
+      apitoken: data.user?.apiKey?.value || 'Token no generado',
     })
   }
 
   handleClickShowPassword = () => {
-    this.setState(state => ({ showPassword: !state.showPassword }))
+    this.setState((state) => ({ showPassword: !state.showPassword }))
   }
 
   render() {
@@ -96,7 +96,7 @@ class Profile extends Component {
         <hr />
         <div>
           <h2>Llaves de API</h2>
-          <FormControl>
+          <FormControl fullWidth>
             <InputLabel htmlFor="adornment-password">Token</InputLabel>
             <Input
               id="adornment-password"
@@ -106,7 +106,7 @@ class Profile extends Component {
               onChange={this.onChange}
               fullWidth
               endAdornment={
-                <InputAdornment position="end">
+                <InputAdornment position="start">
                   <IconButton
                     aria-label="Toggle token visibility"
                     onClick={this.handleClickShowPassword}

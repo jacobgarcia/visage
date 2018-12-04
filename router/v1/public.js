@@ -114,13 +114,32 @@ router.route('/images/search').post(upload.single('image'), (req, res) => {
         console.info('Could not create searching object', error)
         return res.status(500).json({ error: { message: 'Could not create searching object' } })
       }
-      // Add Indexing object to User
-      User.findOneAndUpdate(
+      // Update the user search cost
+      return User.findOneAndUpdate(
         { username: req._user.username },
         { $push: { searches: search._id } }
-      ).exec(error)
-      // Then return response from internal server
-      return res.status(200).json(response)
+      )
+        .select('searchRates searchCost searches')
+        .exec((error, user) => {
+          if (error) {
+            console.error('Could not update user information', error)
+            return res.status(500).json({ error: { message: 'Could not update user information' } })
+          }
+          // Get the search rate cost
+          let index = 0
+          for (index; index < user.searchRates.length; index += 1) {
+            if (user.searches.length <= user.searchRates[index].max) break
+          }
+          user.searchCost += user.searchRates[index].cost
+          return user.save((error) => {
+            if (error) {
+              console.error('Could not save user information', error)
+              return res.status(500).json({ error: { message: 'Could not save user information' } })
+            }
+            // Then return response from internal server
+            return res.status(200).json(response)
+          })
+        })
     })
   })
 })

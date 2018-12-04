@@ -23,7 +23,7 @@ const IndexedImage = new Schema({
 const schema = new Schema({
   email: { type: String, required: true, unique: true, index: true },
   name: String,
-  username: { type: String, required: true, unique: true, trim: true},
+  username: { type: String, required: true, unique: true, trim: true },
   company: String,
   password: { type: String, required: true },
   searchRates: {
@@ -40,8 +40,10 @@ const schema = new Schema({
     active: Boolean,
   },
   active: { type: Boolean, default: true },
-  indexLimit: Number,
-  searchLimit: Number,
+  indexLimit: { type: Number, default: 1000 },
+  searchLimit: { type: Number, default: 1000 },
+  indexCost: { type: Number, default: 0 },
+  searchCost: { type: Number, default: 0 },
   aceptanceRate: Number,
   photo: String,
   indexings: {
@@ -58,6 +60,7 @@ const schema = new Schema({
   },
   items: { type: [ItemSchema], default: [] },
   indexedImages: { type: [IndexedImage], default: [] },
+  notifications: { type: [Number], default: [0] },
 })
 
 module.exports = mongoose.model('User', schema)

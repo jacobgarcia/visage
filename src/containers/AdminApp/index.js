@@ -67,6 +67,8 @@ class App extends Component {
     this.setState({ saving: true })
   }
 
+  onFilterRangeSet = (range) => this.filterFunction(range)
+
   setStopSaving = ({ success = true } = {}) => {
     const newState = { saving: false }
 
@@ -91,6 +93,7 @@ class App extends Component {
     this.setState(this.getInitialState())
   }
 
+  setFilterFunction = (filterFunction) => this.filterFunction = filterFunction
   setSaveFunction = (saveFunction) => this.saveFunction = saveFunction
 
   render() {
@@ -126,7 +129,9 @@ class App extends Component {
           stopSaving: this.setStopSaving,
           showDateFilter,
           onDateSelect: this.onDateSelect,
-          setSaveFunction: this.setSaveFunction
+          setSaveFunction: this.setSaveFunction,
+          setFilterFunction: this.setFilterFunction,
+          onToggle: this.onToggle
         }}
       >
         <Fragment>
@@ -143,6 +148,7 @@ class App extends Component {
               showDayPicker={showDayPicker}
               toolBarHidden={toolBarHidden}
               title={title}
+              onFilterRangeSet={this.onFilterRangeSet}
               handleDayClick={this.handleDayClick}
               numberOfMonths={1}
               onSaveClicked={this.onSaveClicked}

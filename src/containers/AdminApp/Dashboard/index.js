@@ -1,8 +1,6 @@
 import React, { Component } from 'react'
 import Card from '@material-ui/core/Card'
 import {
-  AreaChart,
-  Area,
   BarChart,
   Bar,
   XAxis,
@@ -28,12 +26,32 @@ import { withSaver } from 'utils/portals'
 
 import './styles.pcss'
 
-import { treeMapData, radarData } from './dummy'
-const COLORS = ['#BCD1E0', '#F4ECDD', '#BCD1E0', '#98B1CE', '#F9CC7A', '#E9666E']
+import { radarData } from './dummy'
+
+const COLORS = [
+  '#BCD1E0',
+  '#F4DCDC',
+  '#BCD1E0',
+  '#98B1CE',
+  '#F9CC7A',
+  '#E9666E',
+]
 
 class CustomizedContent extends React.Component {
   render() {
-    const { root, depth, x, y, width, height, index, payload, colors, rank, name } = this.props;
+    const {
+      root,
+      depth,
+      x,
+      y,
+      width,
+      height,
+      index,
+      payload,
+      colors,
+      rank,
+      name,
+    } = this.props
 
     return (
       <g>
@@ -43,14 +61,16 @@ class CustomizedContent extends React.Component {
           width={width}
           height={height}
           style={{
-            fill: depth < 2 ? colors[Math.floor(index / (root.children?.length || 1) * 6)] : 'none',
+            fill:
+              depth < 2
+                ? colors[Math.floor((index / (root.children?.length || 1)) * 6)]
+                : 'none',
             stroke: '#fff',
             strokeWidth: 2 / (depth + 1e-10),
             strokeOpacity: 1 / (depth + 1e-10),
           }}
         />
-        {
-          depth === 1 ?
+        {depth === 1 ? (
           <text
             x={x + width / 2}
             y={y + height / 2 + 7}
@@ -60,10 +80,8 @@ class CustomizedContent extends React.Component {
           >
             {name}
           </text>
-          : null
-        }
-        {
-          depth === 1 ?
+        ) : null}
+        {depth === 1 ? (
           <text
             x={x + 4}
             y={y + 18}
@@ -73,8 +91,7 @@ class CustomizedContent extends React.Component {
           >
             {index + 1}
           </text>
-          : null
-        }
+        ) : null}
       </g>
     )
   }
@@ -82,11 +99,11 @@ class CustomizedContent extends React.Component {
 
 class Dashboard extends Component {
   static propTypes = {
+    barChartData: PropTypes.object,
     from: PropTypes.instanceOf(Date),
     saving: PropTypes.bool,
     to: PropTypes.instanceOf(Date),
     toggle: PropTypes.function,
-    barChartData: PropTypes.object,
     treeChartData: PropTypes.object,
   }
 
@@ -94,35 +111,50 @@ class Dashboard extends Component {
     from: this.props.from,
     to: this.props.to,
     barChartData: {},
-    treeChartData: {}
+    treeChartData: {},
+  }
+
+  onFilter = (data) => {
+    console.log('ON FILTER FROM Dashboard', data)
+
+    this.props.onToggle('showDayPicker')()
   }
 
   async componentDidMount() {
     this.props.toggle({ saveButton: false, dateFilter: true })
+
+    this.props.setFilterFunction(this.onFilter)
+
     try {
       const barChartData = []
       const treeChartData = []
-      const { data: requestsStats } = await NetworkOperation.getRequestStats(this.state.from.getTime(), this.state.to.getTime())
-      const {
-        data: billingStats,
-      } = await NetworkOperation.getUserBillingStats(this.state.from.getTime(), this.state.to.getTime())
-      await billingStats.users.map( user => {
-        barChartData.push({name: user.username, index: user.indexings.length, search: user.searches.length})
-        treeChartData.push({name: user.username,
-                            children: [{ name: 'index',
-                                         size: user.indexings.length },
-                                       { name: 'search',
-                                         size: user.searches.length}
-                                      ]
-                            }
-                          )
+      const { data: requestsStats } = await NetworkOperation.getRequestStats(
+        this.state.from.getTime(),
+        this.state.to.getTime()
+      )
+      const { data: billingStats } = await NetworkOperation.getUserBillingStats(
+        this.state.from.getTime(),
+        this.state.to.getTime()
+      )
+      await billingStats.users.map((user) => {
+        barChartData.push({
+          name: user.username,
+          index: user.indexings.length,
+          search: user.searches.length,
+        })
+        treeChartData.push({
+          name: user.username,
+          children: [
+            { name: 'index', size: user.indexings.length },
+            { name: 'search', size: user.searches.length },
+          ],
+        })
       })
       this.setState({
         requestsStats: requestsStats.requests,
         barChartData: barChartData,
         treeChartData: treeChartData,
       })
-
     } catch (error) {
       console.log({ error })
     }
@@ -182,8 +214,8 @@ class Dashboard extends Component {
                   <YAxis />
                   <Tooltip />
                   <Legend />
-                 <Bar dataKey="index" fill="#A4CFD7" />
-                 <Bar dataKey="search" fill="#98B1CE" />
+                  <Bar dataKey="index" fill="#A4CFD7" />
+                  <Bar dataKey="search" fill="#98B1CE" />
                 </BarChart>
               </ResponsiveContainer>
             </Card>
@@ -193,14 +225,14 @@ class Dashboard extends Component {
               <h4>Clientes con mayor facturación</h4>
               <ResponsiveContainer width="100%" height={400}>
                 <Treemap
-                	width={400}
+                  width={400}
                   height={200}
                   data={this.state.treeChartData || []}
                   dataKey="size"
-                  ratio={4/3}
+                  ratio={4 / 3}
                   stroke="#fff"
                   fill="#8884d8"
-                  content={<CustomizedContent colors={COLORS}/>}
+                  content={<CustomizedContent colors={COLORS} />}
                 />
               </ResponsiveContainer>
             </Card>

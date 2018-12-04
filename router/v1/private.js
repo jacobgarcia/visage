@@ -250,15 +250,30 @@ router.route('/images/index/:username').post((req, res) => {
         })
     })
     return Promise.all(promises).then(() => {
-      User.findOneAndUpdate({ username }, { $set: { isIndexing: false } }).exec((error, user) => {
-        if (error) {
-          console.error('Could not update user information')
-          return res.status(500).json({
-            error: { message: 'Could not update user information' },
+      User.findOneAndUpdate({ username }, { $set: { isIndexing: false } })
+        .select('indexRates indexCost indexings')
+        .exec((error, user) => {
+          if (error) {
+            console.error('Could not update user information')
+            return res.status(500).json({
+              error: { message: 'Could not update user information' },
+            })
+          }
+          // Get the search rate cost
+          let index = 0
+          for (index; index < user.indexRates.length; index += 1) {
+            if (user.indexings.length <= user.indexRates[index].max) break
+          }
+          user.indexCost += user.indexRates[index].cost
+          return user.save((error) => {
+            if (error) {
+              console.error('Could not save user information', error)
+              return res.status(500).json({ error: { message: 'Could not save user information' } })
+            }
+            // Then return response from internal server
+            return res.status(200).json({ success: true, count, user })
           })
-        }
-        return res.status(200).json({ success: true, count, user })
-      })
+        })
     })
   })
 })
@@ -430,9 +445,8 @@ router.route('/users/invite').post(async (req, res) => {
         console.error({ error })
       }
     )
-  } else {
-    return res.status(409).json({ error: 'User is an admin' })
   }
+  return res.status(409).json({ error: 'User is an admin' })
 })
 
 router.route('/admins/invite').post((req, res) => {
@@ -441,7 +455,7 @@ router.route('/admins/invite').post((req, res) => {
     console.info({ name, username, email })
     return res.status(400).json({ error: { message: 'Malformed request' } })
   }
-  var admin = Admin({
+  const admin = Admin({
     username,
     name,
     email,
@@ -477,7 +491,6 @@ router.post('/signup/:invitation', async (req, res) => {
       guest.name = fullName
       guest.username = username
       guest.password = await bcrypt.hash(`${password}${JWT_SECRET}`, 10)
-
       await guest.save()
 
       nev.confirmTempUser(invitation, (error, user) => {
@@ -514,9 +527,8 @@ router.post('/signup/:invitation', async (req, res) => {
           },
         })
       })
-    } else {
-      return res.status(409).json({ error: 'Admin email alredy exist' })
     }
+    return res.status(409).json({ error: 'Admin email alredy exist' })
   } catch (error) {
     console.error(error)
     return res.status(500).json({ error: 'Could not invite' })
@@ -631,9 +643,7 @@ router.route('/users/self').get(async (req, res) => {
 
 router.route('/users/token').get(async (req, res) => {
   try {
-    const user = await User.findOne({ _id: req._user._id }).select(
-      'apiKey'
-    )
+    const user = await User.findOne({ _id: req._user._id }).select('apiKey')
     if (user) {
       return res.status(200).json({ user })
     }
@@ -741,6 +751,40 @@ router.route('/users/export').get((req, res) => {
       return res.status(200).download('static/users.csv')
     })
   })
+})
+
+// Export all users to CSV
+router.route('/users/export').get((req, res) => {
+  User.find({}).exec((error, users) => {
+    if (error) {
+      console.error('Could not export users', error)
+      return res.status(500).json({ error: { message: 'Could not export users' } })
+    }
+
+    const json2csvParser = new Json2csvParser({ fields })
+    const csv = json2csvParser.parse(users)
+    return fs.writeFile('static/users.csv', csv, (error) => {
+      if (error) {
+        console.error({ error })
+        return res.status(500).json({ error })
+      }
+      return res.status(200).download('static/users.csv')
+    })
+  })
+})
+
+router.route('/users/notifications/read/:notification').patch(async (req, res) => {
+  const { notification } = req.params
+  try {
+    const user = await User.findOneAndUpdate(
+      { _id: req._user._id },
+      { $pull: { notifications: notification } }
+    )
+    return res.status(200).json({ success: true, message: 'Successfully read notification', user })
+  } catch (error) {
+    console.error('Could not update user information', error)
+    return res.status(500).json({ error: { message: 'Could not update user information' } })
+  }
 })
 
 router.route('/admins').get(async (req, res) => {
@@ -856,7 +900,7 @@ router.route('/rates').get(async (req, res) => {
   try {
     const rates = await User.findOne()
 
-    console.log({ rates })
+    console.info({ rates })
 
     return res.status(200).json({ rates })
   } catch (error) {

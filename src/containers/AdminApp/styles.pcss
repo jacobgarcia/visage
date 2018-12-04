@@ -150,6 +150,11 @@
     right: 0;
     width: 100%;
     box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.5);
+    .actions-container,
+    .actions-container span {
+      color: black !important;
+      margin-left: 0;
+    }
     &.--full-width {
       padding-left: 91px;
     }
@@ -184,13 +189,19 @@
         }
         .date-filter-container {
           position: relative;
-          .DayPicker {
+          .day-picker-container {
             position: absolute;
             right: 0;
             top: 40px;
             background-color: white;
             box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
             border-radius: 4px;
+            .button-container {
+              margin: 8px;
+              button {
+                width: 100%;
+              }
+            }
           }
         }
       }

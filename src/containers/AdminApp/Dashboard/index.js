@@ -9,11 +9,6 @@ import {
   Tooltip,
   Treemap,
   ResponsiveContainer,
-  RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-  Radar,
   PieChart,
   Pie,
   Legend,
@@ -25,8 +20,6 @@ import NetworkOperation from 'utils/NetworkOperation'
 import { withSaver } from 'utils/portals'
 
 import './styles.pcss'
-
-import { radarData } from './dummy'
 
 const COLORS = [
   '#BCD1E0',
@@ -84,14 +77,16 @@ class Dashboard extends Component {
     saving: PropTypes.bool,
     to: PropTypes.instanceOf(Date),
     toggle: PropTypes.function,
+    totalBilling: PropTypes.number,
     treeChartData: PropTypes.object,
   }
 
   state = {
     from: this.props.from,
     to: this.props.to,
-    barChartData: [],
-    treeChartData: [],
+    barChartData: {},
+    treeChartData: {},
+    totalBilling: 0,
   }
 
   componentDidMount() {
@@ -130,11 +125,18 @@ class Dashboard extends Component {
           ],
         })
       })
+      const totalBilling = await billingRes.data?.users.reduce(
+        (acumulator, user) => {
+          return acumulator + user.billing
+        },
+        0
+      )
 
       this.setState({
         requestsStats: statsRes.data?.requests,
         barChartData: barChartData,
         treeChartData: treeChartData,
+        totalBilling: totalBilling,
       })
     } catch (error) {
       console.log(error)
@@ -221,20 +223,9 @@ class Dashboard extends Component {
           <div className="card-wrapper">
             <Card className="card">
               <h4>Resumen de facturación</h4>
-              <ResponsiveContainer width="100%" height={400}>
-                <RadarChart data={radarData} isAnimationActive={false}>
-                  <PolarGrid />
-                  <PolarAngleAxis dataKey="subject" />
-                  <PolarRadiusAxis />
-                  <Radar
-                    name="Mike"
-                    dataKey="A"
-                    stroke="#8884d8"
-                    fill="#8884d8"
-                    fillOpacity={0.6}
-                  />
-                </RadarChart>
-              </ResponsiveContainer>
+              <div className="number">
+                <h1>{this.state.totalBilling} MXN</h1>
+              </div>
             </Card>
           </div>
         </div>

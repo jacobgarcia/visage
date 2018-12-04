@@ -488,7 +488,6 @@ router.route('/stats/users/:username/billing').get((req, res) => {
     return res.status(200).json({ ...users[0] })
   })
 })
-
 router.route('/users/invite').post(async (req, res) => {
   const { email } = req.body
   const guest = new User({
@@ -720,6 +719,44 @@ router.use((req, res, next) => {
     req._token = token
     return next()
   })
+})
+
+// Statistics endpoint for dashboard
+router.route('/stats/searches/topsearches').get(async (req, res) => {
+  try {
+    const searches = await Searching.find({ user: req._user._id })
+    const items = []
+    searches.map((search) => {
+      const item = {
+        id: search.response.items[0].id,
+        sku: search.response.items[0].sku,
+        cl: search.response.items[0].cl,
+        score: search.response.items[0].score,
+      }
+      items.push(item)
+    })
+
+    const counts = {}
+    items.map(($0) => {
+      counts[$0.sku] = (counts[$0.sku] || 0) + 1
+    })
+
+    const mostSearchedItems = items.filter(
+      (thing, index, self) =>
+        index ===
+        self.findIndex(($0) => $0.id === thing.id && $0.sku === thing.sku)
+    )
+
+    mostSearchedItems.map((item) => {
+      item.count = counts[item.sku]
+    })
+    return res.status(200).json({ mostSearchedItems, counts })
+  } catch (error) {
+    console.error('Could not retrieve searches', error)
+    return res
+      .status(500)
+      .json({ success: false, message: 'Could not retrieve searches', error })
+  }
 })
 
 router.route('/users/self').get(async (req, res) => {

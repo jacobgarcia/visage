@@ -48,11 +48,11 @@ class AppBarComponent extends PureComponent {
 
     handleClick = event => {
     this.setState({ anchorEl: event.currentTarget });
-  };
+  }
 
   handleClose = () => {
     this.setState({ anchorEl: null });
-  };
+  }
 
   render() {
     const {
@@ -85,6 +85,7 @@ class AppBarComponent extends PureComponent {
             position="absolute"
             className={`app-bar ${toolBarHidden ? '--full-width' : ''}`}
           >
+
             <Modal
               open={openUserModal}
               onClose={this.toggleUserDataModal(false)}
@@ -208,6 +209,7 @@ class AppBarComponent extends PureComponent {
                     ))}
                 </div>
               </div>
+              {(isClient) && <div className={`indexing-status ${data?.user?.isIndexing ? '--indexing' : '--not-indexing' }`} />}
               {isClient &&
                 <div className="actions-container">
                   <IconButton onClick={() => {

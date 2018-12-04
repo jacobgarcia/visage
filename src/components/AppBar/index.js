@@ -153,13 +153,20 @@ class AppBarComponent extends PureComponent {
                         Filtrar
                       </Button>
                       {showDayPicker && (
-                        <DayPicker
-                          className="Selectable"
-                          numberOfMonths={numberOfMonths}
-                          selectedDays={[from, { from, to }]}
-                          modifiers={modifiers}
-                          onDayClick={handleDayClick}
-                        />
+                        <div className="day-picker-container">
+                          <DayPicker
+                            className="Selectable"
+                            numberOfMonths={numberOfMonths}
+                            selectedDays={[from, { from, to }]}
+                            modifiers={modifiers}
+                            onDayClick={handleDayClick}
+                          />
+                          <div className="button-container">
+                            <Button variant="contained" color="secondary" onClick={() => {
+                              this.props.onFilterRangeSet({ from, to })
+                            }}>Mostrar</Button>
+                          </div>
+                        </div>
                       )}
                     </div>
                   )}

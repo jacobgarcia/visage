@@ -307,6 +307,34 @@ router.route('/stats/requests').get((req, res) => {
     })
 })
 
+router.route('/stats/requests/:username').get(async (req, res) => {
+  const end = req.param('end'),
+    start = req.param('start'),
+    username = req.params
+  const user = await User.findOne({username: username})
+  Indexing.find({ timestamp: { $gte: start, $lte: end }, _id: {$in: user.indexings } })
+    .select('id')
+    .exec((error, indexings) => {
+      if (error) {
+        console.info('Could not fetch indexings', error)
+        return res.status(500).json({ error: { message: 'Could not fetch indexings' } })
+      }
+      return Searching.find({ timestamp: { $gte: start, $lte: end }, _id: {$in: user.searches } })
+        .select('id')
+        .exec((error, searchings) => {
+          if (error) {
+            console.info('Could not fetch searches', error)
+            return res.status(500).json({ error: { message: 'Could not fetch searches' } })
+          }
+          const requests = {
+            indexings: indexings.length,
+            searches: searchings.length,
+            total: indexings.length + searchings.length,
+          }
+          return res.status(200).json({ requests })
+        })
+    })
+})
 // Statistics endpoint for dashboard
 router.route('/stats/users/billing').get((req, res) => {
   // Find all users
@@ -463,7 +491,6 @@ router.post('/signup/:invitation', async (req, res) => {
       guest.name = fullName
       guest.username = username
       guest.password = await bcrypt.hash(`${password}${JWT_SECRET}`, 10)
-
       await guest.save()
 
       nev.confirmTempUser(invitation, (error, user) => {
@@ -724,6 +751,40 @@ router.route('/users/export').get((req, res) => {
       return res.status(200).download('static/users.csv')
     })
   })
+})
+
+// Export all users to CSV
+router.route('/users/export').get((req, res) => {
+  User.find({}).exec((error, users) => {
+    if (error) {
+      console.error('Could not export users', error)
+      return res.status(500).json({ error: { message: 'Could not export users' } })
+    }
+
+    const json2csvParser = new Json2csvParser({ fields })
+    const csv = json2csvParser.parse(users)
+    return fs.writeFile('static/users.csv', csv, (error) => {
+      if (error) {
+        console.error({ error })
+        return res.status(500).json({ error })
+      }
+      return res.status(200).download('static/users.csv')
+    })
+  })
+})
+
+router.route('/users/notifications/read/:notification').patch(async (req, res) => {
+  const { notification } = req.params
+  try {
+    const user = await User.findOneAndUpdate(
+      { _id: req._user._id },
+      { $pull: { notifications: notification } }
+    )
+    return res.status(200).json({ success: true, message: 'Successfully read notification', user })
+  } catch (error) {
+    console.error('Could not update user information', error)
+    return res.status(500).json({ error: { message: 'Could not update user information' } })
+  }
 })
 
 router.route('/admins').get(async (req, res) => {

@@ -30,6 +30,7 @@ class Profile extends Component {
 
   componentDidMount() {
     document.body.style.backgroundColor = '#fff'
+    console.log(this.context)
   }
 
   componentWillUnmount() {

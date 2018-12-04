@@ -48,10 +48,7 @@ class Profile extends Component {
   }
 
   handleClickShowPassword = () => {
-    this.setState(state => ({ showPassword: !state.showPassword }));
-  }
-  handleClickShowPassword = () => {
-    this.setState((state) => ({ showPassword: !state.showPassword }))
+    this.setState(state => ({ showPassword: !state.showPassword }))
   }
 
   render() {
@@ -103,7 +100,7 @@ class Profile extends Component {
             <Input
               id="adornment-password"
               type={this.state.showPassword ? 'text' : 'password'}
-              value="aslkdmalskdlasmdlaskdmlaksd"
+              value={apitoken}
               name="password"
               onChange={this.onChange}
               fullWidth

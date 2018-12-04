@@ -292,6 +292,34 @@ router.route('/stats/requests').get((req, res) => {
     })
 })
 
+router.route('/stats/requests/:username').get(async (req, res) => {
+  const end = req.param('end'),
+    start = req.param('start'),
+    username = req.params
+  const user = await User.findOne({username: username})
+  Indexing.find({ timestamp: { $gte: start, $lte: end }, _id: {$in: user.indexings } })
+    .select('id')
+    .exec((error, indexings) => {
+      if (error) {
+        console.info('Could not fetch indexings', error)
+        return res.status(500).json({ error: { message: 'Could not fetch indexings' } })
+      }
+      return Searching.find({ timestamp: { $gte: start, $lte: end }, _id: {$in: user.searches } })
+        .select('id')
+        .exec((error, searchings) => {
+          if (error) {
+            console.info('Could not fetch searches', error)
+            return res.status(500).json({ error: { message: 'Could not fetch searches' } })
+          }
+          const requests = {
+            indexings: indexings.length,
+            searches: searchings.length,
+            total: indexings.length + searchings.length,
+          }
+          return res.status(200).json({ requests })
+        })
+    })
+})
 // Statistics endpoint for dashboard
 router.route('/stats/users/billing').get((req, res) => {
   // Find all users

@@ -330,8 +330,9 @@ router.route('/stats/requests').get((req, res) => {
 })
 
 router.route('/stats/requests/:username').get(async (req, res) => {
-  const end = req.param('end'),
-    start = req.param('start')
+  const end = req.param('end') ? req.param('end') : Date.now(),
+    start = req.param('start') ? req.param('start') : 1
+
   const { username } = req.params
   const user = await User.findOne({ username })
   Indexing.find({
@@ -371,7 +372,7 @@ router.route('/stats/requests/:username').get(async (req, res) => {
 router.route('/stats/users/billing').get((req, res) => {
   // Find all users
   const end = req.param('end'),
-    start = parseInt(req.param('start'), 10)
+    start = req.param('start')
 
   User.aggregate([
     {
@@ -405,6 +406,8 @@ router.route('/stats/users/billing').get((req, res) => {
         username: 1,
         email: 1,
         company: 1,
+        indexCost: 1,
+        searchCost: 1,
       },
     },
   ]).exec((error, users) => {
@@ -416,33 +419,7 @@ router.route('/stats/users/billing').get((req, res) => {
     }
 
     users.map((user) => {
-      let indexingCost = 0,
-        searchingCost = 0
-
-      let indexing = 1,
-        searching = 1
-
-      user.indexRates.map((rate) => {
-        if (indexing >= rate.min && indexing <= rate.max) {
-          indexingCost += indexing * rate.cost
-        } else {
-          indexing -= rate.max
-          indexingCost += indexing * rate.cost
-        }
-      })
-
-      user.searchRates.map((rate) => {
-        if (searching >= rate.min && searching <= rate.max) {
-          searchingCost += searching * rate.cost
-        } else {
-          searching -= rate.max
-          searchingCost += searching * rate.cost
-        }
-      })
-
-      user.indexingCost = indexingCost
-      user.searchingCost = searchingCost
-      user.billing = indexingCost + searchingCost
+      user.billing = user.indexCost + user.searchCost
       return user
     })
 
@@ -451,6 +428,64 @@ router.route('/stats/users/billing').get((req, res) => {
       $0.billing - $1.billing
     })
     return res.status(200).json({ users })
+  })
+})
+
+// Statistics endpoint for dashboard
+router.route('/stats/users/:username/billing').get((req, res) => {
+  // Find all users
+  const end = req.param('end') ? req.param('end') : Date.now(),
+    start = req.param('start') ? req.param('start') : 1
+
+  const { username } = req.params
+  User.aggregate([
+    { $match: { username } },
+    {
+      $project: {
+        indexings: {
+          $filter: {
+            input: '$indexings',
+            as: 'item',
+            cond: {
+              $and: [
+                { $gte: [start, '$$item.timestamp'] },
+                { $lte: ['$$item.timestamp', end] },
+              ],
+            },
+          },
+        },
+        searches: {
+          $filter: {
+            input: '$searches',
+            as: 'item',
+            cond: {
+              $and: [
+                { $gte: [start, '$$item.timestamp'] },
+                { $lte: ['$$item.timestamp', end] },
+              ],
+            },
+          },
+        },
+        searchRates: 1,
+        indexRates: 1,
+        username: 1,
+        email: 1,
+        company: 1,
+        indexCost: 1,
+        searchCost: 1,
+      },
+    },
+  ]).exec((error, users) => {
+    if (error) {
+      console.info('Could not fetch users', error)
+      return res
+        .status(500)
+        .json({ error: { message: 'Could not fetch users' } })
+    }
+
+    users[0].billing = users[0].indexCost + users[0].searchCost
+
+    return res.status(200).json({ ...users[0] })
   })
 })
 

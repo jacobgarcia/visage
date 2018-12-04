@@ -105,6 +105,7 @@ class Dashboard extends Component {
     to: PropTypes.instanceOf(Date),
     toggle: PropTypes.function,
     treeChartData: PropTypes.object,
+    totalBilling: PropTypes.number
   }
 
   state = {
@@ -112,6 +113,7 @@ class Dashboard extends Component {
     to: this.props.to,
     barChartData: {},
     treeChartData: {},
+    totalBilling: 0,
   }
 
   onFilter = (data) => {
@@ -141,6 +143,7 @@ class Dashboard extends Component {
           name: user.username,
           index: user.indexings.length,
           search: user.searches.length,
+
         })
         treeChartData.push({
           name: user.username,
@@ -150,10 +153,15 @@ class Dashboard extends Component {
           ],
         })
       })
+      const totalBilling = await billingStats.users.reduce((acumulator, user) =>{
+        return acumulator + user.billing
+      }, 0)
+
       this.setState({
         requestsStats: requestsStats.requests,
         barChartData: barChartData,
         treeChartData: treeChartData,
+        totalBilling: totalBilling,
       })
     } catch (error) {
       console.log({ error })
@@ -240,20 +248,9 @@ class Dashboard extends Component {
           <div className="card-wrapper">
             <Card className="card">
               <h4>Resumen de facturación</h4>
-              <ResponsiveContainer width="100%" height={400}>
-                <RadarChart data={radarData} isAnimationActive={false}>
-                  <PolarGrid />
-                  <PolarAngleAxis dataKey="subject" />
-                  <PolarRadiusAxis />
-                  <Radar
-                    name="Mike"
-                    dataKey="A"
-                    stroke="#8884d8"
-                    fill="#8884d8"
-                    fillOpacity={0.6}
-                  />
-                </RadarChart>
-              </ResponsiveContainer>
+              <div className="number">
+                <h1>{this.state.totalBilling} MXN</h1>
+              </div>
             </Card>
           </div>
         </div>

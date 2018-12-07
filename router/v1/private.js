@@ -2,6 +2,7 @@
 const fs = require('fs')
 const path = require('path')
 const express = require('express')
+const paginate = require('express-paginate')
 const router = new express.Router()
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
@@ -791,19 +792,6 @@ router.route('/users/token').get(async (req, res) => {
   return res.status(400).json({ message: 'No user found' })
 })
 
-// Get all users information
-router.route('/users').get(async (req, res) => {
-  try {
-    const users = await User.find({}).select(
-      'username name surname company email isIndexing active apiKey.active toIndex'
-    )
-
-    return res.status(200).json({ users })
-  } catch (error) {
-    return res.status(500).json({ error: { message: 'Could not fetch users' } })
-  }
-})
-
 // Edit user
 router.route('/users/:user').put((req, res) => {
   const { name, company, username, email } = req.body
@@ -1225,6 +1213,37 @@ router.route('/rates/index/:rateId').delete(async (req, res) => {
     return res
       .status(500)
       .json({ error: { message: 'Could not delete index rate' } })
+  }
+})
+
+// Pagination middleware
+router.use(paginate.middleware(10, 50))
+
+// Get all users information
+router.route('/users').get(async (req, res) => {
+  try {
+    const [users, itemCount] = await Promise.all([
+      User.find({})
+        .select(
+          'username name surname company email isIndexing active apiKey.active toIndex'
+        )
+        .limit(req.query.limit)
+        .skip(req.skip)
+        .lean(),
+      User.count({}),
+    ])
+
+    const pageCount = Math.ceil(itemCount / req.query.limit)
+
+    return res
+      .status(200)
+      .json({
+        users,
+        hasMore: paginate.hasNextPages(req)(pageCount),
+        pageCount,
+      })
+  } catch (error) {
+    return res.status(500).json({ error: { message: 'Could not fetch users' } })
   }
 })
 

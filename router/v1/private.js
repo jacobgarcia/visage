@@ -1256,4 +1256,28 @@ router.route('/admins').get(async (req, res) => {
   }
 })
 
+// Get all guests information
+router.route('/guests').get(async (req, res) => {
+  try {
+    const [guests, itemCount] = await Promise.all([
+      Guest.find({})
+        .limit(req.query.limit)
+        .skip(req.skip)
+        .lean(),
+      Guest.count({}),
+    ])
+
+    const pageCount = Math.ceil(itemCount / req.query.limit)
+
+    return res.status(200).json({
+      guests,
+      hasMore: paginate.hasNextPages(req)(pageCount),
+      pageCount,
+    })
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ error: { message: 'Could not fetch guests' } })
+  }
+})
 module.exports = router

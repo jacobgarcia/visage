@@ -940,19 +940,6 @@ router
     }
   })
 
-router.route('/admins').get(async (req, res) => {
-  try {
-    const admins = await Admin.find({}).select(
-      'name surname username email superAdmin services active'
-    )
-
-    return res.status(200).json({ admins })
-  } catch (error) {
-    console.error('Could not get admins', error)
-    return res.status(500).json({ error: { message: 'Could not get admins' } })
-  }
-})
-
 // Edit admin
 router
   .route('/admins/:adminUsername')
@@ -1235,15 +1222,37 @@ router.route('/users').get(async (req, res) => {
 
     const pageCount = Math.ceil(itemCount / req.query.limit)
 
-    return res
-      .status(200)
-      .json({
-        users,
-        hasMore: paginate.hasNextPages(req)(pageCount),
-        pageCount,
-      })
+    return res.status(200).json({
+      users,
+      hasMore: paginate.hasNextPages(req)(pageCount),
+      pageCount,
+    })
   } catch (error) {
     return res.status(500).json({ error: { message: 'Could not fetch users' } })
+  }
+})
+
+// Get all admins information
+router.route('/admins').get(async (req, res) => {
+  try {
+    const [admins, itemCount] = await await Promise.all([
+      Admin.find({})
+        .select('name surname username email superAdmin services active')
+        .limit(req.query.limit)
+        .skip(req.skip)
+        .lean(),
+      Admin.count({}),
+    ])
+    const pageCount = Math.ceil(itemCount / req.query.limit)
+
+    return res.status(200).json({
+      admins,
+      hasMore: paginate.hasNextPages(req)(pageCount),
+      pageCount,
+    })
+  } catch (error) {
+    console.error('Could not get admins', error)
+    return res.status(500).json({ error: { message: 'Could not get admins' } })
   }
 })
 

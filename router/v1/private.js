@@ -1214,6 +1214,7 @@ router.route('/users').get(async (req, res) => {
         .select(
           'username name surname company email isIndexing active apiKey.active toIndex'
         )
+        .sort({ name: 1 })
         .limit(req.query.limit)
         .skip(req.skip)
         .lean(),
@@ -1238,6 +1239,7 @@ router.route('/admins').get(async (req, res) => {
     const [admins, itemCount] = await await Promise.all([
       Admin.find({})
         .select('name surname username email superAdmin services active')
+        .sort({ name: 1 })
         .limit(req.query.limit)
         .skip(req.skip)
         .lean(),
@@ -1261,6 +1263,7 @@ router.route('/guests').get(async (req, res) => {
   try {
     const [guests, itemCount] = await Promise.all([
       Guest.find({})
+        .sort({ email: 1 })
         .limit(req.query.limit)
         .skip(req.skip)
         .lean(),

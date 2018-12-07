@@ -59,7 +59,6 @@ const schema = new Schema({
     default: [],
   },
   items: { type: [ItemSchema], default: [] },
-  indexedImages: { type: [IndexedImage], default: [] },
   notifications: { type: [Number], default: [0] },
 })
 

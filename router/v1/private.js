@@ -188,8 +188,6 @@ router.route('/images/index/:username').post((req, res) => {
       // Iterate over the batch of images
       const promises = user.toIndex.map(async (image) => {
         const { id, sku, key } = image
-        const indexedImages = []
-        indexedImages.push(image)
 
         // Create formData object to send to the service
         const formData = {
@@ -249,7 +247,6 @@ router.route('/images/index/:username').post((req, res) => {
               User.findOneAndUpdate(
                 { username },
                 {
-                  $push: { indexings: indexing._id, indexedImages },
                   $pull: { toIndex: image },
                 }
               ).exec((error) => {

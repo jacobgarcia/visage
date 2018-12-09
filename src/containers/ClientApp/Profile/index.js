@@ -156,18 +156,25 @@ class Profile extends Component {
           <h2>Rangos de consultas</h2>
           <div className="consults-range">
             <label>Consultas</label>
-            <div>{JSON.stringify(currentRange)}</div>
+            <div>
+              {this.context?.user?.indexRates?.map((rate, index) => (
+                (currentRange?.requests?.indexings > rate.min && currentRange?.requests?.indexings < rate.max) ?
+                  <span>
+                    Rango actual entre {rate.min} y {rate.max}
+                  </span> : ""
+              ))}
+            </div>
           </div>
           <div className="consults-range">
             <label>Indexación</label>
-            {this.context?.user?.indexRates?.map((rate, index) => (
-              <p key={index}>
-                ${rate.cost}MXN{' '}
-                <span>
-                  Entre {rate.min} y {rate.max}
-                </span>
-              </p>
-            ))}
+            <div>
+              {this.context?.user?.searchRates?.map((rate, index) => (
+                (currentRange?.requests?.searches > rate.min && currentRange?.requests?.searches < rate.max) ?
+                  <span>
+                    Rango actual entre {rate.min} y {rate.max}
+                  </span> : ""
+              ))}
+            </div>
           </div>
         </div>
         <hr />

@@ -2,6 +2,7 @@
 const fs = require('fs')
 const path = require('path')
 const express = require('express')
+const paginate = require('express-paginate')
 const router = new express.Router()
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
@@ -187,8 +188,6 @@ router.route('/images/index/:username').post((req, res) => {
       // Iterate over the batch of images
       const promises = user.toIndex.map(async (image) => {
         const { id, sku, key } = image
-        const indexedImages = []
-        indexedImages.push(image)
 
         // Create formData object to send to the service
         const formData = {
@@ -248,7 +247,6 @@ router.route('/images/index/:username').post((req, res) => {
               User.findOneAndUpdate(
                 { username },
                 {
-                  $push: { indexings: indexing._id, indexedImages },
                   $pull: { toIndex: image },
                 }
               ).exec((error) => {
@@ -330,8 +328,9 @@ router.route('/stats/requests').get((req, res) => {
 })
 
 router.route('/stats/requests/:username').get(async (req, res) => {
-  const end = req.param('end'),
-    start = req.param('start')
+  const end = req.param('end') ? req.param('end') : Date.now(),
+    start = req.param('start') ? req.param('start') : 1
+
   const { username } = req.params
   const user = await User.findOne({ username })
   Indexing.find({
@@ -371,7 +370,7 @@ router.route('/stats/requests/:username').get(async (req, res) => {
 router.route('/stats/users/billing').get((req, res) => {
   // Find all users
   const end = req.param('end'),
-    start = parseInt(req.param('start'), 10)
+    start = req.param('start')
 
   User.aggregate([
     {
@@ -405,6 +404,8 @@ router.route('/stats/users/billing').get((req, res) => {
         username: 1,
         email: 1,
         company: 1,
+        indexCost: 1,
+        searchCost: 1,
       },
     },
   ]).exec((error, users) => {
@@ -416,33 +417,7 @@ router.route('/stats/users/billing').get((req, res) => {
     }
 
     users.map((user) => {
-      let indexingCost = 0,
-        searchingCost = 0
-
-      let indexing = 1,
-        searching = 1
-
-      user.indexRates.map((rate) => {
-        if (indexing >= rate.min && indexing <= rate.max) {
-          indexingCost += indexing * rate.cost
-        } else {
-          indexing -= rate.max
-          indexingCost += indexing * rate.cost
-        }
-      })
-
-      user.searchRates.map((rate) => {
-        if (searching >= rate.min && searching <= rate.max) {
-          searchingCost += searching * rate.cost
-        } else {
-          searching -= rate.max
-          searchingCost += searching * rate.cost
-        }
-      })
-
-      user.indexingCost = indexingCost
-      user.searchingCost = searchingCost
-      user.billing = indexingCost + searchingCost
+      user.billing = user.indexCost + user.searchCost
       return user
     })
 
@@ -454,6 +429,63 @@ router.route('/stats/users/billing').get((req, res) => {
   })
 })
 
+// Statistics endpoint for dashboard
+router.route('/stats/users/:username/billing').get((req, res) => {
+  // Find all users
+  const end = req.param('end') ? req.param('end') : Date.now(),
+    start = req.param('start') ? req.param('start') : 1
+
+  const { username } = req.params
+  User.aggregate([
+    { $match: { username } },
+    {
+      $project: {
+        indexings: {
+          $filter: {
+            input: '$indexings',
+            as: 'item',
+            cond: {
+              $and: [
+                { $gte: [start, '$$item.timestamp'] },
+                { $lte: ['$$item.timestamp', end] },
+              ],
+            },
+          },
+        },
+        searches: {
+          $filter: {
+            input: '$searches',
+            as: 'item',
+            cond: {
+              $and: [
+                { $gte: [start, '$$item.timestamp'] },
+                { $lte: ['$$item.timestamp', end] },
+              ],
+            },
+          },
+        },
+        searchRates: 1,
+        indexRates: 1,
+        username: 1,
+        email: 1,
+        company: 1,
+        indexCost: 1,
+        searchCost: 1,
+      },
+    },
+  ]).exec((error, users) => {
+    if (error) {
+      console.info('Could not fetch users', error)
+      return res
+        .status(500)
+        .json({ error: { message: 'Could not fetch users' } })
+    }
+
+    users[0].billing = users[0].indexCost + users[0].searchCost
+
+    return res.status(200).json({ ...users[0] })
+  })
+})
 router.route('/users/invite').post(async (req, res) => {
   const { email } = req.body
   const guest = new User({
@@ -687,6 +719,44 @@ router.use((req, res, next) => {
   })
 })
 
+// Statistics endpoint for dashboard
+router.route('/stats/searches/topsearches').get(async (req, res) => {
+  try {
+    const searches = await Searching.find({ user: req._user._id })
+    const items = []
+    searches.map((search) => {
+      const item = {
+        id: search.response.items[0].id,
+        sku: search.response.items[0].sku,
+        cl: search.response.items[0].cl,
+        score: search.response.items[0].score,
+      }
+      items.push(item)
+    })
+
+    const counts = {}
+    items.map(($0) => {
+      counts[$0.sku] = (counts[$0.sku] || 0) + 1
+    })
+
+    const mostSearchedItems = items.filter(
+      (thing, index, self) =>
+        index ===
+        self.findIndex(($0) => $0.id === thing.id && $0.sku === thing.sku)
+    )
+
+    mostSearchedItems.map((item) => {
+      item.count = counts[item.sku]
+    })
+    return res.status(200).json({ mostSearchedItems, counts })
+  } catch (error) {
+    console.error('Could not retrieve searches', error)
+    return res
+      .status(500)
+      .json({ success: false, message: 'Could not retrieve searches', error })
+  }
+})
+
 router.route('/users/self').get(async (req, res) => {
   const user = await User.findOne(
     { _id: req._user._id },
@@ -717,19 +787,6 @@ router.route('/users/token').get(async (req, res) => {
   }
   console.info('No user found')
   return res.status(400).json({ message: 'No user found' })
-})
-
-// Get all users information
-router.route('/users').get(async (req, res) => {
-  try {
-    const users = await User.find({}).select(
-      'username name surname company email isIndexing active apiKey.active toIndex'
-    )
-
-    return res.status(200).json({ users })
-  } catch (error) {
-    return res.status(500).json({ error: { message: 'Could not fetch users' } })
-  }
 })
 
 // Edit user
@@ -879,19 +936,6 @@ router
         .json({ error: { message: 'Could not update user information' } })
     }
   })
-
-router.route('/admins').get(async (req, res) => {
-  try {
-    const admins = await Admin.find({}).select(
-      'name surname username email superAdmin services active'
-    )
-
-    return res.status(200).json({ admins })
-  } catch (error) {
-    console.error('Could not get admins', error)
-    return res.status(500).json({ error: { message: 'Could not get admins' } })
-  }
-})
 
 // Edit admin
 router
@@ -1156,4 +1200,84 @@ router.route('/rates/index/:rateId').delete(async (req, res) => {
   }
 })
 
+// Pagination middleware
+router.use(paginate.middleware(10, 50))
+
+// Get all users information
+router.route('/users').get(async (req, res) => {
+  try {
+    const [users, itemCount] = await Promise.all([
+      User.find({})
+        .select(
+          'username name surname company email isIndexing active apiKey.active toIndex'
+        )
+        .sort({ name: 1 })
+        .limit(req.query.limit)
+        .skip(req.skip)
+        .lean(),
+      User.count({}),
+    ])
+
+    const pageCount = Math.ceil(itemCount / req.query.limit)
+
+    return res.status(200).json({
+      users,
+      hasMore: paginate.hasNextPages(req)(pageCount),
+      pageCount,
+    })
+  } catch (error) {
+    return res.status(500).json({ error: { message: 'Could not fetch users' } })
+  }
+})
+
+// Get all admins information
+router.route('/admins').get(async (req, res) => {
+  try {
+    const [admins, itemCount] = await await Promise.all([
+      Admin.find({})
+        .select('name surname username email superAdmin services active')
+        .sort({ name: 1 })
+        .limit(req.query.limit)
+        .skip(req.skip)
+        .lean(),
+      Admin.count({}),
+    ])
+    const pageCount = Math.ceil(itemCount / req.query.limit)
+
+    return res.status(200).json({
+      admins,
+      hasMore: paginate.hasNextPages(req)(pageCount),
+      pageCount,
+    })
+  } catch (error) {
+    console.error('Could not get admins', error)
+    return res.status(500).json({ error: { message: 'Could not get admins' } })
+  }
+})
+
+// Get all guests information
+router.route('/guests').get(async (req, res) => {
+  try {
+    const [guests, itemCount] = await Promise.all([
+      Guest.find({})
+        .sort({ email: 1 })
+        .limit(req.query.limit)
+        .skip(req.skip)
+        .lean(),
+      Guest.count({}),
+    ])
+
+    const pageCount = Math.ceil(itemCount / req.query.limit)
+
+    return res.status(200).json({
+      guests,
+      hasMore: paginate.hasNextPages(req)(pageCount),
+      pageCount,
+    })
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ error: { message: 'Could not fetch guests' } })
+  }
+})
 module.exports = router

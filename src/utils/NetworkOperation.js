@@ -45,6 +45,24 @@ class NetworkOperation {
     })
   }
 
+  static getClientRequestStats(username, from, to) {
+    return axios.get(`${baseUrl}/v1/private/stats/requests/${username}`, {
+      params: {
+        start: from,
+        end: to,
+      },
+    })
+  }
+
+  static getClientBillingStats(username, from, to) {
+    return axios.get(`${baseUrl}/v1/private/stats/users/${username}/billing`, {
+      params: {
+        start: from,
+        end: to,
+      },
+    })
+  }
+
   static getSelf() {
     return axios.get(`${baseUrl}/v1/private/users/self`)
   }

@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
+import NetworkOperation from 'utils/NetworkOperation'
 
 import { PieChart, Pie, Cell } from 'recharts'
 
@@ -18,11 +19,41 @@ import ProfileModal from 'components/ProfileModal'
 
 import './styles.pcss'
 
+
+
+
+
+
 class Dashboard extends Component {
   static propTypes = {}
 
   state = {
     profileModalOpen: false,
+    billing: 0,
+    products: {},
+    searches: {},
+    requests: {},
+  }
+
+
+  async componentDidMount(){
+      try{
+          let date = new Date()
+          let to = date.getDay()
+          date.setMonth(date.getMonth() -1)
+          let from = date.getDay()
+          const {data:{user: data}} = await NetworkOperation.getSelf()
+          const statsRes = await NetworkOperation.getClientRequestStats(data.username, from, to)
+          const billingRes = await NetworkOperation.getClientBillingStats(data.username, from, to)
+          console.log(statsRes, billingRes)
+          this.setState({
+            billing: billingRes.data.billing,
+            requests: statsRes.data.requests,
+          })
+
+      } catch (error) {
+        console.log(error)
+      }
   }
 
   onToggleProfileModal = () => {
@@ -44,6 +75,11 @@ class Dashboard extends Component {
         />
         <Card>
           <h4>Resumen de consumo de datos</h4>
+          <div className="chart-data-container">
+            <div className="number">
+              <h1>{this.state.billing} MXN</h1>
+            </div>
+          </div>
         </Card>
         <Card>
           <h4>Cantidad de búsqueda</h4>
@@ -91,17 +127,17 @@ class Dashboard extends Component {
             <div className="usage-bar__data">
               <h5>Indexaciones</h5>
               <p className="low">
-                Dentro del límite <span>7849</span>
+                Dentro del límite <span>1000</span>
               </p>
             </div>
-            <UsageBar percentage={32} />
+            <UsageBar percentage={this.state.requests?.indexings} />
             <div className="usage-bar__data">
               <h5>Búsquedas</h5>
               <p className="high">
-                Dentro del límite <span>7849</span>
+                Dentro del límite <span>1000</span>
               </p>
             </div>
-            <UsageBar percentage={76} />
+            <UsageBar percentage={this.state.requests?.indexings} />
           </div>
         </Card>
         <Card noPadding>

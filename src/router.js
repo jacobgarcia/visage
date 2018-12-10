@@ -42,6 +42,9 @@ class SessionLoader extends PureComponent {
       if (error.response?.status === 401) {
         this.props.history.replace('/login')
       }
+      if (error.response?.status === 400) {
+        this.props.history.replace('/login')
+      }
       // TODO Other error should be displayed
     }
   }

@@ -58,7 +58,13 @@ class ClientModal extends Component {
   onChange = (name) => ({ target: { value } }) => {
     this.setState({ [name]: value, error: null }, () => {
       this.setState({
-        valid: this.state._id && this.state.name && this.state.email && this.state.username && this.state.company || !this.state._id && this.state.email ,
+        valid:
+          (this.state._id &&
+            this.state.name &&
+            this.state.email &&
+            this.state.username &&
+            this.state.company) ||
+          (!this.state._id && this.state.email),
       })
     })
   }
@@ -74,7 +80,10 @@ class ClientModal extends Component {
     try {
       let response
       if (this.state._id) {
-        response = await NetworkOperation.updateClient(data, this.state.pastUsername)
+        response = await NetworkOperation.updateClient(
+          data,
+          this.state.pastUsername
+        )
       } else {
         response = await NetworkOperation.inviteUser(this.state.email)
       }
@@ -118,37 +127,43 @@ class ClientModal extends Component {
         <div className="paper-container">
           <div className="paper">
             <h3>{_id ? 'Editar' : 'Nuevo'} usuario</h3>
-            {_id && <div>
-              <TextField
-                required
-                label="Nombre"
-                margin="normal"
-                variant="outlined"
-                value={name}
-                onChange={this.onChange('name')}
-                className="user-name"
-              />
-            </div>}
-            {_id && <div>
-              <TextField
-                required
-                label="Nombre de usuario"
-                margin="normal"
-                variant="outlined"
-                value={username}
-                onChange={this.onChange('username')}
-              />
-            </div>}
-            {_id && <div>
-              <TextField
-                required
-                label="Company"
-                margin="normal"
-                variant="outlined"
-                value={company}
-                onChange={this.onChange('company')}
-              />
-            </div>}
+            {_id && (
+              <div>
+                <TextField
+                  required
+                  label="Nombre"
+                  margin="normal"
+                  variant="outlined"
+                  value={name}
+                  onChange={this.onChange('name')}
+                  className="user-name"
+                />
+              </div>
+            )}
+            {_id && (
+              <div>
+                <TextField
+                  required
+                  label="Nombre de usuario"
+                  margin="normal"
+                  variant="outlined"
+                  value={username}
+                  onChange={this.onChange('username')}
+                />
+              </div>
+            )}
+            {_id && (
+              <div>
+                <TextField
+                  required
+                  label="Company"
+                  margin="normal"
+                  variant="outlined"
+                  value={company}
+                  onChange={this.onChange('company')}
+                />
+              </div>
+            )}
             <div>
               <TextField
                 required
@@ -166,7 +181,7 @@ class ClientModal extends Component {
               variant="contained"
               color="secondary"
             >
-              {_id ? 'Guardar' : 'Añadir'}
+              {_id ? 'Guardar' : 'Invitar'}
             </Button>
           </div>
         </div>

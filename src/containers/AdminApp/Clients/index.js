@@ -3,6 +3,7 @@ import Table from '@material-ui/core/Table'
 import TableBody from '@material-ui/core/TableBody'
 import TableCell from '@material-ui/core/TableCell'
 import TableHead from '@material-ui/core/TableHead'
+import TablePagination from '@material-ui/core/TablePagination'
 import TableRow from '@material-ui/core/TableRow'
 import Button from '@material-ui/core/Button'
 import Card from '@material-ui/core/Card'
@@ -98,6 +99,7 @@ class Clients extends Component {
   }
 
   render() {
+    const ROWS = 15
     const {
       state: { search, filteredRows, addUserModalOpen, selectedClient },
     } = this
@@ -159,6 +161,20 @@ class Clients extends Component {
               ))}
             </TableBody>
           </Table>
+          <TablePagination
+            rowsPerPageOptions={[1]}
+            component="div"
+            count={filteredRows.length}
+            rowsPerPage={ROWS}
+            page={0}
+            backIconButtonProps={{
+              'aria-label': 'Anterior',
+            }}
+            nextIconButtonProps={{
+              'aria-label': 'Siguiente',
+            }}
+            onChangePage={this.handleChangePage}
+          />
         </Card>
       </div>
     )

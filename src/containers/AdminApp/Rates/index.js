@@ -17,7 +17,7 @@ import './styles.pcss'
 function parseRates($0) {
   const { _id, ...rate } = $0
 
-  if ((/^(?=[a-f\d]{24}$)(\d+[a-f]|[a-f]+\d)/i).test(_id)) {
+  if (/^(?=[a-f\d]{24}$)(\d+[a-f]|[a-f]+\d)/i.test(_id)) {
     return {
       min: parseFloat(rate.min),
       max: parseFloat(rate.max),
@@ -64,6 +64,7 @@ class Rates extends Component {
   }
 
   onSave = async () => {
+    console.log('ON SAVE')
     const rates = {
       searchRates: this.state.searchRates.map(parseRates),
       indexRates: this.state.indexRates.map(parseRates),
@@ -86,6 +87,7 @@ class Rates extends Component {
   }
 
   onChange = ({ target: { name, value } }, rate, field) => {
+    console.log('ON CHANGE')
     this.props.toggle({ [name]: value, saveButton: true })
     // These lines follow Cesar's enigmatic paradigm,
     // it just updates rates values and uses RETURN as an ELSE.
@@ -127,6 +129,8 @@ class Rates extends Component {
     const {
       state: { searchRates, indexRates, message },
     } = this
+
+    console.log('RENDER')
 
     const canEdit = this.context?.user?.services?.rates === true
 

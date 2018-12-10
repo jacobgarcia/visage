@@ -1,13 +1,10 @@
 import React, { Component, Fragment } from 'react'
-import { NavLink, Switch, Route } from 'react-router-dom'
+import { Switch, Route } from 'react-router-dom'
 import PropTypes from 'prop-types'
 import { DateUtils } from 'react-day-picker'
 import 'react-day-picker/lib/style.css'
 
 import CssBaseline from '@material-ui/core/CssBaseline'
-
-import ListItem from '@material-ui/core/ListItem'
-import ListItemIcon from '@material-ui/core/ListItemIcon'
 
 import Dashboard from 'containers/AdminApp/Dashboard'
 import Clients from 'containers/AdminApp/Clients'
@@ -17,12 +14,8 @@ import Rates from 'containers/AdminApp/Rates'
 import AppBar from 'components/AppBar'
 import Drawer from 'components/Drawer'
 
-import SaveIcon from '@material-ui/icons/Save'
-
-import NetworkOperation from 'utils/NetworkOperation'
 import { UserContext } from 'utils/context'
 import { SaverProvider } from 'utils/portals'
-
 
 import './styles.pcss'
 
@@ -43,8 +36,9 @@ class App extends Component {
   }
 
   getInitialState() {
-    let currentDate = new Date()
-    let pastDate = new Date()
+    const currentDate = new Date()
+    const pastDate = new Date()
+
     pastDate.setMonth(pastDate.getMonth() - 1)
     pastDate.setHours(0, 0, 0)
     pastDate.setMilliseconds(0)
@@ -85,7 +79,6 @@ class App extends Component {
 
   handleDayClick = (day) => {
     const range = DateUtils.addDayToRange(day, this.state)
-    console.log(day, 'this day is ')
     this.setState(range)
   }
 
@@ -93,8 +86,27 @@ class App extends Component {
     this.setState(this.getInitialState())
   }
 
-  setFilterFunction = (filterFunction) => this.filterFunction = filterFunction
-  setSaveFunction = (saveFunction) => this.saveFunction = saveFunction
+  setFilterFunction = (filterFunction) => (this.filterFunction = filterFunction)
+  setSaveFunction = (saveFunction) => (this.saveFunction = saveFunction)
+
+  componentDidMount() {
+    const services = this.context?.user?.services || {}
+
+    const pathname = this.props.location.pathname
+
+    if (!services.dashboard && pathname === '/') {
+      if (!services.clients && pathname === '/clients') {
+        if (!services.admins && pathname === '/admins') {
+          this.props.history.replace('/rates')
+          return
+        }
+        this.props.history.replace('/admins')
+        return
+      }
+      this.props.history.replace('/clients')
+      return
+    }
+  }
 
   render() {
     const {
@@ -104,13 +116,11 @@ class App extends Component {
         toolBarHidden,
         showDateFilter,
         showDayPicker,
-        loadingSelf,
       },
       props: {
         location: { pathname },
       },
     } = this
-
 
     let title = ''
     if (pathname === '/') title = 'Dashboard'
@@ -120,6 +130,7 @@ class App extends Component {
 
     const { from, to } = this.state
     const modifiers = { start: from, end: to }
+
     return (
       <SaverProvider
         value={{
@@ -131,7 +142,7 @@ class App extends Component {
           onDateSelect: this.onDateSelect,
           setSaveFunction: this.setSaveFunction,
           setFilterFunction: this.setFilterFunction,
-          onToggle: this.onToggle
+          onToggle: this.onToggle,
         }}
       >
         <Fragment>
@@ -160,7 +171,11 @@ class App extends Component {
             />
             <main className={`content ${toolBarHidden ? '--full-width' : ''}`}>
               <Switch>
-                <Route exact path="/" render={() => <Dashboard from={this.state.from} to={this.state.to}/>}/>
+                <Route
+                  exact
+                  path="/"
+                  render={() => <Dashboard from={from} to={to} />}
+                />
                 <Route exact path="/clients" component={Clients} />
                 <Route exact path="/admins" component={Admins} />
                 <Route exact path="/rates" component={Rates} />

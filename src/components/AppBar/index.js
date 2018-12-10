@@ -21,6 +21,7 @@ import IconButton from '@material-ui/core/IconButton'
 import Menu from '@material-ui/core/Menu'
 import MenuItem from '@material-ui/core/MenuItem'
 import NotificationsIcon from '@material-ui/icons/Notifications'
+import Tooltip from '@material-ui/core/Tooltip'
 
 import { UserContext } from 'utils/context'
 
@@ -213,11 +214,16 @@ class AppBarComponent extends PureComponent {
                 </div>
               </div>
               {isClient && (
-                <div
-                  className={`indexing-status ${
-                    data?.user?.isIndexing ? '--indexing' : '--non-indexing'
-                  }`}
-                />
+                <Tooltip
+                  title={data?.user?.isIndexing ? 'Indexando' : 'Indexado'}
+                  aria-label={data?.user?.isIndexing ? 'Indexando' : 'Indexado'}
+                >
+                  <div
+                    className={`indexing-status ${
+                      data?.user?.isIndexing ? '--indexing' : '--non-indexing'
+                    }`}
+                  />
+                </Tooltip>
               )}
               {isClient && (
                 <div className="actions-container">

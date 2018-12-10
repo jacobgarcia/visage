@@ -7,6 +7,7 @@ import Profile from 'containers/ClientApp/Profile'
 import AppBar from 'components/AppBar'
 import Drawer from 'components/Drawer'
 
+import qboLogo from 'assets/qbo-logo-mono.svg'
 import './styles.pcss'
 
 class ClientApp extends Component {
@@ -55,12 +56,16 @@ class ClientApp extends Component {
           history={this.props.history}
           isClient
         />
-        <Drawer
+        <div className={'toolbar__logo'}>
+          <img src={qboLogo} alt="QBO" />
+          <div className={'toggle-button'} />
+        </div>
+        {/* <Drawer
           isClient
           onToggle={this.onToggle}
           toolBarHidden={toolBarHidden}
           onCloseClick={this.onCloseClick}
-        />
+        /> */}
         <div className="content dashboard">
           <Route exact path="/" component={Dashboard} />
           <Route path="/profile" component={Profile} />

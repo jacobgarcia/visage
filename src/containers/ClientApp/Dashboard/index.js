@@ -81,7 +81,7 @@ class Dashboard extends Component {
           <div className="chart-data-container">
             <div className="number">
               <h1>
-                $ {this.state.billing} <span>MXN</span>
+                <span>$</span> {this.state.billing} <span>MXN</span>
               </h1>
             </div>
           </div>

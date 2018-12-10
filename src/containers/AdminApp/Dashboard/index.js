@@ -12,7 +12,7 @@ import {
   PieChart,
   Pie,
   Legend,
-  Cell
+  Cell,
 } from 'recharts'
 import PropTypes from 'prop-types'
 
@@ -224,7 +224,9 @@ class Dashboard extends Component {
             <Card className="card">
               <h4>Resumen de facturación</h4>
               <div className="number">
-                <h1>{this.state.totalBilling} MXN</h1>
+                <h1>
+                  <span>$</span> {this.state.totalBilling} <span>MXN</span>
+                </h1>
               </div>
             </Card>
           </div>

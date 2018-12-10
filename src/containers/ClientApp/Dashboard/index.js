@@ -19,11 +19,6 @@ import ProfileModal from 'components/ProfileModal'
 
 import './styles.pcss'
 
-
-
-
-
-
 class Dashboard extends Component {
   static propTypes = {}
 
@@ -35,25 +30,33 @@ class Dashboard extends Component {
     requests: {},
   }
 
-
-  async componentDidMount(){
-      try{
-          let date = new Date()
-          let to = date.getDay()
-          date.setMonth(date.getMonth() -1)
-          let from = date.getDay()
-          const {data:{user: data}} = await NetworkOperation.getSelf()
-          const statsRes = await NetworkOperation.getClientRequestStats(data.username, from, to)
-          const billingRes = await NetworkOperation.getClientBillingStats(data.username, from, to)
-          console.log(statsRes, billingRes)
-          this.setState({
-            billing: billingRes.data.billing,
-            requests: statsRes.data.requests,
-          })
-
-      } catch (error) {
-        console.log(error)
-      }
+  async componentDidMount() {
+    try {
+      let date = new Date()
+      let to = date.getDay()
+      date.setMonth(date.getMonth() - 1)
+      let from = date.getDay()
+      const {
+        data: { user: data },
+      } = await NetworkOperation.getSelf()
+      const statsRes = await NetworkOperation.getClientRequestStats(
+        data.username,
+        from,
+        to
+      )
+      const billingRes = await NetworkOperation.getClientBillingStats(
+        data.username,
+        from,
+        to
+      )
+      console.log(statsRes, billingRes)
+      this.setState({
+        billing: billingRes.data.billing,
+        requests: statsRes.data.requests,
+      })
+    } catch (error) {
+      console.log(error)
+    }
   }
 
   onToggleProfileModal = () => {
@@ -77,7 +80,9 @@ class Dashboard extends Component {
           <h4>Resumen de consumo de datos</h4>
           <div className="chart-data-container">
             <div className="number">
-              <h1>{this.state.billing} MXN</h1>
+              <h1>
+                $ {this.state.billing} <span>MXN</span>
+              </h1>
             </div>
           </div>
         </Card>

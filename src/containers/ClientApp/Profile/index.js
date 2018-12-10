@@ -155,7 +155,7 @@ class Profile extends Component {
         <div>
           <h2>Rangos de consultas</h2>
           <div className="consults-range">
-            <label>Consultas</label>
+            <label>Rango de Busquedas</label>
             <div>
               {this.context?.user?.indexRates?.map((rate, index) => (
                 (currentRange?.requests?.indexings > rate.min && currentRange?.requests?.indexings < rate.max) ?
@@ -166,7 +166,7 @@ class Profile extends Component {
             </div>
           </div>
           <div className="consults-range">
-            <label>Indexación</label>
+            <label>Rango de Indexación</label>
             <div>
               {this.context?.user?.searchRates?.map((rate, index) => (
                 (currentRange?.requests?.searches > rate.min && currentRange?.requests?.searches < rate.max) ?

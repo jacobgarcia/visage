@@ -130,6 +130,9 @@ class NetworkOperation {
   static getApiToken() {
     return axios.get(`${baseUrl}/v1/private/users/token`)
   }
+  static getTopSearches() {
+    return axios.get(`${baseUrl}/v1/private/stats/searches/topsearches`)
+  }
   /*
   A D M I N S
   */

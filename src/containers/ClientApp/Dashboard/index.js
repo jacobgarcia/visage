@@ -28,6 +28,8 @@ class Dashboard extends Component {
     products: {},
     searches: {},
     requests: {},
+    topsearches: { mostSearchedItems: [] },
+    chardata : [{name:'none', value:100}],
   }
 
   async componentDidMount() {
@@ -49,10 +51,16 @@ class Dashboard extends Component {
         from,
         to
       )
-      console.log(statsRes, billingRes)
+      const topsearches = await NetworkOperation.getTopSearches()
+      const chardata = topsearches.data.mostSearchedItems.map((id, count) =>{
+        console.log(id, count, 'holaaaaaa')
+        return {name: id, value:count}
+      })
       this.setState({
         billing: billingRes.data.billing,
         requests: statsRes.data.requests,
+        topsearches: topsearches.data,
+        chardata: chardata.length > 0 ? chardata : [{name:'none', value:100}],
       })
     } catch (error) {
       console.log(error)
@@ -86,37 +94,36 @@ class Dashboard extends Component {
           <h4>Cantidad de búsqueda</h4>
           <div className="chart-data-container">
             <div className="pie-chart-container">
-              <PieChart width={210} height={210}>
+              <PieChart width={420} height={420}>
                 <Pie
-                  data={data02}
-                  cx={100}
-                  cy={100}
-                  innerRadius={75}
-                  outerRadius={100}
+                  data={this.state.chardata}
+                  cx={200}
+                  cy={200}
+                  innerRadius={125}
+                  outerRadius={200}
                   fill="#82ca9d"
                 >
-                  {data02.map((entry, index) => (
+                  {this.state.chardata.map((data, index) => (
                     <Cell KEY={index} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
               </PieChart>
               <div className="pie-chart__label">
                 <span>Total de búsquedas</span>
-                <p>74,662</p>
+                <p>{this.state.requests.total}</p>
               </div>
             </div>
             <div className="pie-chart__legend">
-              {[0, 0, 0, 0, 0].map((_, index) => (
+              {this.state.chardata.map((data, index) => (
                 <div key={index}>
                   <div
                     className="bullet"
                     style={{ backgroundColor: COLORS[index % COLORS.length] }}
                   />
                   <span style={{ color: COLORS[index % COLORS.length] }}>
-                    35%
+                    {data.name}
                   </span>
-                  <p>Tag</p>
-                  <span>18200</span>
+                  <span>{data.value}</span>
                 </div>
               ))}
             </div>
@@ -144,11 +151,16 @@ class Dashboard extends Component {
         <Card noPadding>
           <h4>Productos más buscados</h4>
           <div className="table">
-            {[0, 0, 0, 0, 0, 0].map((_, index) => (
+          <div key='title'>
+            <div>Producto</div>
+            <div>Categoría</div>
+            <div>No. búsquedas</div>
+          </div>
+            {this.state.topsearches.mostSearchedItems.map((data, index) => (
               <div key={index}>
-                <div>Producto</div>
-                <div>Categoría</div>
-                <div>No. búsquedas</div>
+                <div>data.id</div>
+                <div>data.cl</div>
+                <div>data.count</div>
               </div>
             ))}
           </div>

@@ -474,7 +474,7 @@ router.route('/stats/users/:username/billing').get((req, res) => {
       },
     },
   ]).exec((error, users) => {
-    if (error) {
+    if (error || !users[0]) {
       console.info('Could not fetch users', error)
       return res
         .status(500)

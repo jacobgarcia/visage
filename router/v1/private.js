@@ -237,7 +237,7 @@ router.route('/images/index/:username').post((req, res) => {
               response,
               request,
               user,
-            }).save((error, indexing) => {
+            }).save((error) => {
               if (error) {
                 console.info('Could not create indexing object', error)
                 return
@@ -936,6 +936,36 @@ router
         .json({ error: { message: 'Could not update user information' } })
     }
   })
+
+router.route('/users/password').patch(async (req, res) => {
+  const { currentPassword, newPassword, confirmPassword } = req.body
+  if (!newPassword || !currentPassword || !currentPassword) return res
+      .status(400)
+      .json({ success: false, message: 'Malformed request' })
+  if (newPassword !== confirmPassword) return res
+      .status(400)
+      .json({ success: false, message: 'Passwords does not match' })
+  try {
+    const user = await User.findOne({ _id: req._user._id })
+    const result = await bcrypt.compare(
+      `${currentPassword}${JWT_SECRET}`,
+      user.password
+    )
+    if (!result) return res
+        .status(401)
+        .json({ success: false, message: 'Current password does not match' })
+    user.password = await bcrypt.hash(`${newPassword}${JWT_SECRET}`, 10)
+    await user.save()
+    return res
+      .status(200)
+      .json({ success: true, message: 'Successfully updated password' })
+  } catch (error) {
+    console.error('Could not update password', error)
+    return res
+      .status(500)
+      .json({ error: { message: 'Could not update password' } })
+  }
+})
 
 // Edit admin
 router

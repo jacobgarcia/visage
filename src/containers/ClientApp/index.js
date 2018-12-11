@@ -67,6 +67,7 @@ class ClientApp extends Component {
           <div className={'toggle-button'} />
         </div>
         <ProfileDrawer
+          history={this.props.history}
           open={this.state.profileDrawerOpen}
           onClose={this.toggleProfileDrawer}
         />

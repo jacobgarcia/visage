@@ -235,7 +235,13 @@ class Profile extends Component {
           </div>
           <hr />
           <div className="signout-container">
-            <Button className="logout" color="red">
+            <Button
+              className="logout"
+              color="red"
+              onClick={() => {
+                this.props.history.replace('/login')
+              }}
+            >
               Cerrar sesión
             </Button>
           </div>

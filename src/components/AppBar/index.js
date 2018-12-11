@@ -84,7 +84,7 @@ class AppBarComponent extends PureComponent {
             position="absolute"
             className={`app-bar ${toolBarHidden ? '--full-width' : ''}`}
           >
-            {/* <Modal
+            <Modal
               open={openUserModal}
               onClose={this.toggleUserDataModal(false)}
               className="modal"
@@ -149,7 +149,7 @@ class AppBarComponent extends PureComponent {
                   </NavLink>
                 </div>
               </div>
-            </Modal> */}
+            </Modal>
             <Toolbar className="toolbar">
               <div className="toolbar__content">
                 <Typography variant="subtitle1" color="inherit" noWrap>
@@ -240,7 +240,14 @@ class AppBarComponent extends PureComponent {
                   </Menu>
                 </div>
               )}
-              <div className="user-image" onClick={closeProfileDrawer}>
+              <div
+                className="user-image"
+                onClick={() => {
+                  closeProfileDrawer
+                    ? closeProfileDrawer()
+                    : this.toggleUserDataModal(true)()
+                }}
+              >
                 {data?.user?.userImage ? (
                   <img src={data?.user?.userImage} alt="User" />
                 ) : (
@@ -253,6 +260,10 @@ class AppBarComponent extends PureComponent {
       </UserContext.Consumer>
     )
   }
+}
+
+AppBarComponent.defaultProps = {
+  closeProfileDrawer: null,
 }
 
 export default AppBarComponent

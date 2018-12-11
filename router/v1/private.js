@@ -748,7 +748,9 @@ router.route('/stats/searches/topsearches').get(async (req, res) => {
     mostSearchedItems.map((item) => {
       item.count = counts[item.sku]
     })
-    return res.status(200).json({ mostSearchedItems, counts })
+    return res
+      .status(200)
+      .json({ mostSearchedItems: mostSearchedItems.slice(0, 9), counts })
   } catch (error) {
     console.error('Could not retrieve searches', error)
     return res

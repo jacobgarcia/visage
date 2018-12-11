@@ -1235,11 +1235,18 @@ router.use(paginate.middleware(10, 50))
 
 // Get all users information
 router.route('/users').get(async (req, res) => {
+  const search = req.param('search')
   try {
     const [users, itemCount] = await Promise.all([
-      User.find({})
+      User.find({
+        $or: [
+          { name: { $regex: new RegExp(search, 'i') } },
+          { email: { $regex: new RegExp(search, 'i') } },
+          { company: { $regex: new RegExp(search, 'i') } },
+        ],
+      })
         .select(
-          'username name surname company email isIndexing active apiKey.active toIndex'
+          'username name company email isIndexing active apiKey.active toIndex'
         )
         .sort({ name: 1 })
         .limit(req.query.limit)
@@ -1256,16 +1263,25 @@ router.route('/users').get(async (req, res) => {
       pageCount,
     })
   } catch (error) {
+    console.error(error)
     return res.status(500).json({ error: { message: 'Could not fetch users' } })
   }
 })
 
 // Get all admins information
 router.route('/admins').get(async (req, res) => {
+  const search = req.param('search')
+
   try {
     const [admins, itemCount] = await await Promise.all([
-      Admin.find({})
-        .select('name surname username email superAdmin services active')
+      Admin.find({
+        $or: [
+          { name: { $regex: new RegExp(search, 'i') } },
+          { username: { $regex: new RegExp(search, 'i') } },
+          { email: { $regex: new RegExp(search, 'i') } },
+        ],
+      })
+        .select('name username email superAdmin services active')
         .sort({ name: 1 })
         .limit(req.query.limit)
         .skip(req.skip)
@@ -1287,9 +1303,10 @@ router.route('/admins').get(async (req, res) => {
 
 // Get all guests information
 router.route('/guests').get(async (req, res) => {
+  const search = req.param('search')
   try {
     const [guests, itemCount] = await Promise.all([
-      Guest.find({})
+      Guest.find({ email: { $regex: new RegExp(search, 'i') } })
         .sort({ email: 1 })
         .limit(req.query.limit)
         .skip(req.skip)

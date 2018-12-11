@@ -3,9 +3,8 @@ import { Route } from 'react-router-dom'
 import PropTypes from 'prop-types'
 
 import Dashboard from 'containers/ClientApp/Dashboard'
-import Profile from 'containers/ClientApp/Profile'
 import AppBar from 'components/AppBar'
-import Drawer from 'components/Drawer'
+import ProfileDrawer from 'components/ProfileDrawer'
 
 import qboLogo from 'assets/qbo-logo-mono.svg'
 import './styles.pcss'
@@ -16,6 +15,7 @@ class ClientApp extends Component {
   state = {
     profileModalOpen: false,
     toolBarHidden: false,
+    profileDrawerOpen: false,
   }
 
   onToggleProfileModal = () => {
@@ -36,6 +36,12 @@ class ClientApp extends Component {
 
   onToggle = (name) => () => this.setState((prev) => ({ [name]: !prev[name] }))
 
+  toggleProfileDrawer = () => {
+    this.setState(({ profileDrawerOpen }) => ({
+      profileDrawerOpen: !profileDrawerOpen,
+    }))
+  }
+
   render() {
     const {
       state: { toolBarHidden },
@@ -51,7 +57,7 @@ class ClientApp extends Component {
     return (
       <div id="client-app">
         <AppBar
-          onToggle={this.onToggle}
+          closeProfileDrawer={this.toggleProfileDrawer}
           title={title}
           history={this.props.history}
           isClient
@@ -60,15 +66,12 @@ class ClientApp extends Component {
           <img src={qboLogo} alt="QBO" />
           <div className={'toggle-button'} />
         </div>
-        {/* <Drawer
-          isClient
-          onToggle={this.onToggle}
-          toolBarHidden={toolBarHidden}
-          onCloseClick={this.onCloseClick}
-        /> */}
+        <ProfileDrawer
+          open={this.state.profileDrawerOpen}
+          onClose={this.toggleProfileDrawer}
+        />
         <div className="content dashboard">
-          <Route exact path="/" component={Dashboard} />
-          <Route path="/profile" component={Profile} />
+          <Dashboard closeProfileDrawer={this.toggleProfileDrawer} />
         </div>
       </div>
     )

@@ -16,7 +16,6 @@ import CircularProgress from '@material-ui/core/CircularProgress'
 import ExitIcon from '@material-ui/icons/ExitToApp'
 import Typography from '@material-ui/core/Typography'
 import SaveIcon from '@material-ui/icons/Save'
-import SettingsIcon from '@material-ui/icons/Settings'
 import IconButton from '@material-ui/core/IconButton'
 import Menu from '@material-ui/core/Menu'
 import MenuItem from '@material-ui/core/MenuItem'
@@ -73,6 +72,7 @@ class AppBarComponent extends PureComponent {
         handleDayClick,
         numberOfMonths,
         isClient,
+        closeProfileDrawer,
       },
       state: { openUserModal, anchorEl },
     } = this
@@ -84,7 +84,7 @@ class AppBarComponent extends PureComponent {
             position="absolute"
             className={`app-bar ${toolBarHidden ? '--full-width' : ''}`}
           >
-            <Modal
+            {/* <Modal
               open={openUserModal}
               onClose={this.toggleUserDataModal(false)}
               className="modal"
@@ -149,7 +149,7 @@ class AppBarComponent extends PureComponent {
                   </NavLink>
                 </div>
               </div>
-            </Modal>
+            </Modal> */}
             <Toolbar className="toolbar">
               <div className="toolbar__content">
                 <Typography variant="subtitle1" color="inherit" noWrap>
@@ -227,13 +227,6 @@ class AppBarComponent extends PureComponent {
               )}
               {isClient && (
                 <div className="actions-container">
-                  <IconButton
-                    onClick={() => {
-                      this.props.history.push('/profile')
-                    }}
-                  >
-                    <SettingsIcon color="inherit" />
-                  </IconButton>
                   <IconButton onClick={this.handleClick}>
                     <NotificationsIcon color="inherit" />
                   </IconButton>
@@ -247,10 +240,7 @@ class AppBarComponent extends PureComponent {
                   </Menu>
                 </div>
               )}
-              <div
-                className="user-image"
-                onClick={this.toggleUserDataModal(true)}
-              >
+              <div className="user-image" onClick={closeProfileDrawer}>
                 {data?.user?.userImage ? (
                   <img src={data?.user?.userImage} alt="User" />
                 ) : (

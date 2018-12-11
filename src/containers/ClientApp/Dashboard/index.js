@@ -67,15 +67,11 @@ class Dashboard extends Component {
 
   render() {
     const {
-      state: { profileModalOpen },
+      props: { closeProfileDrawer },
     } = this
 
     return (
       <div className="dashboard">
-        <ProfileModal
-          open={profileModalOpen}
-          onClose={this.onToggleProfileModal}
-        />
         <Card>
           <h4>Resumen de consumo de datos</h4>
           <div className="chart-data-container">

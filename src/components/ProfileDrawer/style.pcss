@@ -1,0 +1,74 @@
+.profile-drawer {
+  position: relative;
+  .profile-drawer-header {
+    flex-shrink: 0;
+    width: 500px;
+    height: 60px;
+    z-index: 1500;
+    display: flex;
+    justify-content: space-between;
+    background: linear-gradient(90deg, #9cd4d9, #92acd0);
+    color: white;
+    font-weight: 600;
+    padding: 8px 32px;
+    align-items: center;
+    /* z-index: 1300; */
+    .profile-data {
+      display: flex;
+    }
+    .profile-image {
+      width: 40px;
+      height: 40px;
+      background-color: white;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+    .indexing-status {
+      font-size: 0.8rem;
+    }
+  }
+  .logout {
+    color: red;
+    background-color: rgba(255, 0, 0, 0);
+    &:hover {
+      background-color: rgba(255, 0, 0, 0.08);
+    }
+  }
+  .signout-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 40px;
+    margin-bottom: 16px;
+  }
+  .profile-drawer-content {
+    padding: 32px;
+    max-width: 500px;
+    .title-action-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      p {
+        color: #52a3d7;
+        font-weight: 500;
+        font-size: 0.9rem;
+      }
+    }
+    h4 {
+      color: #a2a2a2;
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+    hr {
+      margin: 40px 0;
+    }
+    h2 {
+      margin-bottom: 16px;
+    }
+    .fields-container > div {
+      width: 100%;
+      margin-right: 16px;
+      margin-bottom: 16px;
+    }
+  }
+}

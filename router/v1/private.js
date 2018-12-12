@@ -327,6 +327,38 @@ router.route('/stats/requests').get((req, res) => {
     })
 })
 
+// Statistics endpoint for dashboard
+router.route('/stats/request/details').get((req, res) => {
+  const end = req.param('end'),
+    start = req.param('start')
+
+  Indexing.find({ timestamp: { $gte: start, $lte: end } }).exec(
+    (error, indexings) => {
+      if (error) {
+        console.info('Could not fetch indexings', error)
+        return res
+          .status(500)
+          .json({ error: { message: 'Could not fetch indexings' } })
+      }
+      return Searching.find({ timestamp: { $gte: start, $lte: end } }).exec(
+        (error, searchings) => {
+          if (error) {
+            console.info('Could not fetch searches', error)
+            return res
+              .status(500)
+              .json({ error: { message: 'Could not fetch searches' } })
+          }
+          const requests = {
+            indexings: indexings,
+            searches: searchings,
+          }
+          return res.status(200).json({ requests })
+        }
+      )
+    }
+  )
+})
+
 router.route('/stats/requests/:username').get(async (req, res) => {
   const end = req.param('end') ? req.param('end') : Date.now(),
     start = req.param('start') ? req.param('start') : 1

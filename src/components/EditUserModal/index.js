@@ -11,6 +11,9 @@ function getInitialState() {
   return {
     valid: false,
     error: '',
+    name: '',
+    company: '',
+    email: '',
   }
 }
 
@@ -18,26 +21,34 @@ class EditUserModal extends Component {
   state = {
     ...getInitialState(),
   }
-
-
+  componentDidMount() {
+    this.setState({
+      name: this.props.name,
+      company: this.props.company,
+      email: this.props.email,
+    })
+  }
   onChange = (name) => ({ target: { value } }) => {
     this.setState({ [name]: value }, () => {
       this.setState({
-        valid: this.state.lastpass && this.state.newpass && this.state.confirmnewpass,
-        error: this.state.newpass === this.state.confirmnewpass ? '' : 'La contraseña no coincide',
+        valid: this.state.name && this.state.company && this.state.email &&
+               this.state.searchLimit && this.state.indexLimit,
       })
     })
   }
 
   onSave = async () => {
     const info = {
-      currentPassword: this.state.lastpass,
-      newPassword: this.state.newpass,
-      confirmPassword: this.state.confirmnewpass,
+      name : this.state.name,
+      company: this.state.company,
+      email: this.state.email,
+      searchLimit: this.state.searchLimit,
+      indexLimit: this.state.indexLimit,
+      username: this.props.username,
     }
     try {
-      await NetworkOperation.updatePassword(info)
-      this.setState({ error: 'Contraseña cambiada'})
+      await NetworkOperation.updateClient(info, this.props.username)
+      this.setState({ error: 'Informacion Cambiada'})
       window.setTimeout(() => {
         this.props.onClose()
       }, 2000)
@@ -51,9 +62,11 @@ class EditUserModal extends Component {
       props,
       state: {
         valid,
-        lastpass,
-        newpass,
-        confirmnewpass,
+        name,
+        company,
+        email,
+        searchLimit,
+        indexLimit,
       },
     } = this
 
@@ -72,27 +85,48 @@ class EditUserModal extends Component {
               <div>
                 <TextField
                   required
-                  label="Contraseña antigua"
+                  className="name"
+                  label="Nombre"
                   margin="normal"
                   variant="outlined"
-                  value={lastpass}
-                  onChange={this.onChange('lastpass')}
+                  value={name}
+                  onChange={this.onChange('name')}
                 />
                 <TextField
                   required
-                  label="Nueva contraseña"
+                  className="company"
+                  label="Compañia"
                   margin="normal"
                   variant="outlined"
-                  value={newpass}
-                  onChange={this.onChange('newpass')}
+                  value={company}
+                  onChange={this.onChange('company')}
                 />
                 <TextField
                   required
-                  label="Confirmar nueva contraseña"
+                  className="email"
+                  label="Email"
                   margin="normal"
                   variant="outlined"
-                  value={confirmnewpass}
-                  onChange={this.onChange('confirmnewpass')}
+                  value={email}
+                  onChange={this.onChange('email')}
+                />
+                <TextField
+                  required
+                  className="searchLimit"
+                  label="Limite de Busquedas"
+                  margin="normal"
+                  variant="outlined"
+                  value={searchLimit}
+                  onChange={this.onChange('searchLimit')}
+                />
+                <TextField
+                  required
+                  className="indexLimit"
+                  label="Limite de Indexacion"
+                  margin="normal"
+                  variant="outlined"
+                  value={indexLimit}
+                  onChange={this.onChange('indexLimit')}
                 />
                 <p className="error-pass" >{this.state.error}</p>
               </div>

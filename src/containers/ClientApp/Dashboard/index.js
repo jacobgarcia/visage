@@ -50,6 +50,7 @@ class Dashboard extends Component {
       const chardata = topsearches.data.mostSearchedItems.map((data, index) =>{
         return {name: data.id, value: data.count}
       })
+      console.log(data)
       this.setState({
         billing: billingRes.data.billing,
         requests: statsRes.data.requests,

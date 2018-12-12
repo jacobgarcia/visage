@@ -25,6 +25,9 @@ const schema = new Schema({
   name: String,
   username: { type: String, required: true, unique: true, trim: true },
   company: String,
+  rfc: String,
+  businessName: String,
+  postalCode: Number,
   password: { type: String, required: true },
   searchRates: {
     type: [Rate],

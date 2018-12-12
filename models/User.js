@@ -62,4 +62,6 @@ const schema = new Schema({
   notifications: { type: [Number], default: [0] },
 })
 
+schema.index({ name: 'text', company: 'text', email: 'text' })
+
 module.exports = mongoose.model('User', schema)

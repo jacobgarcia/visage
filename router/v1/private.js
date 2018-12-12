@@ -237,7 +237,7 @@ router.route('/images/index/:username').post((req, res) => {
               response,
               request,
               user,
-            }).save((error, indexing) => {
+            }).save((error) => {
               if (error) {
                 console.info('Could not create indexing object', error)
                 return
@@ -748,7 +748,9 @@ router.route('/stats/searches/topsearches').get(async (req, res) => {
     mostSearchedItems.map((item) => {
       item.count = counts[item.sku]
     })
-    return res.status(200).json({ mostSearchedItems, counts })
+    return res
+      .status(200)
+      .json({ mostSearchedItems: mostSearchedItems.slice(0, 9), counts })
   } catch (error) {
     console.error('Could not retrieve searches', error)
     return res
@@ -936,6 +938,36 @@ router
         .json({ error: { message: 'Could not update user information' } })
     }
   })
+
+router.route('/users/password').patch(async (req, res) => {
+  const { currentPassword, newPassword, confirmPassword } = req.body
+  if (!newPassword || !currentPassword || !currentPassword) return res
+      .status(400)
+      .json({ success: false, message: 'Malformed request' })
+  if (newPassword !== confirmPassword) return res
+      .status(400)
+      .json({ success: false, message: 'Passwords does not match' })
+  try {
+    const user = await User.findOne({ _id: req._user._id })
+    const result = await bcrypt.compare(
+      `${currentPassword}${JWT_SECRET}`,
+      user.password
+    )
+    if (!result) return res
+        .status(401)
+        .json({ success: false, message: 'Current password does not match' })
+    user.password = await bcrypt.hash(`${newPassword}${JWT_SECRET}`, 10)
+    await user.save()
+    return res
+      .status(200)
+      .json({ success: true, message: 'Successfully updated password' })
+  } catch (error) {
+    console.error('Could not update password', error)
+    return res
+      .status(500)
+      .json({ error: { message: 'Could not update password' } })
+  }
+})
 
 // Edit admin
 router
@@ -1205,11 +1237,18 @@ router.use(paginate.middleware(10, 50))
 
 // Get all users information
 router.route('/users').get(async (req, res) => {
+  const search = req.param('search')
   try {
     const [users, itemCount] = await Promise.all([
-      User.find({})
+      User.find({
+        $or: [
+          { name: { $regex: new RegExp(search, 'i') } },
+          { email: { $regex: new RegExp(search, 'i') } },
+          { company: { $regex: new RegExp(search, 'i') } },
+        ],
+      })
         .select(
-          'username name surname company email isIndexing active apiKey.active toIndex'
+          'username name company email isIndexing active apiKey.active toIndex'
         )
         .sort({ name: 1 })
         .limit(req.query.limit)
@@ -1226,16 +1265,25 @@ router.route('/users').get(async (req, res) => {
       pageCount,
     })
   } catch (error) {
+    console.error(error)
     return res.status(500).json({ error: { message: 'Could not fetch users' } })
   }
 })
 
 // Get all admins information
 router.route('/admins').get(async (req, res) => {
+  const search = req.param('search')
+
   try {
     const [admins, itemCount] = await await Promise.all([
-      Admin.find({})
-        .select('name surname username email superAdmin services active')
+      Admin.find({
+        $or: [
+          { name: { $regex: new RegExp(search, 'i') } },
+          { username: { $regex: new RegExp(search, 'i') } },
+          { email: { $regex: new RegExp(search, 'i') } },
+        ],
+      })
+        .select('name username email superAdmin services active')
         .sort({ name: 1 })
         .limit(req.query.limit)
         .skip(req.skip)
@@ -1257,9 +1305,10 @@ router.route('/admins').get(async (req, res) => {
 
 // Get all guests information
 router.route('/guests').get(async (req, res) => {
+  const search = req.param('search')
   try {
     const [guests, itemCount] = await Promise.all([
-      Guest.find({})
+      Guest.find({ email: { $regex: new RegExp(search, 'i') } })
         .sort({ email: 1 })
         .limit(req.query.limit)
         .skip(req.skip)

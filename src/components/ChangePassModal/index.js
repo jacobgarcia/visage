@@ -29,13 +29,21 @@ class ChangePassModal extends Component {
     })
   }
 
-  onSave = () => {
-    const data = {
+  onSave = async () => {
+    const info = {
       currentPassword: this.state.lastpass,
       newPassword: this.state.newpass,
       confirmPassword: this.state.confirmnewpass,
     }
-    const res = NetworkOperation.updatePassword(data)
+    try {
+      await NetworkOperation.updatePassword(info)
+      this.setState({ error: 'Contraseña cambiada'})
+      window.setTimeout(() => {
+        this.props.onClose()
+      }, 2000)
+    } catch (error) {
+      this.setState({ error: 'Error de datos'})
+    }
   }
 
   render() {

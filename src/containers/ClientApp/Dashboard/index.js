@@ -5,13 +5,6 @@ import NetworkOperation from 'utils/NetworkOperation'
 import { PieChart, Pie, Cell } from 'recharts'
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#242424']
-const data02 = [
-  { name: 'A1', value: 100 },
-  { name: 'A2', value: 300 },
-  { name: 'B1', value: 100 },
-  { name: 'B2', value: 80 },
-  { name: 'B3', value: 40 },
-]
 
 import UsageBar from 'components/UsageBar'
 import Card from 'components/Card'
@@ -28,6 +21,8 @@ class Dashboard extends Component {
     products: {},
     searches: {},
     requests: {},
+    searchLimit: 1000,
+    indexLimit: 1000,
     topsearches: { mostSearchedItems: [] },
     chardata : [{name:'none', value:100}],
   }
@@ -35,9 +30,9 @@ class Dashboard extends Component {
   async componentDidMount() {
     try {
       let date = new Date()
-      let to = date.getDay()
+      let to = date.getTime()
       date.setMonth(date.getMonth() - 1)
-      let from = date.getDay()
+      let from = date.getTime()
       const {
         data: { user: data },
       } = await NetworkOperation.getSelf()
@@ -52,15 +47,17 @@ class Dashboard extends Component {
         to
       )
       const topsearches = await NetworkOperation.getTopSearches()
-      const chardata = topsearches.data.mostSearchedItems.map((id, count) =>{
-        console.log(id, count, 'holaaaaaa')
-        return {name: id, value:count}
+      const chardata = topsearches.data.mostSearchedItems.map((data, index) =>{
+        return {name: data.id, value: data.count}
       })
+      console.log(data)
       this.setState({
         billing: billingRes.data.billing,
         requests: statsRes.data.requests,
         topsearches: topsearches.data,
         chardata: chardata.length > 0 ? chardata : [{name:'none', value:100}],
+        searchLimit: data.searchLimit,
+        indexLimit: data.indexLimit,
       })
     } catch (error) {
       console.log(error)
@@ -121,9 +118,9 @@ class Dashboard extends Component {
                     style={{ backgroundColor: COLORS[index % COLORS.length] }}
                   />
                   <span style={{ color: COLORS[index % COLORS.length] }}>
-                    {data.name}
+                    ID: {data.name}
                   </span>
-                  <span>{data.value}</span>
+                  <span>Cantidad: {data.value}</span>
                 </div>
               ))}
             </div>
@@ -135,17 +132,17 @@ class Dashboard extends Component {
             <div className="usage-bar__data">
               <h5>Indexaciones</h5>
               <p className="low">
-                Dentro del límite <span>1000</span>
+                Dentro del límite <span>{this.state.indexLimit}</span>
               </p>
             </div>
-            <UsageBar percentage={this.state.requests?.indexings} />
+            <UsageBar percentage={this.state.requests?.indexings/this.state.indexLimit*100} />
             <div className="usage-bar__data">
               <h5>Búsquedas</h5>
               <p className="high">
-                Dentro del límite <span>1000</span>
+                Dentro del límite <span>{this.state.searchLimit}</span>
               </p>
             </div>
-            <UsageBar percentage={this.state.requests?.indexings} />
+            <UsageBar percentage={this.state.requests?.indexings/this.state.searchLimit*100} />
           </div>
         </Card>
         <Card noPadding>
@@ -158,9 +155,9 @@ class Dashboard extends Component {
           </div>
             {this.state.topsearches.mostSearchedItems.map((data, index) => (
               <div key={index}>
-                <div>data.id</div>
-                <div>data.cl</div>
-                <div>data.count</div>
+                <div>{data.id}</div>
+                <div>{data.cl}</div>
+                <div>{data.count}</div>
               </div>
             ))}
           </div>

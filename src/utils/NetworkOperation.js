@@ -133,6 +133,11 @@ class NetworkOperation {
   static getTopSearches() {
     return axios.get(`${baseUrl}/v1/private/stats/searches/topsearches`)
   }
+
+  static updatePassword(data) {
+    return axios.patch(`${baseUrl}/v1/private/users/password`, data)
+  }
+
   /*
   A D M I N S
   */

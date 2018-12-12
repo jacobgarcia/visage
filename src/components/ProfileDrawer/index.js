@@ -10,7 +10,7 @@ import VisibilityOff from '@material-ui/icons/VisibilityOff'
 import InputLabel from '@material-ui/core/InputLabel'
 import Input from '@material-ui/core/Input'
 import Drawer from '@material-ui/core/Drawer'
-
+import ChangePassModal from 'components/ChangePassModal'
 import NetworkOperation from 'utils/NetworkOperation'
 
 import { UserContext } from 'utils/context'
@@ -33,6 +33,7 @@ class Profile extends Component {
     socialName: '',
     rfc: '',
     currentRange: null,
+    changePassModal: false,
   }
 
   componentDidMount() {
@@ -74,6 +75,9 @@ class Profile extends Component {
   handleClickShowPassword = () =>
     this.setState((state) => ({ showPassword: !state.showPassword }))
 
+  handleClickPassModal = () =>
+    this.setState((state) => ({ changePassModal: !state.changePassModal}))
+
   render() {
     const {
       state: {
@@ -96,6 +100,10 @@ class Profile extends Component {
         onClose={this.props.onClose}
         className="profile-drawer"
       >
+        <ChangePassModal
+          onClose={this.handleClickPassModal}
+          open={this.state.changePassModal}
+        />
         <div className="profile-drawer-header">
           <div className="profile-data">
             <div className="profile-image" />
@@ -145,7 +153,9 @@ class Profile extends Component {
           <div>
             <h4>Contraseña</h4>
             <div className="signout-container">
-              <Button variant="outline">Cambiar contraseña</Button>
+              <Button variant="outline"
+                onClick = {this.handleClickPassModal}
+              >Cambiar contraseña</Button>
             </div>
           </div>
           <hr />

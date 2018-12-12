@@ -1085,10 +1085,7 @@ router.route('/admins/export').get((req, res) => {
 // GET all rates of user
 router.route('/rates').get(async (req, res) => {
   try {
-    const rates = await User.findOne()
-
-    console.info({ rates })
-
+    const rates = await User.findOne().select('searchRates indexRates')
     return res.status(200).json({ rates })
   } catch (error) {
     console.error('Could not get rates', error)
@@ -1204,6 +1201,13 @@ router.route('/rates/index').post(async (req, res) => {
 router.route('/rates/search/:rateId').delete(async (req, res) => {
   const _id = req.params.rateId.toString()
   try {
+    const user = await User.findOne({ _id: req._user._id }).select(
+      'searchRates'
+    )
+    if (user.searchRates[0]._id == _id) return res.status(403).json({
+        success: false,
+        message: 'Cannot delete first search rate',
+      })
     await User.updateMany({}, { $pull: { searchRates: { _id } } })
     return res
       .status(200)
@@ -1220,6 +1224,11 @@ router.route('/rates/search/:rateId').delete(async (req, res) => {
 router.route('/rates/index/:rateId').delete(async (req, res) => {
   const _id = req.params.rateId.toString()
   try {
+    const user = await User.findOne({ _id: req._user._id }).select('indexRates')
+    if (user.indexRates[0]._id == _id) return res.status(403).json({
+        success: false,
+        message: 'Cannot delete first index rate',
+      })
     await User.updateMany({}, { $pull: { indexRates: { _id } } })
     return res
       .status(200)

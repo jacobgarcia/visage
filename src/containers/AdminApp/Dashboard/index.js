@@ -6,6 +6,8 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
+  ScatterChart,
+  Scatter,
   Tooltip,
   Treemap,
   ResponsiveContainer,
@@ -18,7 +20,7 @@ import PropTypes from 'prop-types'
 
 import NetworkOperation from 'utils/NetworkOperation'
 import { withSaver } from 'utils/portals'
-
+import moment from 'moment'
 import './styles.pcss'
 
 const COLORS = [
@@ -29,7 +31,13 @@ const COLORS = [
   '#F9CC7A',
   '#E9666E',
 ]
-
+const chartData = [
+  { value: 14, time: 1503617297689 },
+  { value: 15, time: 1503616962277 },
+  { value: 15, time: 1503616882654 },
+  { value: 20, time: 1503613184594 },
+  { value: 15, time: 1503611308914 },
+]
 function CustomizedContent(props) {
   const { root, depth, x, y, width, height, index, colors, name } = props
 
@@ -183,23 +191,33 @@ class Dashboard extends Component {
           </div>
           <div className="card-wrapper">
             <Card className="card">
-              <h4>Consumo de datos por usuario</h4>
+              <h4>Consumo de datos</h4>
               <ResponsiveContainer width="100%" height={400}>
-                <BarChart
+                <ScatterChart
                   width={600}
                   height={400}
-                  data={this.state.barChartData}
                   margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
                   isAnimationActive={false}
                 >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
+                  <CartesianGrid strokeDasharray="4 4" />
+                  <XAxis
+                    dataKey = 'time'
+                    domain = {['auto', 'auto']}
+                    name = 'Time'
+                    tickFormatter = {(unixTime) => moment(unixTime).format('HH:mm Do')}
+                    type = 'number'
+                  />
+                  <YAxis dataKey = 'value' name = 'Value' />
                   <Tooltip />
                   <Legend />
-                  <Bar dataKey="index" fill="#A4CFD7" />
-                  <Bar dataKey="search" fill="#98B1CE" />
-                </BarChart>
+                  <Scatter
+                    data = {chartData}
+                    line = {{ stroke: '#eee' }}
+                    lineJointType = 'monotoneX'
+                    lineType = 'joint'
+                    name = 'Values'
+                  />
+                </ScatterChart>
               </ResponsiveContainer>
             </Card>
           </div>

@@ -142,7 +142,7 @@ class Dashboard extends Component {
                 Dentro del límite <span>{this.state.searchLimit}</span>
               </p>
             </div>
-            <UsageBar percentage={this.state.requests?.indexings/this.state.searchLimit*100} />
+            <UsageBar percentage={this.state.requests?.searches/this.state.searchLimit*100} />
           </div>
         </Card>
         <Card noPadding>

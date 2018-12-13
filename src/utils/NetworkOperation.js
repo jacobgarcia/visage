@@ -37,7 +37,7 @@ class NetworkOperation {
   }
 
   static getRequestDetailedStats(from, to) {
-    return axios.get(`${baseUrl}/v1/private/stats/requests/details`, {
+    return axios.get(`${baseUrl}/v1/private/stats/request/details`, {
       params: {
         start: from,
         end: to,

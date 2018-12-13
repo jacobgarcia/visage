@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import createReactClass  from 'create-react-class'
 import Card from '@material-ui/core/Card'
 import {
   BarChart,
@@ -17,10 +18,11 @@ import {
   Cell,
 } from 'recharts'
 import PropTypes from 'prop-types'
-
+import DefaultTooltipContent from 'recharts/lib/component/DefaultTooltipContent'
 import NetworkOperation from 'utils/NetworkOperation'
 import { withSaver } from 'utils/portals'
 import moment from 'moment'
+import _ from 'lodash'
 import './styles.pcss'
 
 const COLORS = [
@@ -31,13 +33,23 @@ const COLORS = [
   '#F9CC7A',
   '#E9666E',
 ]
-const chartData = [
-  { value: 14, time: 1503617297689 },
-  { value: 15, time: 1503616962277 },
-  { value: 15, time: 1503616882654 },
-  { value: 20, time: 1503613184594 },
-  { value: 15, time: 1503611308914 },
-]
+
+const CustomTooltip = props => {
+    if (props.payload[0] != null) {
+            const newPayload = [
+      {
+        name: 'Day',
+        value: moment(parseInt(props.payload[0].value)).format('YYYY-MM-DD'),
+      },
+      ...props.payload,
+    ]
+
+        return <DefaultTooltipContent {...props} payload={newPayload} />
+  }
+
+    return <DefaultTooltipContent {...props} />
+}
+
 function CustomizedContent(props) {
   const { root, depth, x, y, width, height, index, colors, name } = props
 
@@ -94,6 +106,8 @@ class Dashboard extends Component {
     to: this.props.to,
     barChartData: {},
     treeChartData: {},
+    indexScatterData: {},
+    searchScatterData: {},
     totalBilling: 0,
   }
 
@@ -112,13 +126,14 @@ class Dashboard extends Component {
     try {
       const barChartData = []
       const treeChartData = []
-
+      const searchScatterData = []
+      const indexScatterData = []
       const from = passedFrom ? passedFrom.getTime() : this.state.from.getTime()
       const to = passedTo ? passedTo.getTime() : this.state.to.getTime()
 
       const statsRes = await NetworkOperation.getRequestStats(from, to)
       const billingRes = await NetworkOperation.getUserBillingStats(from, to)
-
+      const statsResDetailed = await NetworkOperation.getRequestDetailedStats(from, to)
       billingRes.data?.users?.map((user) => {
         barChartData.push({
           name: user?.username,
@@ -133,6 +148,20 @@ class Dashboard extends Component {
           ],
         })
       })
+      let indexGroupedResults = _.groupBy(statsResDetailed.data.requests.indexings, (result) => moment(result['timestamp']).startOf('day').valueOf())
+      Object.keys(indexGroupedResults).map((data) => {
+        indexScatterData.push({
+          value: indexGroupedResults[data].length,
+          time: data,
+        })
+      })
+      let searchGroupedResults = _.groupBy(statsResDetailed.data.requests.searches, (result) => moment(result['timestamp']).startOf('day').valueOf())
+      Object.keys(searchGroupedResults).map((data) => {
+        searchScatterData.push({
+          value: searchGroupedResults[data].length,
+          time: data,
+        })
+      })
       const totalBilling = await billingRes.data?.users.reduce(
         (acumulator, user) => {
           return acumulator + user.billing
@@ -145,6 +174,8 @@ class Dashboard extends Component {
         barChartData: barChartData,
         treeChartData: treeChartData,
         totalBilling: totalBilling,
+        indexScatterData: indexScatterData,
+        searchScatterData: searchScatterData,
       })
     } catch (error) {
       console.log(error)
@@ -174,8 +205,8 @@ class Dashboard extends Component {
                     ]}
                     cx="50%"
                     cy={170}
-                    innerRadius={90}
-                    outerRadius={150}
+                    innerRadius={80}
+                    outerRadius={140}
                     fill="#8884d8"
                     label
                   >
@@ -204,18 +235,27 @@ class Dashboard extends Component {
                     dataKey = 'time'
                     domain = {['auto', 'auto']}
                     name = 'Time'
-                    tickFormatter = {(unixTime) => moment(unixTime).format('HH:mm Do')}
+                    tickFormatter = {(unixTime) => moment(unixTime).format("MMM Do YY")}
                     type = 'number'
                   />
                   <YAxis dataKey = 'value' name = 'Value' />
-                  <Tooltip />
+                  <Tooltip content={<CustomTooltip/>}/>
                   <Legend />
                   <Scatter
-                    data = {chartData}
-                    line = {{ stroke: '#eee' }}
+                    data = {this.state.searchScatterData}
+                    line = {{ stroke: '#A4CFD7' }}
                     lineJointType = 'monotoneX'
                     lineType = 'joint'
-                    name = 'Values'
+                    name = 'Busquedas'
+                    fill = '#A4CFD7'
+                  />
+                  <Scatter
+                    data = {this.state.indexScatterData}
+                    line = {{ stroke: '#98B1CE' }}
+                    lineJointType = 'monotoneX'
+                    lineType = 'joint'
+                    name = 'Indexaciones'
+                    fill = '#98B1CE'
                   />
                 </ScatterChart>
               </ResponsiveContainer>

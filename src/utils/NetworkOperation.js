@@ -147,6 +147,10 @@ class NetworkOperation {
     return axios.patch(`${baseUrl}/v1/private/users/password`, data)
   }
 
+  static exportUsers() {
+    return axios.get(`${baseUrl}/v1/private/users/export`)
+  }
+
   /*
   A D M I N S
   */
@@ -165,6 +169,10 @@ class NetworkOperation {
 
   static updateAdmin(admin, oldUsername) {
     return axios.put(`${baseUrl}/v1/private/admins/${oldUsername}`, admin)
+  }
+
+  static exportAdmins() {
+    return axios.get(`${baseUrl}/v1/private/admins/export`)
   }
 
   /*

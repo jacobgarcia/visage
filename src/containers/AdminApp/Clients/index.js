@@ -8,6 +8,7 @@ import TableRow from '@material-ui/core/TableRow'
 import Button from '@material-ui/core/Button'
 import Card from '@material-ui/core/Card'
 import TextField from '@material-ui/core/TextField'
+import FileSaver from 'file-saver'
 
 import PropTypes from 'prop-types'
 
@@ -49,6 +50,18 @@ class Clients extends Component {
       users = users.data.users || []
 
       this.setState({ rows: users, filteredRows: users })
+    } catch (error) {
+      console.log({ error })
+    }
+  }
+
+  exportData = async () => {
+    try {
+      const response = await NetworkOperation.exportUsers()
+      const blob = new Blob([response.data], {
+        type: 'text/plain;charset=utf-8',
+      })
+      FileSaver.saveAs(blob, new Date().toLocaleDateString() + '_users.csv')
     } catch (error) {
       console.log({ error })
     }
@@ -131,7 +144,12 @@ class Clients extends Component {
             >
               Nuevo
             </Button>
-            <Button color="secondary" className="button" variant="contained">
+            <Button
+              color="secondary"
+              className="button"
+              variant="contained"
+              onClick={this.exportData}
+            >
               Exportar
             </Button>
           </div>

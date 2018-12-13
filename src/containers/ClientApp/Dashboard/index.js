@@ -5,13 +5,6 @@ import NetworkOperation from 'utils/NetworkOperation'
 import { PieChart, Pie, Cell } from 'recharts'
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#242424']
-const data02 = [
-  { name: 'A1', value: 100 },
-  { name: 'A2', value: 300 },
-  { name: 'B1', value: 100 },
-  { name: 'B2', value: 80 },
-  { name: 'B3', value: 40 },
-]
 
 import UsageBar from 'components/UsageBar'
 import Card from 'components/Card'
@@ -28,14 +21,18 @@ class Dashboard extends Component {
     products: {},
     searches: {},
     requests: {},
+    searchLimit: 1000,
+    indexLimit: 1000,
+    topsearches: { mostSearchedItems: [] },
+    chardata : [{name:'none', value:100}],
   }
 
   async componentDidMount() {
     try {
       let date = new Date()
-      let to = date.getDay()
+      let to = date.getTime()
       date.setMonth(date.getMonth() - 1)
-      let from = date.getDay()
+      let from = date.getTime()
       const {
         data: { user: data },
       } = await NetworkOperation.getSelf()
@@ -49,10 +46,18 @@ class Dashboard extends Component {
         from,
         to
       )
-      console.log(statsRes, billingRes)
+      const topsearches = await NetworkOperation.getTopSearches()
+      const chardata = topsearches.data.mostSearchedItems.map((data, index) =>{
+        return {name: data.id, value: data.count}
+      })
+      console.log(data)
       this.setState({
         billing: billingRes.data.billing,
         requests: statsRes.data.requests,
+        topsearches: topsearches.data,
+        chardata: chardata.length > 0 ? chardata : [{name:'none', value:100}],
+        searchLimit: data.searchLimit,
+        indexLimit: data.indexLimit,
       })
     } catch (error) {
       console.log(error)
@@ -86,37 +91,36 @@ class Dashboard extends Component {
           <h4>Cantidad de búsqueda</h4>
           <div className="chart-data-container">
             <div className="pie-chart-container">
-              <PieChart width={210} height={210}>
+              <PieChart width={420} height={420}>
                 <Pie
-                  data={data02}
-                  cx={100}
-                  cy={100}
-                  innerRadius={75}
-                  outerRadius={100}
+                  data={this.state.chardata}
+                  cx={200}
+                  cy={200}
+                  innerRadius={125}
+                  outerRadius={200}
                   fill="#82ca9d"
                 >
-                  {data02.map((entry, index) => (
+                  {this.state.chardata.map((data, index) => (
                     <Cell KEY={index} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
               </PieChart>
               <div className="pie-chart__label">
                 <span>Total de búsquedas</span>
-                <p>74,662</p>
+                <p>{this.state.requests.total}</p>
               </div>
             </div>
             <div className="pie-chart__legend">
-              {[0, 0, 0, 0, 0].map((_, index) => (
+              {this.state.chardata.map((data, index) => (
                 <div key={index}>
                   <div
                     className="bullet"
                     style={{ backgroundColor: COLORS[index % COLORS.length] }}
                   />
                   <span style={{ color: COLORS[index % COLORS.length] }}>
-                    35%
+                    ID: {data.name}
                   </span>
-                  <p>Tag</p>
-                  <span>18200</span>
+                  <span>Cantidad: {data.value}</span>
                 </div>
               ))}
             </div>
@@ -128,27 +132,32 @@ class Dashboard extends Component {
             <div className="usage-bar__data">
               <h5>Indexaciones</h5>
               <p className="low">
-                Dentro del límite <span>1000</span>
+                Dentro del límite <span>{this.state.indexLimit}</span>
               </p>
             </div>
-            <UsageBar percentage={this.state.requests?.indexings} />
+            <UsageBar percentage={this.state.requests?.indexings/this.state.indexLimit*100} />
             <div className="usage-bar__data">
               <h5>Búsquedas</h5>
               <p className="high">
-                Dentro del límite <span>1000</span>
+                Dentro del límite <span>{this.state.searchLimit}</span>
               </p>
             </div>
-            <UsageBar percentage={this.state.requests?.indexings} />
+            <UsageBar percentage={this.state.requests?.searches/this.state.searchLimit*100} />
           </div>
         </Card>
         <Card noPadding>
           <h4>Productos más buscados</h4>
           <div className="table">
-            {[0, 0, 0, 0, 0, 0].map((_, index) => (
+          <div key='title'>
+            <div>Producto</div>
+            <div>Categoría</div>
+            <div>No. búsquedas</div>
+          </div>
+            {this.state.topsearches.mostSearchedItems.map((data, index) => (
               <div key={index}>
-                <div>Producto</div>
-                <div>Categoría</div>
-                <div>No. búsquedas</div>
+                <div>{data.id}</div>
+                <div>{data.cl}</div>
+                <div>{data.count}</div>
               </div>
             ))}
           </div>

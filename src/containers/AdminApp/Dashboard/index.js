@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import createReactClass  from 'create-react-class'
 import Card from '@material-ui/core/Card'
 import {
   BarChart,
@@ -6,6 +7,8 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
+  ScatterChart,
+  Scatter,
   Tooltip,
   Treemap,
   ResponsiveContainer,
@@ -15,10 +18,11 @@ import {
   Cell,
 } from 'recharts'
 import PropTypes from 'prop-types'
-
+import DefaultTooltipContent from 'recharts/lib/component/DefaultTooltipContent'
 import NetworkOperation from 'utils/NetworkOperation'
 import { withSaver } from 'utils/portals'
-
+import moment from 'moment'
+import _ from 'lodash'
 import './styles.pcss'
 
 const COLORS = [
@@ -29,6 +33,22 @@ const COLORS = [
   '#F9CC7A',
   '#E9666E',
 ]
+
+const CustomTooltip = props => {
+    if (props.payload[0] != null) {
+            const newPayload = [
+      {
+        name: 'Day',
+        value: moment(parseInt(props.payload[0].value)).format('YYYY-MM-DD'),
+      },
+      ...props.payload,
+    ]
+
+        return <DefaultTooltipContent {...props} payload={newPayload} />
+  }
+
+    return <DefaultTooltipContent {...props} />
+}
 
 function CustomizedContent(props) {
   const { root, depth, x, y, width, height, index, colors, name } = props
@@ -86,6 +106,8 @@ class Dashboard extends Component {
     to: this.props.to,
     barChartData: {},
     treeChartData: {},
+    indexScatterData: {},
+    searchScatterData: {},
     totalBilling: 0,
   }
 
@@ -104,13 +126,14 @@ class Dashboard extends Component {
     try {
       const barChartData = []
       const treeChartData = []
-
+      const searchScatterData = []
+      const indexScatterData = []
       const from = passedFrom ? passedFrom.getTime() : this.state.from.getTime()
       const to = passedTo ? passedTo.getTime() : this.state.to.getTime()
 
       const statsRes = await NetworkOperation.getRequestStats(from, to)
       const billingRes = await NetworkOperation.getUserBillingStats(from, to)
-
+      const statsResDetailed = await NetworkOperation.getRequestDetailedStats(from, to)
       billingRes.data?.users?.map((user) => {
         barChartData.push({
           name: user?.username,
@@ -125,6 +148,20 @@ class Dashboard extends Component {
           ],
         })
       })
+      let indexGroupedResults = _.groupBy(statsResDetailed.data.requests.indexings, (result) => moment(result['timestamp']).startOf('day').valueOf())
+      Object.keys(indexGroupedResults).map((data) => {
+        indexScatterData.push({
+          value: indexGroupedResults[data].length,
+          time: data,
+        })
+      })
+      let searchGroupedResults = _.groupBy(statsResDetailed.data.requests.searches, (result) => moment(result['timestamp']).startOf('day').valueOf())
+      Object.keys(searchGroupedResults).map((data) => {
+        searchScatterData.push({
+          value: searchGroupedResults[data].length,
+          time: data,
+        })
+      })
       const totalBilling = await billingRes.data?.users.reduce(
         (acumulator, user) => {
           return acumulator + user.billing
@@ -137,6 +174,8 @@ class Dashboard extends Component {
         barChartData: barChartData,
         treeChartData: treeChartData,
         totalBilling: totalBilling,
+        indexScatterData: indexScatterData,
+        searchScatterData: searchScatterData,
       })
     } catch (error) {
       console.log(error)
@@ -166,8 +205,8 @@ class Dashboard extends Component {
                     ]}
                     cx="50%"
                     cy={170}
-                    innerRadius={90}
-                    outerRadius={150}
+                    innerRadius={80}
+                    outerRadius={140}
                     fill="#8884d8"
                     label
                   >
@@ -183,23 +222,42 @@ class Dashboard extends Component {
           </div>
           <div className="card-wrapper">
             <Card className="card">
-              <h4>Consumo de datos por usuario</h4>
+              <h4>Consumo de datos</h4>
               <ResponsiveContainer width="100%" height={400}>
-                <BarChart
+                <ScatterChart
                   width={600}
                   height={400}
-                  data={this.state.barChartData}
                   margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
                   isAnimationActive={false}
                 >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
+                  <CartesianGrid strokeDasharray="4 4" />
+                  <XAxis
+                    dataKey = 'time'
+                    domain = {['auto', 'auto']}
+                    name = 'Time'
+                    tickFormatter = {(unixTime) => moment(unixTime).format("MMM Do YY")}
+                    type = 'number'
+                  />
+                  <YAxis dataKey = 'value' name = 'Value' />
+                  <Tooltip content={<CustomTooltip/>}/>
                   <Legend />
-                  <Bar dataKey="index" fill="#A4CFD7" />
-                  <Bar dataKey="search" fill="#98B1CE" />
-                </BarChart>
+                  <Scatter
+                    data = {this.state.searchScatterData}
+                    line = {{ stroke: '#A4CFD7' }}
+                    lineJointType = 'monotoneX'
+                    lineType = 'joint'
+                    name = 'Busquedas'
+                    fill = '#A4CFD7'
+                  />
+                  <Scatter
+                    data = {this.state.indexScatterData}
+                    line = {{ stroke: '#98B1CE' }}
+                    lineJointType = 'monotoneX'
+                    lineType = 'joint'
+                    name = 'Indexaciones'
+                    fill = '#98B1CE'
+                  />
+                </ScatterChart>
               </ResponsiveContainer>
             </Card>
           </div>

@@ -9,7 +9,11 @@ module.exports = {
     module: true,
   },
   parser: 'babel-eslint',
-  extends: ['eslint:recommended', 'plugin:react/recommended', 'plugin:jsx-a11y/recommended'],
+  extends: [
+    'eslint:recommended',
+    'plugin:react/recommended',
+    'plugin:jsx-a11y/recommended',
+  ],
   parserOptions: {
     ecmaFeatures: {
       experimentalObjectRestSpread: true,
@@ -82,7 +86,7 @@ module.exports = {
       },
     ],
     'eol-last': 'error',
-    eqeqeq: 'error',
+    eqeqeq: 'off',
     'for-direction': 'error',
     'func-call-spacing': 'error',
     'func-name-matching': 'error',

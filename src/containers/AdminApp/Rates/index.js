@@ -45,10 +45,12 @@ class Rates extends Component {
     searchRates: [],
     indexRates: [],
     message: null,
+    forSave: false,
   }
 
   async componentDidMount() {
     this.props.toggle({ saveButton: false })
+    this.setState({forSave: false})
     this.props.setSaveFunction(this.onSave)
 
     try {
@@ -64,7 +66,6 @@ class Rates extends Component {
   }
 
   onSave = async () => {
-    console.log('ON SAVE')
     const rates = {
       searchRates: this.state.searchRates.map(parseRates),
       indexRates: this.state.indexRates.map(parseRates),
@@ -73,7 +74,9 @@ class Rates extends Component {
       try {
         await NetworkOperation.setRates(rates)
 
-        this.setState({ message: 'Cambios guardados' })
+        this.setState({ message: 'Cambios guardados',
+                        forSave: false
+                      })
 
         this.props.stopSaving({ success: true })
       } catch (error) {
@@ -87,11 +90,10 @@ class Rates extends Component {
   }
 
   onChange = ({ target: { name, value } }, rate, field) => {
-    console.log('ON CHANGE')
     this.props.toggle({ [name]: value, saveButton: true })
+    this.setState({forSave: true})
     // These lines follow Cesar's enigmatic paradigm,
     // it just updates rates values and uses RETURN as an ELSE.
-    console.log(rate, field, name, value)
     if (rate && field) {
       if (field === 'searchRates') {
         this.setState((prev) => ({
@@ -109,15 +111,21 @@ class Rates extends Component {
     }
   }
 
-  deleteItem = (element, rateId) => {
-    this.props.toggle({ saveButton: true })
-    this.setState((prevState) => ({
-      [element]: prevState[element].filter(({ _id }) => _id !== rateId),
-    }))
+  deleteItem = async (element, rateId) => {
+    if (!this.state.forSave) {
+      this.setState((prevState) => ({
+        [element]: prevState[element].filter(({ _id }) => _id !== rateId),
+      }))
+      await this.onSave()
+    }  else {
+      this.setState({message: 'Primero Guarde los cambios realizados'})
+    }
   }
 
   onAddItem = (element) => {
     this.props.toggle({ saveButton: true })
+    this.setState({forSave: true})
+
     this.setState((prevState) => ({
       [element]: prevState[element].concat([{ _id: String(Date.now()) }]),
     }))

@@ -25,6 +25,9 @@ const schema = new Schema({
   name: String,
   username: { type: String, required: true, unique: true, trim: true },
   company: String,
+  rfc: String,
+  businessName: String,
+  postalCode: Number,
   password: { type: String, required: true },
   searchRates: {
     type: [Rate],
@@ -61,5 +64,7 @@ const schema = new Schema({
   items: { type: [ItemSchema], default: [] },
   notifications: { type: [Number], default: [0] },
 })
+
+schema.index({ name: 'text', company: 'text', email: 'text' })
 
 module.exports = mongoose.model('User', schema)

@@ -36,6 +36,15 @@ class NetworkOperation {
     })
   }
 
+  static getRequestDetailedStats(from, to) {
+    return axios.get(`${baseUrl}/v1/private/stats/request/details`, {
+      params: {
+        start: from,
+        end: to,
+      },
+    })
+  }
+
   static getUserBillingStats(from, to) {
     return axios.get(`${baseUrl}/v1/private/stats/users/billing`, {
       params: {
@@ -130,6 +139,18 @@ class NetworkOperation {
   static getApiToken() {
     return axios.get(`${baseUrl}/v1/private/users/token`)
   }
+  static getTopSearches() {
+    return axios.get(`${baseUrl}/v1/private/stats/searches/topsearches`)
+  }
+
+  static updatePassword(data) {
+    return axios.patch(`${baseUrl}/v1/private/users/password`, data)
+  }
+
+  static exportUsers() {
+    return axios.get(`${baseUrl}/v1/private/users/export`)
+  }
+
   /*
   A D M I N S
   */
@@ -148,6 +169,10 @@ class NetworkOperation {
 
   static updateAdmin(admin, oldUsername) {
     return axios.put(`${baseUrl}/v1/private/admins/${oldUsername}`, admin)
+  }
+
+  static exportAdmins() {
+    return axios.get(`${baseUrl}/v1/private/admins/export`)
   }
 
   /*

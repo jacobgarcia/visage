@@ -8,6 +8,7 @@ import TableRow from '@material-ui/core/TableRow'
 import Button from '@material-ui/core/Button'
 import TextField from '@material-ui/core/TextField'
 import Card from '@material-ui/core/Card'
+import FileSaver from 'file-saver'
 
 import PropTypes from 'prop-types'
 
@@ -65,6 +66,18 @@ class Admins extends Component {
       this.setState({ rows: admins, filteredRows: admins })
     } catch (error) {
       console.error(error)
+    }
+  }
+
+  exportData = async () => {
+    try {
+      const response = await NetworkOperation.exportAdmins()
+      const blob = new Blob([response.data], {
+        type: 'text/plain;charset=utf-8',
+      })
+      FileSaver.saveAs(blob, new Date().toLocaleDateString() + '_admins.csv')
+    } catch (error) {
+      console.log({ error })
     }
   }
 
@@ -211,7 +224,12 @@ class Admins extends Component {
             >
               Añadir
             </Button>
-            <Button color="primary" className="button" variant="contained">
+            <Button
+              color="primary"
+              className="button"
+              variant="contained"
+              onClick={this.exportData}
+            >
               Exportar
             </Button>
           </div>

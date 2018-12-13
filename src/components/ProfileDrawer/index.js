@@ -10,7 +10,8 @@ import VisibilityOff from '@material-ui/icons/VisibilityOff'
 import InputLabel from '@material-ui/core/InputLabel'
 import Input from '@material-ui/core/Input'
 import Drawer from '@material-ui/core/Drawer'
-
+import ChangePassModal from 'components/ChangePassModal'
+import EditUserModal from 'components/EditUserModal'
 import NetworkOperation from 'utils/NetworkOperation'
 
 import { UserContext } from 'utils/context'
@@ -33,6 +34,7 @@ class Profile extends Component {
     socialName: '',
     rfc: '',
     currentRange: null,
+    changePassModal: false,
   }
 
   componentDidMount() {
@@ -74,6 +76,12 @@ class Profile extends Component {
   handleClickShowPassword = () =>
     this.setState((state) => ({ showPassword: !state.showPassword }))
 
+  handleClickPassModal = () =>
+    this.setState((state) => ({ changePassModal: !state.changePassModal}))
+
+  handleClickUserModal = () =>
+    this.setState((state) => ({ changeUserModal: !state.changeUserModal}))
+
   render() {
     const {
       state: {
@@ -96,6 +104,18 @@ class Profile extends Component {
         onClose={this.props.onClose}
         className="profile-drawer"
       >
+        <ChangePassModal
+          onClose={this.handleClickPassModal}
+          open={this.state.changePassModal}
+        />
+        <EditUserModal
+          onClose={this.handleClickUserModal}
+          open={this.state.changeUserModal}
+          username={this.state.username}
+          name={this.state.name}
+          company={this.state.company}
+          email={this.state.email}          
+        />
         <div className="profile-drawer-header">
           <div className="profile-data">
             <div className="profile-image" />
@@ -110,7 +130,7 @@ class Profile extends Component {
           <div>
             <div className="title-action-container">
               <h4>Datos personales</h4>
-              <p tabIndex={0} role="button">
+              <p tabIndex={0} role="button" onClick = {this.handleClickUserModal}>
                 Editar datos
               </p>
             </div>
@@ -145,7 +165,9 @@ class Profile extends Component {
           <div>
             <h4>Contraseña</h4>
             <div className="signout-container">
-              <Button variant="outline">Cambiar contraseña</Button>
+              <Button variant="outline"
+                onClick = {this.handleClickPassModal}
+              >Cambiar contraseña</Button>
             </div>
           </div>
           <hr />

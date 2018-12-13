@@ -237,7 +237,7 @@ router.route('/images/index/:username').post((req, res) => {
               response,
               request,
               user,
-            }).save((error, indexing) => {
+            }).save((error) => {
               if (error) {
                 console.info('Could not create indexing object', error)
                 return
@@ -325,6 +325,38 @@ router.route('/stats/requests').get((req, res) => {
           return res.status(200).json({ requests })
         })
     })
+})
+
+// Statistics endpoint for dashboard
+router.route('/stats/request/details').get((req, res) => {
+  const end = req.param('end'),
+    start = req.param('start')
+
+  Indexing.find({ timestamp: { $gte: start, $lte: end } }).exec(
+    (error, indexings) => {
+      if (error) {
+        console.info('Could not fetch indexings', error)
+        return res
+          .status(500)
+          .json({ error: { message: 'Could not fetch indexings' } })
+      }
+      return Searching.find({ timestamp: { $gte: start, $lte: end } }).exec(
+        (error, searchings) => {
+          if (error) {
+            console.info('Could not fetch searches', error)
+            return res
+              .status(500)
+              .json({ error: { message: 'Could not fetch searches' } })
+          }
+          const requests = {
+            indexings: indexings,
+            searches: searchings,
+          }
+          return res.status(200).json({ requests })
+        }
+      )
+    }
+  )
 })
 
 router.route('/stats/requests/:username').get(async (req, res) => {
@@ -474,7 +506,7 @@ router.route('/stats/users/:username/billing').get((req, res) => {
       },
     },
   ]).exec((error, users) => {
-    if (error) {
+    if (error || !users[0]) {
       console.info('Could not fetch users', error)
       return res
         .status(500)
@@ -748,7 +780,9 @@ router.route('/stats/searches/topsearches').get(async (req, res) => {
     mostSearchedItems.map((item) => {
       item.count = counts[item.sku]
     })
-    return res.status(200).json({ mostSearchedItems, counts })
+    return res
+      .status(200)
+      .json({ mostSearchedItems: mostSearchedItems.slice(0, 9), counts })
   } catch (error) {
     console.error('Could not retrieve searches', error)
     return res
@@ -791,12 +825,34 @@ router.route('/users/token').get(async (req, res) => {
 
 // Edit user
 router.route('/users/:user').put((req, res) => {
-  const { name, company, username, email } = req.body
+  const {
+    name,
+    company,
+    username,
+    email,
+    searchLimit,
+    indexLimit,
+    rfc,
+    postalCode,
+    businessName,
+  } = req.body
   const { user } = req.params
-  if (!name || !company || !username || !email) return res.status(400).json({ error: { message: 'Malformed request' } })
+  if (!name || !company || !username || !email || !searchLimit || !indexLimit) return res.status(400).json({ error: { message: 'Malformed request' } })
   return User.findOneAndUpdate(
     { username: user },
-    { $set: { name, company, username, email } }
+    {
+      $set: {
+        name,
+        company,
+        username,
+        email,
+        searchLimit,
+        indexLimit,
+        rfc,
+        postalCode,
+        businessName,
+      },
+    }
   ).exec((error, user) => {
     if (error) {
       console.error('Could not update user information')
@@ -937,6 +993,36 @@ router
     }
   })
 
+router.route('/users/password').patch(async (req, res) => {
+  const { currentPassword, newPassword, confirmPassword } = req.body
+  if (!newPassword || !currentPassword || !currentPassword) return res
+      .status(400)
+      .json({ success: false, message: 'Malformed request' })
+  if (newPassword !== confirmPassword) return res
+      .status(400)
+      .json({ success: false, message: 'Passwords does not match' })
+  try {
+    const user = await User.findOne({ _id: req._user._id })
+    const result = await bcrypt.compare(
+      `${currentPassword}${JWT_SECRET}`,
+      user.password
+    )
+    if (!result) return res
+        .status(401)
+        .json({ success: false, message: 'Current password does not match' })
+    user.password = await bcrypt.hash(`${newPassword}${JWT_SECRET}`, 10)
+    await user.save()
+    return res
+      .status(200)
+      .json({ success: true, message: 'Successfully updated password' })
+  } catch (error) {
+    console.error('Could not update password', error)
+    return res
+      .status(500)
+      .json({ error: { message: 'Could not update password' } })
+  }
+})
+
 // Edit admin
 router
   .route('/admins/:adminUsername')
@@ -1053,10 +1139,7 @@ router.route('/admins/export').get((req, res) => {
 // GET all rates of user
 router.route('/rates').get(async (req, res) => {
   try {
-    const rates = await User.findOne()
-
-    console.info({ rates })
-
+    const rates = await User.findOne().select('searchRates indexRates')
     return res.status(200).json({ rates })
   } catch (error) {
     console.error('Could not get rates', error)
@@ -1172,6 +1255,13 @@ router.route('/rates/index').post(async (req, res) => {
 router.route('/rates/search/:rateId').delete(async (req, res) => {
   const _id = req.params.rateId.toString()
   try {
+    const user = await User.findOne({ _id: req._user._id }).select(
+      'searchRates'
+    )
+    if (user.searchRates[0]._id == _id) return res.status(403).json({
+        success: false,
+        message: 'Cannot delete first search rate',
+      })
     await User.updateMany({}, { $pull: { searchRates: { _id } } })
     return res
       .status(200)
@@ -1188,6 +1278,11 @@ router.route('/rates/search/:rateId').delete(async (req, res) => {
 router.route('/rates/index/:rateId').delete(async (req, res) => {
   const _id = req.params.rateId.toString()
   try {
+    const user = await User.findOne({ _id: req._user._id }).select('indexRates')
+    if (user.indexRates[0]._id == _id) return res.status(403).json({
+        success: false,
+        message: 'Cannot delete first index rate',
+      })
     await User.updateMany({}, { $pull: { indexRates: { _id } } })
     return res
       .status(200)
@@ -1205,11 +1300,18 @@ router.use(paginate.middleware(10, 50))
 
 // Get all users information
 router.route('/users').get(async (req, res) => {
+  const search = req.param('search')
   try {
     const [users, itemCount] = await Promise.all([
-      User.find({})
+      User.find({
+        $or: [
+          { name: { $regex: new RegExp(search, 'i') } },
+          { email: { $regex: new RegExp(search, 'i') } },
+          { company: { $regex: new RegExp(search, 'i') } },
+        ],
+      })
         .select(
-          'username name surname company email isIndexing active apiKey.active toIndex'
+          'username name company email isIndexing active apiKey.active toIndex'
         )
         .sort({ name: 1 })
         .limit(req.query.limit)
@@ -1226,16 +1328,25 @@ router.route('/users').get(async (req, res) => {
       pageCount,
     })
   } catch (error) {
+    console.error(error)
     return res.status(500).json({ error: { message: 'Could not fetch users' } })
   }
 })
 
 // Get all admins information
 router.route('/admins').get(async (req, res) => {
+  const search = req.param('search')
+
   try {
     const [admins, itemCount] = await await Promise.all([
-      Admin.find({})
-        .select('name surname username email superAdmin services active')
+      Admin.find({
+        $or: [
+          { name: { $regex: new RegExp(search, 'i') } },
+          { username: { $regex: new RegExp(search, 'i') } },
+          { email: { $regex: new RegExp(search, 'i') } },
+        ],
+      })
+        .select('name username email superAdmin services active')
         .sort({ name: 1 })
         .limit(req.query.limit)
         .skip(req.skip)
@@ -1257,9 +1368,10 @@ router.route('/admins').get(async (req, res) => {
 
 // Get all guests information
 router.route('/guests').get(async (req, res) => {
+  const search = req.param('search')
   try {
     const [guests, itemCount] = await Promise.all([
-      Guest.find({})
+      Guest.find({ email: { $regex: new RegExp(search, 'i') } })
         .sort({ email: 1 })
         .limit(req.query.limit)
         .skip(req.skip)

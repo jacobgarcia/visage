@@ -35,6 +35,7 @@ class Clients extends Component {
     addUserModalOpen: false,
     admin: true,
     selectedClient: null,
+    reverseSort: false,
   }
 
   componentDidMount() {
@@ -98,6 +99,31 @@ class Clients extends Component {
     })
   }
 
+  sortBy = (sortField) => () => {
+    const newFilteredRows = this.state.filteredRows.sort(
+      (
+        { name: name1, company: company1, email: email1 },
+        { name: name2, company: company2, email: email2 }
+      ) => {
+        switch (sortField) {
+          case 'name':
+            return name1 > name2
+          case 'email':
+            return email1 > email2
+          case 'company':
+            return company1 > company2
+          case 'rol':
+            return isSuperAdmin1 > isSuperAdmin2
+        }
+      }
+    )
+
+    this.setState(({ reverseSort }) => ({
+      filteredRows: reverseSort ? newFilteredRows.reverse() : newFilteredRows,
+      reverseSort: !reverseSort,
+    }))
+  }
+
   render() {
     const ROWS = 15
     const {
@@ -140,9 +166,9 @@ class Clients extends Component {
           <Table className="table">
             <TableHead>
               <TableRow>
-                <TableCell>Nombre</TableCell>
-                <TableCell>Empresa</TableCell>
-                <TableCell>Mail</TableCell>
+                <TableCell onClick={this.sortBy('name')}>Nombre</TableCell>
+                <TableCell onClick={this.sortBy('company')}>Empresa</TableCell>
+                <TableCell onClick={this.sortBy('email')}>Mail</TableCell>
                 <TableCell>Indexación</TableCell>
                 <TableCell>API Keys</TableCell>
                 {canEdit && <TableCell numeric />}

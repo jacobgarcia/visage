@@ -36,6 +36,7 @@ class Admins extends Component {
     isSaving: false,
     selectedUser: null,
     message: null,
+    reverseSort: true,
   }
 
   componentDidMount() {
@@ -121,6 +122,48 @@ class Admins extends Component {
     this.reloadData(page)
   }
 
+  sortBy = (sortField) => () => {
+    const newFilteredRows = this.state.filteredRows.sort(
+      (
+        {
+          name: name1,
+          username: username1,
+          email: email1,
+          services: services1,
+        },
+        { name: name2, username: username2, email: email2, services: services2 }
+      ) => {
+        const isSuperAdmin1 =
+          services1.admins === 2 &&
+          services1.clients === 2 &&
+          services1.dashboard &&
+          services1.rates
+
+        const isSuperAdmin2 =
+          services2.admins === 2 &&
+          services2.clients === 2 &&
+          services2.dashboard &&
+          services2.rates
+
+        switch (sortField) {
+          case 'name':
+            return name1 > name2
+          case 'email':
+            return email1 > email2
+          case 'username':
+            return username1 > username2
+          case 'rol':
+            return isSuperAdmin1 > isSuperAdmin2
+        }
+      }
+    )
+
+    this.setState(({ reverseSort }) => ({
+      filteredRows: reverseSort ? newFilteredRows.reverse() : newFilteredRows,
+      reverseSort: !reverseSort,
+    }))
+  }
+
   render() {
     const ROWS = 15
 
@@ -177,10 +220,12 @@ class Admins extends Component {
           <Table className="table">
             <TableHead>
               <TableRow>
-                <TableCell>Nombre</TableCell>
-                <TableCell>Username</TableCell>
-                <TableCell>Mail</TableCell>
-                <TableCell>Rol</TableCell>
+                <TableCell onClick={this.sortBy('name')}>Nombre</TableCell>
+                <TableCell onClick={this.sortBy('username')}>
+                  Username
+                </TableCell>
+                <TableCell onClick={this.sortBy('email')}>Mail</TableCell>
+                <TableCell onClick={this.sortBy('rol')}>Rol</TableCell>
                 {canEdit && <TableCell numeric />}
               </TableRow>
             </TableHead>

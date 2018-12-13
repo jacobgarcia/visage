@@ -35,6 +35,7 @@ class Profile extends Component {
     rfc: '',
     currentRange: null,
     changePassModal: false,
+    editingBilling: false,
   }
 
   componentDidMount() {
@@ -71,16 +72,25 @@ class Profile extends Component {
     }
   }
 
+  onSaveBillingInfo = async () => {
+    try {
+      const { cp, rfc, socialName } = this.state
+      await NetworkOperation.setBillingInfo({ cp, rfc, socialName })
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
   onChange = ({ target: { name, value } }) => this.setState({ [name]: value })
 
   handleClickShowPassword = () =>
     this.setState((state) => ({ showPassword: !state.showPassword }))
 
   handleClickPassModal = () =>
-    this.setState((state) => ({ changePassModal: !state.changePassModal}))
+    this.setState((state) => ({ changePassModal: !state.changePassModal }))
 
   handleClickUserModal = () =>
-    this.setState((state) => ({ changeUserModal: !state.changeUserModal}))
+    this.setState((state) => ({ changeUserModal: !state.changeUserModal }))
 
   render() {
     const {
@@ -94,6 +104,7 @@ class Profile extends Component {
         cp,
         socialName,
         rfc,
+        editingBilling,
       },
     } = this
 
@@ -114,7 +125,7 @@ class Profile extends Component {
           username={this.state.username}
           name={this.state.name}
           company={this.state.company}
-          email={this.state.email}          
+          email={this.state.email}
         />
         <div className="profile-drawer-header">
           <div className="profile-data">
@@ -130,7 +141,7 @@ class Profile extends Component {
           <div>
             <div className="title-action-container">
               <h4>Datos personales</h4>
-              <p tabIndex={0} role="button" onClick = {this.handleClickUserModal}>
+              <p tabIndex={0} role="button" onClick={this.handleClickUserModal}>
                 Editar datos
               </p>
             </div>
@@ -165,9 +176,9 @@ class Profile extends Component {
           <div>
             <h4>Contraseña</h4>
             <div className="signout-container">
-              <Button variant="outline"
-                onClick = {this.handleClickPassModal}
-              >Cambiar contraseña</Button>
+              <Button variant="outline" onClick={this.handleClickPassModal}>
+                Cambiar contraseña
+              </Button>
             </div>
           </div>
           <hr />
@@ -237,7 +248,15 @@ class Profile extends Component {
           <div>
             <div className="title-action-container">
               <h4>Datos de facturación</h4>
-              <p>Editar datos</p>
+              <p
+                onClick={() =>
+                  this.setState(({ editingBilling }) => ({
+                    editingBilling: !editingBilling,
+                  }))
+                }
+              >
+                {editingBilling ? 'Cancelar' : 'Editar datos'}
+              </p>
             </div>
             <div className="fields-container">
               <TextField
@@ -245,15 +264,32 @@ class Profile extends Component {
                 value={rfc}
                 label="RFC"
                 name="rfc"
+                InputProps={{
+                  readOnly: !editingBilling,
+                }}
               />
               <TextField
                 onChange={this.onChange}
                 value={socialName}
                 label="Razón social"
                 name="socialName"
+                InputProps={{
+                  readOnly: !editingBilling,
+                }}
               />
-              <TextField onChange={this.onChange} value={cp} label="CP" />
+              <TextField
+                onChange={this.onChange}
+                name="cp"
+                value={cp}
+                label="CP"
+                InputProps={{
+                  readOnly: !editingBilling,
+                }}
+              />
             </div>
+            {editingBilling && (
+              <Button onClick={this.onSaveBillingInfo}>Guardar</Button>
+            )}
           </div>
           <hr />
           <div className="signout-container">

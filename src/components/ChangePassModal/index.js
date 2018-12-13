@@ -19,12 +19,17 @@ class ChangePassModal extends Component {
     ...getInitialState(),
   }
 
-
   onChange = (name) => ({ target: { value } }) => {
     this.setState({ [name]: value }, () => {
       this.setState({
-        valid: this.state.lastpass && this.state.newpass && this.state.confirmnewpass,
-        error: this.state.newpass === this.state.confirmnewpass ? '' : 'La contraseña no coincide',
+        valid:
+          this.state.lastpass &&
+          this.state.newpass &&
+          this.state.confirmnewpass,
+        error:
+          this.state.newpass === this.state.confirmnewpass
+            ? ''
+            : 'La contraseña no coincide',
       })
     })
   }
@@ -37,24 +42,19 @@ class ChangePassModal extends Component {
     }
     try {
       await NetworkOperation.updatePassword(info)
-      this.setState({ error: 'Contraseña cambiada'})
+      this.setState({ error: 'Contraseña cambiada' })
       window.setTimeout(() => {
         this.props.onClose()
       }, 2000)
     } catch (error) {
-      this.setState({ error: 'Error de datos'})
+      this.setState({ error: 'Error de datos' })
     }
   }
 
   render() {
     const {
       props,
-      state: {
-        valid,
-        lastpass,
-        newpass,
-        confirmnewpass,
-      },
+      state: { valid, lastpass, newpass, confirmnewpass },
     } = this
 
     return (
@@ -78,6 +78,8 @@ class ChangePassModal extends Component {
                   value={lastpass}
                   onChange={this.onChange('lastpass')}
                 />
+              </div>
+              <div>
                 <TextField
                   required
                   label="Nueva contraseña"
@@ -86,6 +88,8 @@ class ChangePassModal extends Component {
                   value={newpass}
                   onChange={this.onChange('newpass')}
                 />
+              </div>
+              <div>
                 <TextField
                   required
                   label="Confirmar nueva contraseña"
@@ -94,7 +98,7 @@ class ChangePassModal extends Component {
                   value={confirmnewpass}
                   onChange={this.onChange('confirmnewpass')}
                 />
-                <p className="error-pass" >{this.state.error}</p>
+                <p className="error-pass">{this.state.error}</p>
               </div>
               <Button
                 disabled={!valid}
@@ -102,7 +106,7 @@ class ChangePassModal extends Component {
                 variant="contained"
                 color="secondary"
               >
-              Guardar
+                Guardar
               </Button>
             </div>
           </div>

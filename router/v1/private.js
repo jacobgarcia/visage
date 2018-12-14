@@ -551,8 +551,9 @@ router.route('/users/invite').post(async (req, res) => {
         console.error({ error })
       }
     )
-  }
+  } else {
   return res.status(409).json({ error: 'User is an admin' })
+  }
 })
 
 router.route('/admins/invite').post((req, res) => {
@@ -637,8 +638,9 @@ router.post('/signup/:invitation', async (req, res) => {
           },
         })
       })
-    }
+    } else {
     return res.status(409).json({ error: 'Admin email alredy exist' })
+    }
   } catch (error) {
     console.error(error)
     return res.status(500).json({ error: 'Could not invite' })

@@ -151,6 +151,9 @@ class NetworkOperation {
     return axios.get(`${baseUrl}/v1/private/users/export`)
   }
 
+  static setBillingInfo(data) {
+    return axios.put(`${baseUrl}/v1/private/users/${data.username}`, data)
+  }
   /*
   A D M I N S
   */

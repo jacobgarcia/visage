@@ -28,11 +28,13 @@ class Profile extends Component {
     company: this.context?.user?.company,
     email: this.context?.user?.email,
     username: this.context?.user?.username,
+    indexLimit: this.context?.user?.indexLimit,
+    searchLimit: this.context?.user?.searchLimit,
     apiToken: '',
     showPassword: false,
-    cp: '',
-    socialName: '',
-    rfc: '',
+    postalCode: this.context?.user?.postalCode,
+    businessName:this.context?.user?.businessName,
+    rfc: this.context?.user?.rfc,
     currentRange: null,
     changePassModal: false,
     editingBilling: false,
@@ -74,8 +76,18 @@ class Profile extends Component {
 
   onSaveBillingInfo = async () => {
     try {
-      const { cp, rfc, socialName } = this.state
-      await NetworkOperation.setBillingInfo({ cp, rfc, socialName })
+      const { postalCode, rfc, businessName } = this.state
+      await NetworkOperation.setBillingInfo({
+        postalCode,
+        rfc,
+        businessName,
+        name: this.state.name,
+        company: this.state.company,
+        email: this.state.email,
+        username: this.state.username,
+        searchLimit: this.state.searchLimit,
+        indexLimit: this.state.indexLimit,
+       })
     } catch (error) {
       console.error(error)
     }
@@ -101,8 +113,8 @@ class Profile extends Component {
         username,
         apiToken,
         currentRange,
-        cp,
-        socialName,
+        postalCode,
+        businessName,
         rfc,
         editingBilling,
       },
@@ -270,17 +282,17 @@ class Profile extends Component {
               />
               <TextField
                 onChange={this.onChange}
-                value={socialName}
+                value={businessName}
                 label="Razón social"
-                name="socialName"
+                name="businessName"
                 InputProps={{
                   readOnly: !editingBilling,
                 }}
               />
               <TextField
                 onChange={this.onChange}
-                name="cp"
-                value={cp}
+                name="postalCode"
+                value={postalCode}
                 label="CP"
                 InputProps={{
                   readOnly: !editingBilling,

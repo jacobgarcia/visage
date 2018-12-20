@@ -4,7 +4,14 @@ import NetworkOperation from 'utils/NetworkOperation'
 
 import { PieChart, Pie, Cell } from 'recharts'
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#242424']
+const COLORS = [
+  '#BCD1E0',
+  '#F4DCDC',
+  '#BCD1E0',
+  '#98B1CE',
+  '#F9CC7A',
+  '#E9666E',
+]
 
 import UsageBar from 'components/UsageBar'
 import Card from 'components/Card'

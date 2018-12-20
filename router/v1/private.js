@@ -208,6 +208,7 @@ router.route('/images/index/:username').post((req, res) => {
               filename: image.filename,
             },
           },
+          username,
         }
 
         // Call internal Flask service to process petition

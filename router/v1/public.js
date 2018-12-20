@@ -24,7 +24,13 @@ const storage = multer.diskStorage({
   destination: (req, file, callback) => callback(null, 'static/uploads/temp'),
   filename: (req, file, callback) => {
     crypto.pseudoRandomBytes(16, (error, raw) => {
-      callback(null, raw.toString('hex') + Date.now() + '.' + mime.getExtension(file.mimetype))
+      callback(
+        null,
+        raw.toString('hex') +
+          Date.now() +
+          '.' +
+          mime.getExtension(file.mimetype)
+      )
     })
   },
 })
@@ -39,7 +45,10 @@ const serviceUrl = 'https://admin.vs-01-dev.qbo.tech'
 router.options('*', cors())
 router.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*')
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept')
+  res.header(
+    'Access-Control-Allow-Headers',
+    'Origin, X-Requested-With, Content-Type, Accept'
+  )
   next()
 })
 
@@ -48,31 +57,37 @@ router.use((req, res, next) => {
   const bearer = req.headers.authorization || 'Bearer '
   const token = bearer.split(' ')[1]
 
-  if (!token) return res.status(401).send({ error: { message: 'No bearer token provided' } })
+  if (!token) return res
+      .status(401)
+      .send({ error: { message: 'No bearer token provided' } })
   return jwt.verify(token, JWT_SECRET, (err, decoded) => {
     if (err) {
       winston.error('Failed to authenticate token', err, token)
       return res.status(401).json({ error: { message: 'Invalid API token' } })
     }
     req._user = decoded
-    return User.findOne({ username: req._user.username }).exec((error, user) => {
-      if (error || !user) {
-        return res.status(401).json({
-          error: { message: 'Could not found a token for a valid user' },
-        })
+    return User.findOne({ username: req._user.username }).exec(
+      (error, user) => {
+        if (error || !user) {
+          return res.status(401).json({
+            error: { message: 'Could not found a token for a valid user' },
+          })
+        }
+        if (!user.apiKey.active) return res.status(401).json({
+            success: false,
+            message: 'Your API token is inactive. Re-issue a new token',
+          })
+        req._token = token
+        return next()
       }
-      if (!user.apiKey.active) return res.status(401).json({
-          success: false,
-          message: 'Your API token is inactive. Re-issue a new token',
-        })
-      req._token = token
-      return next()
-    })
+    )
   })
 })
 
 router.route('/images/search').post(upload.single('image'), (req, res) => {
-  if (!req.file) return res.status(400).json({ error: { message: 'Could not get file info' } })
+  if (!req.file) return res
+      .status(400)
+      .json({ error: { message: 'Could not get file info' } })
   const imagePath = `/static/uploads/temp/${req.file.filename}`
 
   // Call internal Flask service to process petition
@@ -83,65 +98,81 @@ router.route('/images/search').post(upload.single('image'), (req, res) => {
         filename: req.file.filename,
       },
     },
+    username: req._user.username,
   }
-  return request.post({ url: serviceUrl + '/v1/images/search', formData }, (error, resp) => {
-    if (error) {
-      console.info('Could not index image', error)
-      return res.status(500).json({ error: { message: 'Could not index image' } })
-    }
-
-    const response = {
-      success: resp.statusCode === 200,
-      status: resp.statusCode,
-      items: JSON.parse(resp.body).hits,
-    }
-    // After getting response from internal server service, create a new Indexing Object
-    // First create the request custom Object
-    const request = {
-      route: req.route,
-      file: req.file,
-      token: req._token,
-      headers: req.headers,
-    }
-
-    // Create new Indexing object
-    return new Searching({
-      response,
-      request,
-      user: req._user._id,
-    }).save((error, search) => {
+  return request.post(
+    { url: serviceUrl + '/v1/images/search', formData },
+    (error, resp) => {
       if (error) {
-        console.info('Could not create searching object', error)
-        return res.status(500).json({ error: { message: 'Could not create searching object' } })
+        console.info('Could not index image', error)
+        return res
+          .status(500)
+          .json({ error: { message: 'Could not index image' } })
       }
-      // Update the user search cost
-      return User.findOneAndUpdate(
-        { username: req._user.username },
-        { $push: { searches: search._id } }
-      )
-        .select('searchRates searchCost searches')
-        .exec((error, user) => {
-          if (error) {
-            console.error('Could not update user information', error)
-            return res.status(500).json({ error: { message: 'Could not update user information' } })
-          }
-          // Get the search rate cost
-          let index = 0
-          for (index; index < user.searchRates.length; index += 1) {
-            if (user.searches.length <= user.searchRates[index].max) break
-          }
-          user.searchCost += user.searchRates[index].cost
-          return user.save((error) => {
+
+      const response = {
+        success: resp.statusCode === 200,
+        status: resp.statusCode,
+        items: JSON.parse(resp.body).hits,
+      }
+      // After getting response from internal server service, create a new Indexing Object
+      // First create the request custom Object
+      const request = {
+        route: req.route,
+        file: req.file,
+        token: req._token,
+        headers: req.headers,
+      }
+
+      // Create new Indexing object
+      return new Searching({
+        response,
+        request,
+        user: req._user._id,
+      }).save((error, search) => {
+        if (error) {
+          console.info('Could not create searching object', error)
+          return res
+            .status(500)
+            .json({ error: { message: 'Could not create searching object' } })
+        }
+        // Update the user search cost
+        return User.findOneAndUpdate(
+          { username: req._user.username },
+          { $push: { searches: search._id } }
+        )
+          .select('searchRates searchCost searches')
+          .exec((error, user) => {
             if (error) {
-              console.error('Could not save user information', error)
-              return res.status(500).json({ error: { message: 'Could not save user information' } })
+              console.error('Could not update user information', error)
+              return res
+                .status(500)
+                .json({
+                  error: { message: 'Could not update user information' },
+                })
             }
-            // Then return response from internal server
-            return res.status(200).json(response)
+            // Get the search rate cost
+            let index = 0
+            for (index; index < user.searchRates.length; index += 1) {
+              if (user.searches.length <= user.searchRates[index].max) break
+            }
+            user.searchCost += user.searchRates[index].cost
+            return user.save((error) => {
+              if (error) {
+                console.error('Could not save user information', error)
+                return res
+                  .status(500)
+                  .json({
+                    error: { message: 'Could not save user information' },
+                  })
+              }
+              // Then return response from internal server
+              return res.status(200).json(response)
+            })
           })
-        })
-    })
-  })
+      })
+    }
+  )
 })
 
 // This method uploads the image to S3 and adds it to an toIndex array
@@ -191,10 +222,14 @@ router.route('/images/index').post(upload.single('image'), (req, res) => {
         ).exec((error) => {
           if (error) {
             console.error('Could not batch image', error)
-            return res.status(500).json({ error: { message: 'Could not batch image' } })
+            return res
+              .status(500)
+              .json({ error: { message: 'Could not batch image' } })
           }
           // Then return response from internal server
-          return res.status(200).json({ success: true, message: 'Batched image' })
+          return res
+            .status(200)
+            .json({ success: true, message: 'Batched image' })
         })
       }
     )
@@ -253,48 +288,53 @@ router.route('/images/index/now').post(upload.single('image'), (req, res) => {
             },
           },
         }
-        return request.post({ url: serviceUrl + '/v1/images/index', formData }, (error, resp) => {
-          if (error) {
-            console.error('Could not index image', error)
-            return res.status(500).json({ error: { message: 'Could not index image' } })
-          }
-
-          const response = {
-            success: JSON.parse(resp.body).success,
-            status: 200 || resp.statusCode,
-            count: 1,
-            features: JSON.parse(resp.body).features,
-          }
-
-          // After getting response from internal server service, create a new Indexing Object
-          // First create the request custom Object
-          const request = {
-            route: req.route,
-            files: req.files,
-            token: req._token,
-            headers: req.headers,
-          }
-
-          // Create new Searching object
-          return new Indexing({
-            response,
-            request,
-            user: req._user._id,
-          }).save((error, indexing) => {
+        return request.post(
+          { url: serviceUrl + '/v1/images/index', formData },
+          (error, resp) => {
             if (error) {
-              return res.status(500).json({
-                error: { message: 'Could not create indexing object' },
-              })
+              console.error('Could not index image', error)
+              return res
+                .status(500)
+                .json({ error: { message: 'Could not index image' } })
             }
-            // Add Indexing object to User
-            User.findOneAndUpdate(
-              { username: req._user.username },
-              { $push: { indexings: indexing._id, indexedImages } }
-            ).exec(error)
-            // Then return response from internal server
-            return res.status(200).json(response)
-          })
-        })
+
+            const response = {
+              success: JSON.parse(resp.body).success,
+              status: 200 || resp.statusCode,
+              count: 1,
+              features: JSON.parse(resp.body).features,
+            }
+
+            // After getting response from internal server service, create a new Indexing Object
+            // First create the request custom Object
+            const request = {
+              route: req.route,
+              files: req.files,
+              token: req._token,
+              headers: req.headers,
+            }
+
+            // Create new Searching object
+            return new Indexing({
+              response,
+              request,
+              user: req._user._id,
+            }).save((error, indexing) => {
+              if (error) {
+                return res.status(500).json({
+                  error: { message: 'Could not create indexing object' },
+                })
+              }
+              // Add Indexing object to User
+              User.findOneAndUpdate(
+                { username: req._user.username },
+                { $push: { indexings: indexing._id, indexedImages } }
+              ).exec(error)
+              // Then return response from internal server
+              return res.status(200).json(response)
+            })
+          }
+        )
       }
     )
   })
@@ -311,7 +351,9 @@ router.route('/images/:id').delete((req, res) => {
   ).exec((error) => {
     if (error) {
       console.info('Could not delete indexed image', error)
-      return res.status(500).json({ error: { message: 'Could not delete indexed image' } })
+      return res
+        .status(500)
+        .json({ error: { message: 'Could not delete indexed image' } })
     }
 
     // Remove object from S3
@@ -336,7 +378,9 @@ router.route('/images/:id').delete((req, res) => {
           (error, resp) => {
             if (error) {
               console.error('Could not index image', error)
-              return res.status(500).json({ error: { message: 'Could not index image' } })
+              return res
+                .status(500)
+                .json({ error: { message: 'Could not index image' } })
             }
             const response = {
               success: JSON.parse(resp.body).success.deleted > 0,

@@ -17,7 +17,7 @@ import './styles.pcss'
 function parseRates($0) {
   const { _id, ...rate } = $0
 
-  if (/^(?=[a-f\d]{24}$)(\d+[a-f]|[a-f]+\d)/i.test(_id)) {
+  if ((/^(?=[a-f\d]{24}$)(\d+[a-f]|[a-f]+\d)/i).test(_id)) {
     return {
       min: parseFloat(rate.min),
       max: parseFloat(rate.max),
@@ -50,7 +50,7 @@ class Rates extends Component {
 
   async componentDidMount() {
     this.props.toggle({ saveButton: false })
-    this.setState({forSave: false})
+    this.setState({ forSave: false })
     this.props.setSaveFunction(this.onSave)
 
     try {
@@ -70,13 +70,29 @@ class Rates extends Component {
       searchRates: this.state.searchRates.map(parseRates),
       indexRates: this.state.indexRates.map(parseRates),
     }
-    if (window.confirm('Estas seguro de modificar las tarifas')) {
+
+    let hasError = false
+    rates.searchRates.reduce((prev, current) => {
+      if (prev.max >= current.min) {
+        this.setState({
+          message:
+            'Error en los límites de las tarifas, verifica que no haya superposiciones',
+        })
+        hasError = true
+      }
+      return current
+    }, {})
+
+    if (hasError) {
+      this.props.stopSaving({ success: true })
+      return
+    }
+
+    if (window.confirm('¿Estás seguro de modificar las tarifas?')) {
       try {
         await NetworkOperation.setRates(rates)
 
-        this.setState({ message: 'Cambios guardados',
-                        forSave: false
-                      })
+        this.setState({ message: 'Cambios guardados', forSave: false })
 
         this.props.stopSaving({ success: true })
       } catch (error) {
@@ -86,12 +102,14 @@ class Rates extends Component {
           message: 'Error al guardar cambios, verificar la información',
         })
       }
+    } else {
+      this.props.stopSaving({ success: true })
     }
   }
 
   onChange = ({ target: { name, value } }, rate, field) => {
     this.props.toggle({ [name]: value, saveButton: true })
-    this.setState({forSave: true})
+    this.setState({ forSave: true })
     // These lines follow Cesar's enigmatic paradigm,
     // it just updates rates values and uses RETURN as an ELSE.
     if (rate && field) {
@@ -117,14 +135,14 @@ class Rates extends Component {
         [element]: prevState[element].filter(({ _id }) => _id !== rateId),
       }))
       await this.onSave()
-    }  else {
-      this.setState({message: 'Primero Guarde los cambios realizados'})
+    } else {
+      this.setState({ message: 'Primero Guarde los cambios realizados' })
     }
   }
 
   onAddItem = (element) => {
     this.props.toggle({ saveButton: true })
-    this.setState({forSave: true})
+    this.setState({ forSave: true })
 
     this.setState((prevState) => ({
       [element]: prevState[element].concat([{ _id: String(Date.now()) }]),

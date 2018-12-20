@@ -1,9 +1,11 @@
 import axios from 'axios'
 
-let baseUrl = 'https://4b0490a5.ngrok.io'
-if (process.env.NODE_ENV === 'development') {
-  baseUrl = 'http://localhost:8080'
+let baseUrl = ''
+console.log(process.env.NODE_ENV)
+if (process.env.NODE_ENV) {
+  baseUrl = process.env.API_URL
 }
+console.log(baseUrl)
 
 let token = null
 

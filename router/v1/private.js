@@ -17,8 +17,13 @@ const Admin = require(path.resolve('models/Admin'))
 const Indexing = require(path.resolve('models/Indexing'))
 const Searching = require(path.resolve('models/Searching'))
 
-const serviceUrl = 'https://admin.vs-01-dev.qbo.tech'
+let serviceUrl = ''
 
+if (process.env.NODE_ENV === 'production') {
+  serviceUrl = process.env.ENGINE_URL
+} else {
+  serviceUrl = 'https://admin.vs-01-dev.qbo.tech'
+}
 const JWT_SECRET = process.env.JWT_SECRET
 
 function getUserData(data) {

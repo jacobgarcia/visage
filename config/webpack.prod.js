@@ -24,10 +24,10 @@ module.exports = merge(common, {
         test: /(\.css|.pcss)/,
         use: [
           MiniCssExtractPlugin.loader,
-          'css-loader?minimize',
+          'css-loader',
           'resolve-url-loader',
           {
-            loader: 'postcss-loader?sourceMap',
+            loader: 'postcss-loader',
             options: {
               config: { path: path.resolve('config/postcss.config.js') },
             },
@@ -38,7 +38,8 @@ module.exports = merge(common, {
   },
   plugins: [
     new webpack.DefinePlugin({
-      'process.env.NODE_ENV': JSON.stringify('production'),
+      'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
+      'process.env.API_URL': JSON.stringify(process.env.API_URL),
     }),
     new MiniCssExtractPlugin({
       filename: '[name]-[hash].min.css',

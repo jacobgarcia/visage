@@ -77,6 +77,7 @@ class Login extends Component {
             onChange={this.onChange}
             margin="normal"
             variant="outlined"
+            InputLabelProps={{ shrink: true }}
           />
           <TextField
             id="standard-password"
@@ -87,6 +88,7 @@ class Login extends Component {
             onChange={this.onChange}
             margin="normal"
             variant="outlined"
+            InputLabelProps={{ shrink: true }}
           />
           {error ? <p>Error: {error}</p> : ''}
           <Button

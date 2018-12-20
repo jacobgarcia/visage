@@ -1,7 +1,7 @@
 module.exports = {
   apps: [
     {
-      name: 'react-boilerplate',
+      name: 'VisualSearch',
       script: './server.js',
       watch: ['server', 'config', 'server.js', 'router'],
       ignore_watch: ['src', 'node_modules', 'dist/**'],

@@ -166,6 +166,7 @@ class Clients extends Component {
             <Button
               color="primary"
               className="button"
+              style={{ marginRight: 16 }}
               onClick={this.toggleUserAddModal(true)}
             >
               Nuevo

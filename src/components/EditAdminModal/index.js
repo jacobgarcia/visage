@@ -127,7 +127,7 @@ class EditAdminModal extends Component {
         >
           <div className="paper-container">
             <div className="paper">
-              <h4>Editar administrador</h4>
+              <h4>{_id ? 'Editar' : 'Nuevo'} administrador</h4>
               <div>
                 <TextField
                   required

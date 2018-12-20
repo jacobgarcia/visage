@@ -221,6 +221,7 @@ class Admins extends Component {
               onClick={this.onToggleEditModal}
               color="primary"
               className="button"
+              style={{ marginRight: 16 }}
             >
               Añadir
             </Button>

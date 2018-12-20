@@ -132,6 +132,7 @@ class Clients extends Component {
     )
 
     this.setState(({ reverseSort }) => ({
+      selectedSort: sortField,
       filteredRows: reverseSort ? newFilteredRows.reverse() : newFilteredRows,
       reverseSort: !reverseSort,
     }))
@@ -140,7 +141,8 @@ class Clients extends Component {
   render() {
     const ROWS = 15
     const {
-      state: { search, filteredRows, addUserModalOpen, selectedClient },
+      state: { search, filteredRows, addUserModalOpen, selectedClient,selectedSort
+,reverseSort },
     } = this
 
     const canEdit = this.context?.user?.services?.clients === 2
@@ -185,9 +187,9 @@ class Clients extends Component {
           <Table className="table">
             <TableHead>
               <TableRow>
-                <TableCell onClick={this.sortBy('name')}>Nombre</TableCell>
-                <TableCell onClick={this.sortBy('company')}>Empresa</TableCell>
-                <TableCell onClick={this.sortBy('email')}>Mail</TableCell>
+                <TableCell className={selectedSort === 'name' ? `--selected-sort ${reverseSort ? '--reverse' : ''}` : ''} onClick={this.sortBy('name')}>Nombre</TableCell>
+                <TableCell className={selectedSort === 'company' ? `--selected-sort ${reverseSort ? '--reverse' : ''}` : ''} onClick={this.sortBy('company')}>Empresa</TableCell>
+                <TableCell className={selectedSort === 'email' ? `--selected-sort ${reverseSort ? '--reverse' : ''}` : ''} onClick={this.sortBy('email')}>Mail</TableCell>
                 <TableCell>Indexación</TableCell>
                 <TableCell>API Keys</TableCell>
                 {canEdit && <TableCell numeric />}

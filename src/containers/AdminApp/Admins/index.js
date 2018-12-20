@@ -38,6 +38,7 @@ class Admins extends Component {
     selectedUser: null,
     message: null,
     reverseSort: true,
+    selectedSort: null,
   }
 
   componentDidMount() {
@@ -172,6 +173,7 @@ class Admins extends Component {
     )
 
     this.setState(({ reverseSort }) => ({
+      selectedSort: sortField,
       filteredRows: reverseSort ? newFilteredRows.reverse() : newFilteredRows,
       reverseSort: !reverseSort,
     }))
@@ -188,6 +190,8 @@ class Admins extends Component {
         isSaving,
         selectedUser,
         message,
+        selectedSort,
+        reverseSort,
       },
     } = this
 
@@ -239,12 +243,12 @@ class Admins extends Component {
           <Table className="table">
             <TableHead>
               <TableRow>
-                <TableCell onClick={this.sortBy('name')}>Nombre</TableCell>
-                <TableCell onClick={this.sortBy('username')}>
+                <TableCell className={selectedSort === 'name' ? `--selected-sort ${reverseSort ? '--reverse' : ''}` : ''} onClick={this.sortBy('name')}>Nombre</TableCell>
+                <TableCell className={selectedSort === 'username' ? `--selected-sort ${reverseSort ? '--reverse' : ''}` : ''} onClick={this.sortBy('username')}>
                   Username
                 </TableCell>
-                <TableCell onClick={this.sortBy('email')}>Mail</TableCell>
-                <TableCell onClick={this.sortBy('rol')}>Rol</TableCell>
+                <TableCell className={selectedSort === 'email' ? `--selected-sort ${reverseSort ? '--reverse' : ''}` : ''} onClick={this.sortBy('email')}>Mail</TableCell>
+                <TableCell className={selectedSort === 'rol' ? `--selected-sort ${reverseSort ? '--reverse' : ''}` : ''} onClick={this.sortBy('rol')}>Rol</TableCell>
                 {canEdit && <TableCell numeric />}
               </TableRow>
             </TableHead>

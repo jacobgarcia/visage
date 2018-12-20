@@ -211,7 +211,6 @@ router.route('/images/index/:username').post((req, res) => {
         }
 
         // Call internal Flask service to process petition
-
         await rp
           .post({
             url: serviceUrl + '/v1/images/index',
@@ -531,7 +530,7 @@ router.route('/users/invite').post(async (req, res) => {
   })
   const admin = await Admin.findOne({ email })
   if (!admin) {
-    nev.createTempUser(
+    return nev.createTempUser(
       guest,
       (error, existingPersistentUser, newTempUser) => {
         if (error) {
@@ -556,9 +555,8 @@ router.route('/users/invite').post(async (req, res) => {
         console.error({ error })
       }
     )
-  } else {
-  return res.status(409).json({ error: 'User is an admin' })
   }
+  return res.status(409).json({ error: 'User is an admin' })
 })
 
 router.route('/admins/invite').post((req, res) => {
@@ -607,7 +605,7 @@ router.post('/signup/:invitation', async (req, res) => {
       guest.password = await bcrypt.hash(`${password}${JWT_SECRET}`, 10)
       await guest.save()
 
-      nev.confirmTempUser(invitation, (error, user) => {
+      return nev.confirmTempUser(invitation, (error, user) => {
         if (error) {
           console.error(error)
           return res.status(500).json({ error })
@@ -623,32 +621,52 @@ router.post('/signup/:invitation', async (req, res) => {
           }
         })
 
-        const token = jwt.sign(
-          {
-            _id: user._id,
-            acc: user.access,
-            cmp: user.company,
-          },
-          JWT_SECRET
-        )
+        const formData = {
+          username,
+        }
 
-        const userObject = user.toObject()
+        // Create user in engine
+        return rp
+          .post({
+            url: serviceUrl + '/v1/user',
+            formData,
+            resolveWithFullResponse: true,
+          })
+          .then((resp) => {
+            console.info(resp.statusCode, resp.body)
+            // After getting response from internal server service, create a new Indexing Object
+            const token = jwt.sign(
+              {
+                _id: user._id,
+                acc: user.access,
+                cmp: user.company,
+              },
+              JWT_SECRET
+            )
 
-        return res.status(200).json({
-          token,
-          user: {
-            _id: userObject._id,
-            name: userObject.name || 'User',
-            access: userObject.access,
-          },
-        })
+            const userObject = user.toObject()
+
+            return res.status(200).json({
+              token,
+              user: {
+                _id: userObject._id,
+                name: userObject.name || 'User',
+                access: userObject.access,
+              },
+            })
+          })
+          .catch((error) => {
+            console.error('Could not  image', error)
+            return res
+              .status(500)
+              .json({ success: false, message: 'Could not create user' })
+          })
       })
-    } else {
-    return res.status(409).json({ error: 'Admin email alredy exist' })
     }
+    return res.status(409).json({ error: 'Admin email alredy exist' })
   } catch (error) {
     console.error(error)
-    return res.status(500).json({ error: 'Could not invite' })
+    return res.status(500).json({ error: 'Could not create user' })
   }
 })
 
@@ -888,9 +906,29 @@ router.route('/users/:username').delete((req, res) => {
         .status(500)
         .json({ error: { message: 'Could not delete user' } })
     }
-    return res
-      .status(200)
-      .json({ success: true, message: 'Successfully deleted user' })
+    const formData = {
+      username,
+    }
+
+    // Create user in engine
+    return rp
+      .delete({
+        url: serviceUrl + '/v1/user',
+        formData,
+        resolveWithFullResponse: true,
+      })
+      .then((resp) => {
+        console.info(resp.statusCode, resp.body)
+        return res
+          .status(200)
+          .json({ success: true, message: 'Successfully deleted user' })
+      })
+      .catch((error) => {
+        console.error('Could not delete user', error)
+        return res
+          .status(500)
+          .json({ success: false, message: 'Could not delete user' })
+      })
   })
 })
 

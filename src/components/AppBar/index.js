@@ -119,31 +119,6 @@ class AppBarComponent extends PureComponent {
                       readOnly
                     />
                   </div>
-                  <div>
-                    <TextField
-                      label="RFC"
-                      margin="normal"
-                      variant="outlined"
-                      value={data?.user?.username}
-                      readOnly
-                    />
-                    <TextField
-                      label="Razón social"
-                      margin="normal"
-                      variant="outlined"
-                      value={data?.user?.username}
-                      readOnly
-                    />
-                  </div>
-                  <div>
-                    <TextField
-                      label="Código postal"
-                      margin="normal"
-                      variant="outlined"
-                      value={data?.user?.username}
-                      readOnly
-                    />
-                  </div>
                   <NavLink to="/login" className="logot">
                     {listItem('Cerrar sesión', ExitIcon)}
                   </NavLink>

@@ -206,12 +206,18 @@ class AppBarComponent extends PureComponent {
                     <NotificationsIcon color="inherit" />
                   </IconButton>
                   <Menu
+                    className="notification-menu"
                     id="simple-menu"
                     anchorEl={anchorEl}
                     open={Boolean(anchorEl)}
                     onClose={this.handleClose}
                   >
-                    <h3>Bienvenido</h3>
+                    <div className="welcome-message">
+                      <h6>Notificaciones</h6>
+                      <div className="welcome-message__content">
+                        <h3>Bienvenido</h3>
+                      </div>
+                    </div>
                   </Menu>
                 </div>
               )}

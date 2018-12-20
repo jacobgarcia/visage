@@ -2,8 +2,11 @@ import axios from 'axios'
 
 let baseUrl = ''
 console.log(process.env.NODE_ENV)
-if (process.env.NODE_ENV) {
+if (process.env.NODE_ENV !== 'production') {
   baseUrl = process.env.API_URL
+}
+if (process.env.NODE_ENV === 'development') {
+  baseUrl = 'http://localhost:8080'
 }
 console.log(baseUrl)
 

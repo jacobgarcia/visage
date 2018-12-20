@@ -141,7 +141,13 @@ class Profile extends Component {
               <p className="indexing-status">Indexado</p>
             </div>
           </div>
-          <div onClick={this.props.onClose}>Cerrar</div>
+          <Button
+            style={{ color: 'white' }}
+            variant="outline"
+            onClick={this.props.onClose}
+          >
+            Cerrar
+          </Button>
         </div>
         <div className="profile-drawer-content">
           <div>

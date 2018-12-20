@@ -33,7 +33,7 @@ class Profile extends Component {
     apiToken: '',
     showPassword: false,
     postalCode: this.context?.user?.postalCode,
-    businessName:this.context?.user?.businessName,
+    businessName: this.context?.user?.businessName,
     rfc: this.context?.user?.rfc,
     currentRange: null,
     changePassModal: false,
@@ -41,14 +41,8 @@ class Profile extends Component {
   }
 
   componentDidMount() {
-    document.body.style.backgroundColor = '#fff'
-
     this.setToken()
     this.setCurrentRate()
-  }
-
-  componentWillUnmount() {
-    document.body.style.backgroundColor = '#f5f5f5'
   }
 
   setToken = async () => {
@@ -87,7 +81,7 @@ class Profile extends Component {
         username: this.state.username,
         searchLimit: this.state.searchLimit,
         indexLimit: this.state.indexLimit,
-       })
+      })
     } catch (error) {
       console.error(error)
     }

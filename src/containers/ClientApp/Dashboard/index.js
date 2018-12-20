@@ -24,18 +24,19 @@ class Dashboard extends Component {
     searchLimit: 1000,
     indexLimit: 1000,
     topsearches: { mostSearchedItems: [] },
-    chardata : [{name:'none', value:100}],
+    chardata: [{ name: 'none', value: 100 }],
   }
 
   async componentDidMount() {
     try {
-      let date = new Date()
-      let to = date.getTime()
+      const date = new Date()
+      const to = date.getTime()
       date.setMonth(date.getMonth() - 1)
-      let from = date.getTime()
+      const from = date.getTime()
       const {
         data: { user: data },
       } = await NetworkOperation.getSelf()
+
       const statsRes = await NetworkOperation.getClientRequestStats(
         data.username,
         from,
@@ -47,15 +48,16 @@ class Dashboard extends Component {
         to
       )
       const topsearches = await NetworkOperation.getTopSearches()
-      const chardata = topsearches.data.mostSearchedItems.map((data, index) =>{
-        return {name: data.id, value: data.count}
+      const chardata = topsearches.data.mostSearchedItems.map((data, index) => {
+        return { name: data.id, value: data.count }
       })
-      console.log(data)
+
       this.setState({
         billing: billingRes.data.billing,
         requests: statsRes.data.requests,
         topsearches: topsearches.data,
-        chardata: chardata.length > 0 ? chardata : [{name:'none', value:100}],
+        chardata:
+          chardata.length > 0 ? chardata : [{ name: 'none', value: 100 }],
         searchLimit: data.searchLimit,
         indexLimit: data.indexLimit,
       })
@@ -135,24 +137,32 @@ class Dashboard extends Component {
                 Dentro del límite <span>{this.state.indexLimit}</span>
               </p>
             </div>
-            <UsageBar percentage={this.state.requests?.indexings/this.state.indexLimit*100} />
+            <UsageBar
+              percentage={
+                (this.state.requests?.indexings / this.state.indexLimit) * 100
+              }
+            />
             <div className="usage-bar__data">
               <h5>Búsquedas</h5>
               <p className="high">
                 Dentro del límite <span>{this.state.searchLimit}</span>
               </p>
             </div>
-            <UsageBar percentage={this.state.requests?.searches/this.state.searchLimit*100} />
+            <UsageBar
+              percentage={
+                (this.state.requests?.searches / this.state.searchLimit) * 100
+              }
+            />
           </div>
         </Card>
         <Card noPadding>
           <h4>Productos más buscados</h4>
           <div className="table">
-          <div key='title'>
-            <div>Producto</div>
-            <div>Categoría</div>
-            <div>No. búsquedas</div>
-          </div>
+            <div key="title">
+              <div>Producto</div>
+              <div>Categoría</div>
+              <div>No. búsquedas</div>
+            </div>
             {this.state.topsearches.mostSearchedItems.map((data, index) => (
               <div key={index}>
                 <div>{data.id}</div>

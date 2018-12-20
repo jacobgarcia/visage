@@ -135,9 +135,19 @@ class Profile extends Component {
         />
         <div className="profile-drawer-header">
           <div className="profile-data">
-            <div className="profile-image" />
+            <div
+              className="profile-image"
+              style={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                color: 'black',
+              }}
+            >
+              {this.context?.user?.name?.charAt?.(0)}
+            </div>
             <div>
-              <p>Frans Ramirez</p>
+              <p>{this.context?.user?.name}</p>
               <p className="indexing-status">Indexado</p>
             </div>
           </div>
@@ -186,9 +196,8 @@ class Profile extends Component {
           </div>
           <hr />
           <div>
-            <h4>Contraseña</h4>
             <div className="signout-container">
-              <Button variant="outline" onClick={this.handleClickPassModal}>
+              <Button variant="outlined" onClick={this.handleClickPassModal}>
                 Cambiar contraseña
               </Button>
             </div>
@@ -224,9 +233,9 @@ class Profile extends Component {
           </div>
           <hr />
           <div>
-            <h4>Rangos de consultas</h4>
+            <h4>Total de búsquedas</h4>
             <div className="consults-range">
-              <label>Rango de Busquedas</label>
+              <p>{this.context?.user?.searches?.length}</p>
               <div>
                 {this.context?.user?.indexRates?.map((rate, index) =>
                   currentRange?.requests?.indexings > rate.min &&
@@ -239,21 +248,40 @@ class Profile extends Component {
                   )
                 )}
               </div>
-            </div>
-            <div className="consults-range">
-              <label>Rango de Indexación</label>
-              <div>
-                {this.context?.user?.searchRates?.map((rate, index) =>
-                  currentRange?.requests?.searches > rate.min &&
-                  currentRange?.requests?.searches < rate.max ? (
-                    <span>
-                      Rango actual entre {rate.min} y {rate.max}
+              <div style={{ display: 'flex', marginTop: 16 }}>
+                <div style={{ marginRight: 8, flex: 1, flexBasis: 200 }}>
+                  <h4>Límite de búsquedas</h4>
+
+                  {this.context?.user?.searchRates?.map((rate, index) =>
+                    currentRange?.requests?.searches > rate.min &&
+                    currentRange?.requests?.searches < rate.max ? (
+                      <p>
+                        {rate.min} a {rate.max}
+                      </p>
+                    ) : (
+                      ''
+                    )
+                  )}
+                </div>
+                <div style={{ marginLeft: 8, flex: 1, flexBasis: 200 }}>
+                  <h4>Tarifa por búsqueda</h4>
+                  <p>
+                    <span style={{ display: 'inline-block', marginRight: 4 }}>
+                      $
                     </span>
-                  ) : (
-                    ''
-                  )
-                )}
+                    {this.context?.user?.searchCost}{' '}
+                    <span
+                      style={{ display: 'inline-block', fontSize: '0.8rem' }}
+                    >
+                      MXN
+                    </span>
+                  </p>
+                </div>
               </div>
+              <p style={{ color: 'gray', fontSize: 13, marginTop: 16 }}>
+                * Al exeder el máximo de búsquedas los límites y la tarifa
+                actual se actualizarán automáticamente.
+              </p>
             </div>
           </div>
           <hr />
@@ -276,27 +304,24 @@ class Profile extends Component {
                 value={rfc}
                 label="RFC"
                 name="rfc"
-                InputProps={{
-                  readOnly: !editingBilling,
-                }}
+                style={{ color: 'black' }}
+                disabled={!editingBilling}
               />
               <TextField
                 onChange={this.onChange}
                 value={businessName}
                 label="Razón social"
                 name="businessName"
-                InputProps={{
-                  readOnly: !editingBilling,
-                }}
+                style={{ color: 'black' }}
+                disabled={!editingBilling}
               />
               <TextField
                 onChange={this.onChange}
                 name="postalCode"
                 value={postalCode}
                 label="CP"
-                InputProps={{
-                  readOnly: !editingBilling,
-                }}
+                style={{ color: 'black' }}
+                disabled={!editingBilling}
               />
             </div>
             {editingBilling && (

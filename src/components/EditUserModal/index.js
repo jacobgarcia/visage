@@ -31,15 +31,19 @@ class EditUserModal extends Component {
   onChange = (name) => ({ target: { value } }) => {
     this.setState({ [name]: value }, () => {
       this.setState({
-        valid: this.state.name && this.state.company && this.state.email &&
-               this.state.searchLimit && this.state.indexLimit,
+        valid:
+          this.state.name &&
+          this.state.company &&
+          this.state.email &&
+          this.state.searchLimit &&
+          this.state.indexLimit,
       })
     })
   }
 
   onSave = async () => {
     const info = {
-      name : this.state.name,
+      name: this.state.name,
       company: this.state.company,
       email: this.state.email,
       searchLimit: this.state.searchLimit,
@@ -48,26 +52,19 @@ class EditUserModal extends Component {
     }
     try {
       await NetworkOperation.updateClient(info, this.props.username)
-      this.setState({ error: 'Informacion Cambiada'})
+      this.setState({ error: 'Informacion Cambiada' })
       window.setTimeout(() => {
         this.props.onClose()
       }, 2000)
     } catch (error) {
-      this.setState({ error: 'Error de datos'})
+      this.setState({ error: 'Error de datos' })
     }
   }
 
   render() {
     const {
       props,
-      state: {
-        valid,
-        name,
-        company,
-        email,
-        searchLimit,
-        indexLimit,
-      },
+      state: { valid, name, company, email, searchLimit, indexLimit },
     } = this
 
     return (
@@ -81,7 +78,7 @@ class EditUserModal extends Component {
         >
           <div className="paper-container">
             <div className="paper">
-              <h4>Cambiar Contraseña</h4>
+              <h4>Editar información</h4>
               <div>
                 <TextField
                   required
@@ -128,7 +125,7 @@ class EditUserModal extends Component {
                   value={indexLimit}
                   onChange={this.onChange('indexLimit')}
                 />
-                <p className="error-pass" >{this.state.error}</p>
+                <p className="error-pass">{this.state.error}</p>
               </div>
               <Button
                 disabled={!valid}
@@ -136,7 +133,7 @@ class EditUserModal extends Component {
                 variant="contained"
                 color="secondary"
               >
-              Guardar
+                Guardar
               </Button>
             </div>
           </div>

@@ -153,7 +153,7 @@ class Profile extends Component {
           </div>
           <Button
             style={{ color: 'white' }}
-            variant="outline"
+            variant="outlined"
             onClick={this.props.onClose}
           >
             Cerrar

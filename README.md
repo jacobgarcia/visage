@@ -46,6 +46,12 @@ Run a regular pm2 process
 yarn start:prod
 ```
 
+Run with docker-compose
+
+```curl
+docker-compose up
+```
+
 ## Todo
 
 - [x] Code splitting

@@ -1,5 +1,6 @@
 version: '3'
 services:
+    # Build MongoDB on server. Ensure .env point to this address
     mongodatabase:
         image: mongo:latest
         container_name: "mongobackup"
@@ -13,6 +14,7 @@ services:
           - 27018:27018
         networks:
           - backend
+    # Build Nginx on server. Ensure have certificates on config files.  Modify URLs on Nginx conf
     nginx:
         image: nginx:latest
         container_name: "prod_nginx"

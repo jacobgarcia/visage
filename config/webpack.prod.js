@@ -9,6 +9,7 @@ const WebpackPwaManifest = require('webpack-pwa-manifest')
 
 const config = require(path.resolve('config'))
 const common = require(path.resolve('config/webpack.common.js'))
+const Dotenv = require('dotenv-webpack')
 
 module.exports = merge(common, {
   mode: 'production',
@@ -37,9 +38,8 @@ module.exports = merge(common, {
     ],
   },
   plugins: [
-    new webpack.DefinePlugin({
-      'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
-      'process.env.API_URL': JSON.stringify(process.env.API_URL),
+    new Dotenv({
+      path: 'config/.env.production',
     }),
     new MiniCssExtractPlugin({
       filename: '[name]-[hash].min.css',

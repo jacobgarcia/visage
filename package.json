@@ -6,7 +6,7 @@
   "scripts": {
     "start": "pm2-dev ./config/ecosystem.config.js",
     "start:nodemon": "NODE_ENV=development nodemon --ignore 'src/**' --ext \"graphql js\"",
-    "start:prod": "pm2 start server.js",
+    "start:prod": "NODE_ENV=production pm2 start server.js",
     "build:prod": "webpack --config ./config/webpack.prod.js",
     "start:docker": "pm2-docker start ./config/ecosystem.docker.config.js",
     "test": "jest",
@@ -40,6 +40,7 @@
     "clean-webpack-plugin": "^1.0.0",
     "create-react-class": "^15.6.3",
     "dotenv": "^6.2.0",
+    "dotenv-webpack": "^1.6.0",
     "email-verification": "^0.4.6",
     "eslint-plugin-jsx-a11y": "^6.1.2",
     "express": "^4.16.4",

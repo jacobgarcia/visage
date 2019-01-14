@@ -6,8 +6,8 @@ RUN mkdir /usr/share/app
 COPY . /usr/share/app
 WORKDIR /usr/share/app
 
-RUN yarn global add pm2 sharp webpack webpack-cli && \
-    yarn install
+RUN yarn global add pm2
+RUN yarn install
 RUN yarn build:prod
 CMD ["yarn", "start:docker"]
 

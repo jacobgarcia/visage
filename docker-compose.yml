@@ -19,10 +19,11 @@ services:
         image: nginx:latest
         container_name: "prod_nginx"
         env_file:
-          - ./config/.env.production
+          - ./config/env/.env.production
         volumes:
           - ./config/nginx.conf:/etc/nginx/nginx.conf
           - ./config/certificates:/etc/letsencrypt/
+          - ./config/env:/usr/share/app/config/
         ports:
           - 80:80
           - 443:443
@@ -31,7 +32,7 @@ services:
     visualsearchapi:
         build: .
         env_file:
-          - ./config/.env.production
+          - ./config/env/.env.production
         environment:
           - NODE_ENV=production
         ports:

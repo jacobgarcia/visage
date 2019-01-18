@@ -39,7 +39,7 @@ module.exports = merge(common, {
   },
   plugins: [
     new Dotenv({
-      path: 'config/.env.production',
+      path: 'config/env/.env.production',
     }),
     new MiniCssExtractPlugin({
       filename: '[name]-[hash].min.css',

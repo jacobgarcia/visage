@@ -24,7 +24,7 @@ const isProduction = mode === 'production'
 // MARK: Environment variables setup
 dotenv.config({
   path: path.resolve(
-    `config/.env${isProduction ? '.production' : '.development'}`
+    `config/env/.env${isProduction ? '.production' : '.development'}`
   ),
 })
 
@@ -32,7 +32,7 @@ dotenv.config({
 const v1 = require(path.resolve('router/v1'))
 
 // MARK: Environment variables definition
-const { PORT = 8080, SERVER_ONLY = false, DB_URI ,DASHBOARD_ONLY = false, API_URL} = process.env
+const { PORT = 8080, DASHBOARD_SERV, DB_URI, API_SERV = true, API_URL} = process.env
 
 // MARK: DB Connection
 mongoose
@@ -41,7 +41,7 @@ mongoose
     { useNewUrlParser: true, dbName: 'visual-search', useCreateIndex: true }
   )
   .then(() => logger.info('Connected to DB'))
-  .catch(() => logger.error('\n|\n|  Could not connect to DB\n|'))
+  .catch(() => logger.error('Could not connect to DB'))
 
 const app = express()
 
@@ -49,11 +49,16 @@ app.use(helmet())
 app.use(hpp())
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
-if (!DASHBOARD_ONLY) app.use('/v1', v1)
-
+if (API_SERV === 'true') {
+  app.use('/v1', v1)
+} else {
+  logger.info('Api Will be down')
+}
 // Bundle state based on env
-if (!isProduction && !SERVER_ONLY) app.use(require(path.resolve('config/webpackDevServer')))
-if (isProduction && !SERVER_ONLY) {
+if (!isProduction && DASHBOARD_SERV === 'true') {
+  app.use(require(path.resolve('config/webpackDevServer')))
+}
+if (isProduction && DASHBOARD_SERV === 'true') {
   app.use(express.static(path.resolve('dist')))
   app.get('*', (req, res) => res.sendFile(path.resolve('dist/index.html')))
 }
@@ -62,8 +67,9 @@ if (isProduction && !SERVER_ONLY) {
 app.listen(PORT, () =>
   console.info(`React boilerplate is now running\n
     Port: \t\t${PORT}
-    Server only: \t${SERVER_ONLY}
-    Dashboard only: \t${DASHBOARD_ONLY}
-    API_URL: \t${API_URL}
+    Server: \t\t${API_SERV}
+    Dashboard: \t${DASHBOARD_SERV}
+    API_URL: \t\t${API_URL}
+    DB_URL: \t\t${DB_URI}
     Mode: \t\t${mode}`)
 )

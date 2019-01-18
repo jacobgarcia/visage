@@ -2,6 +2,7 @@
 const path = require('path')
 const merge = require('webpack-merge')
 const webpack = require('webpack')
+const Dotenv = require('dotenv-webpack')
 
 const common = require('./webpack.common.js')
 
@@ -37,5 +38,10 @@ module.exports = merge(common, {
     overlay: true,
     compress: true,
   },
-  plugins: [new webpack.HotModuleReplacementPlugin()],
+  plugins: [
+    new webpack.HotModuleReplacementPlugin(),
+    new Dotenv({
+      path: 'config/env/.env.development',
+    }),
+  ],
 })

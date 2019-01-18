@@ -32,12 +32,12 @@ class SessionLoader extends PureComponent {
 
     try {
       const { data } = await NetworkOperation.getSelf()
-
       // Set user context
       this.context.setUserData({
         user: data.user,
         loadingSelf: false,
       })
+      console.log(this.context)
     } catch (error) {
       if (error.response?.status === 401) {
         this.props.history.replace('/login')

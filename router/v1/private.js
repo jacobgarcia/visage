@@ -25,6 +25,8 @@ if (process.env.NODE_ENV === 'production') {
   serviceUrl = 'https://admin.vs-01-dev.qbo.tech'
 }
 const JWT_SECRET = process.env.JWT_SECRET
+const ADMIN_USE = process.env.ADMIN
+const USER_USE = process.env.CLIENT
 
 function getUserData(data) {
   return { ...data.toObject(), access: data.services ? 'admin' : 'user' }
@@ -673,8 +675,14 @@ router.post('/signup/:invitation', async (req, res) => {
 
 router.route('/authenticate').post(async (req, res) => {
   const { email, password } = req.body
-  const user = await User.findOne({ email, active: true })
-  const admin = await Admin.findOne({ email })
+  let user = null
+  let admin = null
+  if (USER_USE === 'true') {
+    user = await User.findOne({ email, active: true })
+  }
+  if (ADMIN_USE === 'true') {
+    admin = await Admin.findOne({ email })
+  }
   if (user === null && admin === null) {
     return res.status(409).json({
       message: 'Authentication failed. User deactivated or Eliminated',
@@ -756,7 +764,6 @@ router.use((req, res, next) => {
 router.use((req, res, next) => {
   const bearer = req.headers.authorization || 'Bearer '
   const token = bearer.split(' ')[1]
-
   if (!token) {
     return res
       .status(401)
@@ -783,13 +790,15 @@ router.route('/stats/searches/topsearches').get(async (req, res) => {
     const searches = await Searching.find({ user: req._user._id })
     const items = []
     searches.map((search) => {
-      const item = {
-        id: search.response.items[0].id,
-        sku: search.response.items[0].sku,
-        cl: search.response.items[0].cl,
-        score: search.response.items[0].score,
+      if (search.response.status == 200 && search.response.items.length > 0) {
+        const item = {
+          id: search.response.items[0].id,
+          sku: search.response.items[0].sku,
+          cl: search.response.items[0].cl,
+          score: search.response.items[0].score,
+        }
+        items.push(item)
       }
-      items.push(item)
     })
 
     const counts = {}
@@ -818,14 +827,20 @@ router.route('/stats/searches/topsearches').get(async (req, res) => {
 })
 
 router.route('/users/self').get(async (req, res) => {
-  const user = await User.findOne(
-    { _id: req._user._id },
-    '-apiKey -password -toIndex'
-  ).populate('indexings searches')
-  const admin = await Admin.findOne(
-    { _id: req._user._id },
-    '-apiKey -password -toIndex'
-  )
+  let user = null
+  let admin = null
+  if (USER_USE === 'true') {
+    user = await User.findOne(
+      { _id: req._user._id },
+      '-apiKey -password -toIndex'
+    ).populate('indexings searches')
+  }
+  if (ADMIN_USE === 'true') {
+    admin = await Admin.findOne(
+      { _id: req._user._id },
+      '-apiKey -password -toIndex'
+     )
+  }
   if (admin) {
     return res.status(200).json({ user: getUserData(admin) })
   } else if (user) {

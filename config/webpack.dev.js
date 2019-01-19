@@ -38,10 +38,5 @@ module.exports = merge(common, {
     overlay: true,
     compress: true,
   },
-  plugins: [
-    new webpack.HotModuleReplacementPlugin(),
-    new Dotenv({
-      path: 'config/env/.env.development',
-    }),
-  ],
+  plugins: [new webpack.HotModuleReplacementPlugin()],
 })

@@ -2,8 +2,11 @@
 const path = require('path')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const CleanWebpackPlugin = require('clean-webpack-plugin')
+const Dotenv = require('dotenv-webpack')
 
 const config = require(path.resolve('config'))
+
+const mode = process.env.NODE_ENV
 
 module.exports = {
   entry: {
@@ -67,8 +70,11 @@ module.exports = {
     ],
   },
   plugins: [
+    new Dotenv({
+      path: path.resolve(`config/.env/.${mode}`),
+    }),
     new CleanWebpackPlugin(['dist/*'], {
-      root: path.resolve('./'),
+      root: path.resolve('.'),
     }),
     new HtmlWebpackPlugin({
       template: path.resolve('src/index.html'),

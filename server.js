@@ -22,7 +22,7 @@ const mode = process.env.NODE_ENV
 const isProd = mode === 'production'
 
 // MARK: Environment variables setup
-dotenv.config({ path: path.resolve(`config/.env.${mode}`) })
+dotenv.config({ path: path.resolve(`config/.env/.${mode}`) })
 
 // MARK: Environment variables definition
 const {

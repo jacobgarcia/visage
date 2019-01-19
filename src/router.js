@@ -1,4 +1,4 @@
-import React, { PureComponent, Fragment } from 'react'
+import React, { PureComponent } from 'react'
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
 import { MuiThemeProvider, createMuiTheme } from '@material-ui/core/styles'
 import { hot } from 'react-hot-loader'
@@ -15,6 +15,9 @@ import { UserContext } from 'utils/context'
 import qboLogoColor from 'assets/qbo-logo.svg'
 
 const theme = createMuiTheme({
+  typography: {
+    useNextVariants: true,
+  },
   palette: {
     primary: { main: '#333333' }, // Purple and green play nicely together.
     secondary: { main: '#5BC3D7' }, // This is just green.A700 as hex.
@@ -27,6 +30,7 @@ class SessionLoader extends PureComponent {
 
   static propTypes = {
     history: PropTypes.object.isRequired,
+    location: PropTypes.object.isRequired,
   }
 
   async componentDidMount() {
@@ -114,7 +118,7 @@ class Routes extends PureComponent {
           value={{ user: this.state.user, setUserData: this.state.setUserData }}
         >
           <Router>
-            <Fragment>
+            <>
               <Route component={SessionLoader} />
               <Switch>
                 <Route exact path="/login" component={Login} />
@@ -129,7 +133,7 @@ class Routes extends PureComponent {
                     )}
                   />
                 ) : (
-                  <Fragment>
+                  <>
                     <Switch>
                       {this.state.user?.access === 'admin' ? (
                         <Route
@@ -146,10 +150,10 @@ class Routes extends PureComponent {
                       )}
                       <Route component={NotFound} />
                     </Switch>
-                  </Fragment>
+                  </>
                 )}
               </Switch>
-            </Fragment>
+            </>
           </Router>
         </UserContext.Provider>
       </MuiThemeProvider>

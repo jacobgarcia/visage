@@ -1,55 +1,55 @@
 version: '3'
 services:
-    # Build MongoDB on server. Ensure .env point to this address
-    mongodatabase:
-        image: mongo:latest
-        container_name: "mongobackup"
-        environment:
-          - MONGO_DATA_DIR=/data/db
-          - MONGO_LOG_DIR=/dev/null
-        volumes:
-          - ./data/db:/data/db
-        ports:
-          - 27017:27017
-          - 27018:27018
-        networks:
-          - backend
-    # Build Nginx on server. Ensure have certificates on config files.  Modify URLs on Nginx conf
-    nginx:
-        image: nginx:latest
-        env_file:
-          - ./config/env/.env.production
-        volumes:
-          - ./config/nginx:/etc/nginx/conf.d
-          - ./config/certificates/conf:/etc/letsencrypt/
-          - ./config/certificates/www:/var/www/certbot
-          - ./config/env:/usr/share/app/config/
-        ports:
-          - 80:80
-          - 443:443
-        networks:
-          - frontend
-        restart: always
-    visualsearchapi:
-        build: .
-        env_file:
-          - ./config/env/.env.production
-        environment:
-          - NODE_ENV=production
-        ports:
-          - 8080:8080
-        depends_on:
-          - mongodatabase
-        links:
-          - mongodatabase
-        networks:
-          - backend
-          - frontend
-    certbot:
-      image: certbot/certbot
-      volumes:
-        - ./config/certificates/conf:/etc/letsencrypt/
-        - ./config/certificates/www:/var/www/certbot
+  # Build MongoDB on server. Ensure .env point to this address
+  mongodatabase:
+    image: mongo:latest
+    container_name: 'mongobackup'
+    environment:
+      - MONGO_DATA_DIR=/data/db
+      - MONGO_LOG_DIR=/dev/null
+    volumes:
+      - ./data/db:/data/db
+    ports:
+      - 27017:27017
+      - 27018:27018
+    networks:
+      - backend
+  # Build Nginx on server. Ensure have certificates on config files.  Modify URLs on Nginx conf
+  nginx:
+    image: nginx:latest
+    env_file:
+      - ./config/.env/.production
+    volumes:
+      - ./config/nginx:/etc/nginx/conf.d
+      - ./config/certificates/conf:/etc/letsencrypt/
+      - ./config/certificates/www:/var/www/certbot
+      - ./config/.env:/usr/share/app/config/
+    ports:
+      - 80:80
+      - 443:443
+    networks:
+      - frontend
+    restart: always
+  visualsearchapi:
+    build: .
+    env_file:
+      - ./config/.env/.production
+    environment:
+      - NODE_ENV=production
+    ports:
+      - 8080:8080
+    depends_on:
+      - mongodatabase
+    links:
+      - mongodatabase
+    networks:
+      - backend
+      - frontend
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - ./config/certificates/conf:/etc/letsencrypt/
+      - ./config/certificates/www:/var/www/certbot
 networks:
-    backend:
-    frontend:
+  backend:
+  frontend:

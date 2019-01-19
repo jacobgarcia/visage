@@ -74,5 +74,5 @@ Visual search is now running\n
 📊  Dashboard: \t${DASHBOARD_SERV}
 ⚙️  API_URL: \t${API_URL}
 🍃  DB_URL: \t${DB_URI}
-✅  Mode: \t${mode}`)
+✅  Mode: \t"${mode}"`)
 )

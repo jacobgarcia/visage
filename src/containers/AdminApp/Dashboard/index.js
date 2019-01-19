@@ -35,11 +35,13 @@ const COLORS = [
 ]
 
 const CustomTooltip = (props) => {
-  if (props.payload[0] != null) {
+  if (props.payload[0]) {
     const newPayload = [
       {
         name: 'Day',
-        value: moment(parseInt(props.payload[0].value)).format('YYYY-MM-DD'),
+        value: moment(parseInt(props.payload[0].value, 10)).format(
+          'YYYY-MM-DD'
+        ),
       },
       ...props.payload,
     ]
@@ -94,7 +96,9 @@ class Dashboard extends Component {
   static propTypes = {
     barChartData: PropTypes.object,
     from: PropTypes.instanceOf(Date),
+    onToggle: PropTypes.function,
     saving: PropTypes.bool,
+    setFilterFunction: PropTypes.function,
     to: PropTypes.instanceOf(Date),
     toggle: PropTypes.function,
     totalBilling: PropTypes.number,

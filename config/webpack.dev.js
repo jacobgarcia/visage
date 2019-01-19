@@ -2,7 +2,6 @@
 const path = require('path')
 const merge = require('webpack-merge')
 const webpack = require('webpack')
-const Dotenv = require('dotenv-webpack')
 
 const common = require('./webpack.common.js')
 

@@ -1,10 +1,8 @@
 import axios from 'axios'
 
 const baseUrl = process.env.API_URL
+
 let token = null
-
-console.log({ baseUrl })
-
 function getToken() {
   token = localStorage.getItem('token')
   return token
@@ -15,9 +13,7 @@ axios.interceptors.request.use(
     config.headers.Authorization = `Bearer ${token || getToken()}`
     return config
   },
-  (error) => {
-    return Promise.reject(error)
-  }
+  (error) => Promise.reject(error)
 )
 
 class NetworkOperation {

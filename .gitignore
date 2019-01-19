@@ -1,7 +1,9 @@
 # Bundles
 dist/**
 .env*
-
+config/certificates/conf/
+config/certificates/wwww/
+data
 *.DS_Store
 
 # Logs

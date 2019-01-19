@@ -17,66 +17,25 @@ const Admin = require(path.resolve('models/Admin'))
 const Indexing = require(path.resolve('models/Indexing'))
 const Searching = require(path.resolve('models/Searching'))
 
-let serviceUrl = ''
+const {
+  JWT_SECRET,
+  USE_ADMIN,
+  USE_CLIENT,
+  NODE_ENV: mode,
+  ENGINE_URL,
+} = process.env
 
-if (process.env.NODE_ENV === 'production') {
-  serviceUrl = process.env.ENGINE_URL
-} else {
-  serviceUrl = 'https://admin.vs-01-dev.qbo.tech'
+let serviceUrl = 'https://admin.vs-01-dev.qbo.tech'
+if (mode === 'production') {
+  serviceUrl = ENGINE_URL
 }
-const JWT_SECRET = process.env.JWT_SECRET
-const ADMIN_USE = process.env.ADMIN
-const USER_USE = process.env.CLIENT
 
 function getUserData(data) {
   return { ...data.toObject(), access: data.services ? 'admin' : 'user' }
 }
 
-const fields = [
-  {
-    label: 'Username',
-    value: 'username',
-  },
-  {
-    label: 'Name',
-    value: 'name',
-  },
-  {
-    label: 'Surname',
-    value: 'surname',
-  },
-  {
-    label: 'Company',
-    value: 'company',
-  },
-  {
-    label: 'Email',
-    value: 'email',
-  },
-]
-
-const adminFields = [
-  {
-    label: 'Username',
-    value: 'username',
-  },
-  {
-    label: 'Name',
-    value: 'name',
-  },
-  {
-    label: 'Surname',
-    value: 'surname',
-  },
-  {
-    label: 'Company',
-    value: 'company',
-  },
-  {
-    label: 'Email',
-    value: 'email',
-  },
-]
+const fields = path.resolve('./FIELDS.json')
+const adminFields = path.resolve('./ADMIN_FIELDS.json')
 
 nev.configure(
   {
@@ -315,6 +274,7 @@ router.route('/stats/requests').get((req, res) => {
           .status(500)
           .json({ error: { message: 'Could not fetch indexings' } })
       }
+
       return Searching.find({ timestamp: { $gte: start, $lte: end } })
         .select('id')
         .exec((error, searchings) => {
@@ -525,6 +485,7 @@ router.route('/stats/users/:username/billing').get((req, res) => {
     return res.status(200).json({ ...users[0] })
   })
 })
+
 router.route('/users/invite').post(async (req, res) => {
   const { email } = req.body
   const guest = new User({
@@ -675,80 +636,71 @@ router.post('/signup/:invitation', async (req, res) => {
 
 router.route('/authenticate').post(async (req, res) => {
   const { email, password } = req.body
-  let user = null
-  let admin = null
-  if (USER_USE === 'true') {
+
+  let user
+
+  console.log({ USE_CLIENT })
+
+  if (USE_CLIENT === 'true') {
+    console.log('USER USE TRUE')
     user = await User.findOne({ email, active: true })
+  } else {
+    console.log('USER USE FALSE')
   }
-  if (ADMIN_USE === 'true') {
-    admin = await Admin.findOne({ email })
+
+  console.log({ user })
+
+  if (!user && USE_ADMIN === 'true') {
+    user = await Admin.findOne({ email })
+    if (user) user.isAdmin = true
   }
-  if (user === null && admin === null) {
+
+  console.log({ user })
+
+  if (!user) {
     return res.status(409).json({
-      message: 'Authentication failed. User deactivated or Eliminated',
+      message: 'Authentication failed. User deactivated or eliminated',
     })
   }
+
   try {
-    return bcrypt
-      .compare(`${password}${JWT_SECRET}`, admin.password)
-      .then((result) => {
-        const token = jwt.sign(
-          {
-            _id: admin._id,
-            admin: true,
-            cmp: admin.company,
-          },
-          JWT_SECRET
-        )
+    const match = await bcrypt.compare(
+      `${password}${JWT_SECRET}`,
+      user.password
+    )
 
-        if (result) return res.status(200).json({
-            token,
-            user: getUserData(admin),
-          })
+    console.log({ match })
 
-        return res
-          .status(401)
-          .json({ message: 'Authentication failed. Wrong admin or password' })
-      })
-      .catch((error) => {
-        console.info('Failed to authenticate admin password', error)
-        return res
-          .status(401)
-          .json({ message: 'Authentication failed. Wrong admin or password' })
-      })
-  } catch (error) {
-    try {
-      return bcrypt
-        .compare(`${password}${JWT_SECRET}`, user.password)
-        .then((result) => {
-          const token = jwt.sign(
-            {
-              _id: user._id,
-              admin: false,
-              cmp: user.company,
-            },
-            JWT_SECRET
-          )
-
-          if (result) return res.status(200).json({
-              token,
-              user: getUserData(user),
-            })
-
-          return res
-            .status(401)
-            .json({ message: 'Authentication failed. Wrong user or password' })
-        })
-        .catch((error) => {
-          console.info('Failed to authenticate user password', error)
-          return res
-            .status(401)
-            .json({ message: 'Authentication failed. Wrong user or password' })
-        })
-    } catch (err) {
-      console.error({ err })
-      return res.status(500).json({ err }) // Causes an error for cannot set headers after sent
+    if (!match) {
+      return res
+        .status(401)
+        .json({ message: 'Authentication failed. Wrong admin or password' })
     }
+
+    console.log(Boolean(user.isAdmin))
+
+    const token = jwt.sign(
+      {
+        _id: user._id,
+        admin: Boolean(user.isAdmin),
+        cmp: user.company,
+      },
+      JWT_SECRET
+    )
+
+    return res.status(200).json({
+      token,
+      user: getUserData(user),
+    })
+  } catch (error) {
+    console.info('Failed to authenticate admin password', error)
+
+    return res
+      .status(401)
+      .json({ message: 'Authentication failed. Wrong admin or password' })
+
+    // /
+    // /
   }
 })
 
@@ -829,17 +781,17 @@ router.route('/stats/searches/topsearches').get(async (req, res) => {
 router.route('/users/self').get(async (req, res) => {
   let user = null
   let admin = null
-  if (USER_USE === 'true') {
+  if (USE_CLIENT === 'true') {
     user = await User.findOne(
       { _id: req._user._id },
       '-apiKey -password -toIndex'
     ).populate('indexings searches')
   }
-  if (ADMIN_USE === 'true') {
+  if (USE_ADMIN === 'true') {
     admin = await Admin.findOne(
       { _id: req._user._id },
       '-apiKey -password -toIndex'
-     )
+    )
   }
   if (admin) {
     return res.status(200).json({ user: getUserData(admin) })

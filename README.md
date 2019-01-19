@@ -19,13 +19,13 @@ npm run build:prod
 Run a **Docker** container with pm2
 
 ```bash
-npm run start:docker
+npm run serve:docker
 ```
 
 Run a regular pm2 process
 
 ```bash
-npm run start:prod
+npm run serve
 ```
 
 Run with docker-compose

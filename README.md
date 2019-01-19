@@ -1,74 +1,38 @@
-# Visual Search API
+# Visual Search
 
 [![Dependency Status][daviddm-img]][daviddm-url]
-
-Greatly optimized React PWA, managing state with Redux, and using a Express server making it ready to support other services.
-
-## Features
-
-- ⚛️ **React** `v16.4`
-- 💜 **Redux** `v4`
-- 🔄 **React Router** `v4`
-- 💠 **Express** server
-- 🔥 **React Hot Reload** with webpack-hot-middleware
-- 🌐 **Axios** for network requests
-- ⭕️ **PostCSS** with Sass-like syntax, auto-prefixer and modern css support
-- ⚗️ **Stage 2**
-- ✂️ **Code splitting** for .js and .css
-- 📱 **Progressive Web App** ready, service worker and manifest
-- 📦 **Webpack** `v4`
-- 👮 Basic security with **helmet** and **hpp**
-- 🐳 **Docker** support
 
 ## Usage
 
 Run **development server**
 
 ```bash
-yarn start # or yarn start:nodemon
+npm start # or npm run start:nodemon
 ```
 
 Create **production bundle**, splits JS and CSS files and creates manifest, map files, PWA icons and Service Worker, all saved in `/dist`
 
 ```bash
-yarn run build:prod
+npm run build:prod
 ```
 
 Run a **Docker** container with pm2
 
-```curl
-yarn start:docker
+```bash
+npm run start:docker
 ```
 
 Run a regular pm2 process
 
-```curl
-yarn start:prod
+```bash
+npm run start:prod
 ```
 
 Run with docker-compose
 
-```curl
+```bash
 docker-compose up
 ```
-
-## Todo
-
-- [x] Code splitting
-- [x] Progressive web app
-- [x] .env files support
-- [x] CSS vendor prefixes
-- [x] Webpack image loaders
-- [ ] Basic testing
-- [x] Async/await support
-- [x] Hot reload with code splitting
-- [x] Full Docker support
-
-## Licence
-
-Copyright 2018 Nure.
-
-MIT
 
 [daviddm-img]: https://david-dm.org/nuremx/react-boilerplate.svg
 [daviddm-url]: https://david-dm.org/nuremx/react-boilerplate

@@ -32,7 +32,13 @@ dotenv.config({
 const v1 = require(path.resolve('router/v1'))
 
 // MARK: Environment variables definition
-const { PORT = 8080, DASHBOARD_SERV, DB_URI, API_SERV = true, API_URL} = process.env
+const {
+  PORT = 8080,
+  DASHBOARD_SERV,
+  DB_URI,
+  API_SERV = true,
+  API_URL,
+} = process.env
 
 // MARK: DB Connection
 mongoose

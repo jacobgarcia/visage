@@ -1,9 +1,8 @@
 /* eslint-env node */
 const path = require('path')
-const webpack = require('webpack')
 const merge = require('webpack-merge')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
-const UglifyJSPlugin = require('uglifyjs-webpack-plugin')
+const TerserPlugin = require('terser-webpack-plugin')
 const { GenerateSW } = require('workbox-webpack-plugin')
 const WebpackPwaManifest = require('webpack-pwa-manifest')
 
@@ -18,6 +17,9 @@ module.exports = merge(common, {
     path: path.resolve('dist'),
     filename: '[name]-[chunkhash].min.js',
     publicPath: '/',
+  },
+  optimization: {
+    minimizer: [new TerserPlugin({ parallel: true, sourceMap: true })],
   },
   module: {
     rules: [
@@ -44,11 +46,6 @@ module.exports = merge(common, {
     new MiniCssExtractPlugin({
       filename: '[name]-[hash].min.css',
       chunkFilename: '[name]-[hash].min.css',
-    }),
-    new UglifyJSPlugin({
-      sourceMap: true,
-      cache: true,
-      parallel: true,
     }),
     new GenerateSW({
       swDest: 'sw.js',

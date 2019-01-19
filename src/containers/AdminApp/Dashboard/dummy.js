@@ -8,19 +8,12 @@ export const radarData = [
 ]
 
 export const treeMapData = [
-          {
-            name: 'frans',
-            children: [
-              { name: 'index', size: 1302 },
-              { name: 'search', size: 24593 },
-
-            ],
-          },
-          {
-            name: 'cesar',
-            children: [
-              { name: 'index', size: 2138 },
-              { name: 'search', size: 3824 },
-            ],
-          },
-         ]
+  {
+    name: 'frans',
+    children: [{ name: 'index', size: 1302 }, { name: 'search', size: 24593 }],
+  },
+  {
+    name: 'cesar',
+    children: [{ name: 'index', size: 2138 }, { name: 'search', size: 3824 }],
+  },
+]

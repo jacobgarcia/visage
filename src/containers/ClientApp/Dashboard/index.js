@@ -45,19 +45,21 @@ class Dashboard extends Component {
       } = await NetworkOperation.getSelf()
 
       const statsRes = await NetworkOperation.getClientRequestStats(
-        data.username,
+        data?.username,
         from,
         to
       )
       const billingRes = await NetworkOperation.getClientBillingStats(
-        data.username,
+        data?.username,
         from,
         to
       )
       const topsearches = await NetworkOperation.getTopSearches()
-      const chardata = topsearches.data.mostSearchedItems.map((data, index) => {
-        return { name: data.id, value: data.count }
-      })
+      const chardata = topsearches?.data?.mostSearchedItems.map(
+        (data, index) => {
+          return { name: data.id, value: data.count }
+        }
+      )
 
       this.setState({
         billing: billingRes.data.billing,
@@ -108,9 +110,10 @@ class Dashboard extends Component {
                   innerRadius={125}
                   outerRadius={200}
                   fill="#82ca9d"
+                  dataKey="value"
                 >
                   {this.state.chardata.map((data, index) => (
-                    <Cell KEY={index} fill={COLORS[index % COLORS.length]} />
+                    <Cell key={index} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
               </PieChart>
@@ -170,7 +173,7 @@ class Dashboard extends Component {
               <div>Categoría</div>
               <div>No. búsquedas</div>
             </div>
-            {this.state.topsearches.mostSearchedItems.map((data, index) => (
+            {this.state.topsearches?.mostSearchedItems?.map((data, index) => (
               <div key={index}>
                 <div>{data.id}</div>
                 <div>{data.cl}</div>

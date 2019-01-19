@@ -2,6 +2,7 @@ import React, { PureComponent, Fragment } from 'react'
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
 import { MuiThemeProvider, createMuiTheme } from '@material-ui/core/styles'
 import { hot } from 'react-hot-loader'
+import PropTypes from 'prop-types'
 
 import AdminApp from 'containers/AdminApp'
 import ClientApp from 'containers/ClientApp'
@@ -24,6 +25,10 @@ const theme = createMuiTheme({
 class SessionLoader extends PureComponent {
   static contextType = UserContext
 
+  static propTypes = {
+    history: PropTypes.object.isRequired,
+  }
+
   async componentDidMount() {
     const pathname = this.props.location.pathname
     if (pathname === '/login' || pathname === '/signup') {
@@ -32,20 +37,22 @@ class SessionLoader extends PureComponent {
 
     try {
       const { data } = await NetworkOperation.getSelf()
-      // Set user context
+
+      console.log({ data })
+
       this.context.setUserData({
         user: data.user,
         loadingSelf: false,
       })
-      console.log(this.context)
     } catch (error) {
       if (error.response?.status === 401) {
         this.props.history.replace('/login')
-      }
-      if (error.response?.status === 400) {
+      } else if (error.response?.status === 400) {
         this.props.history.replace('/login')
+      } else {
+        // TODO Other error should be displayed
+        console.error(error)
       }
-      // TODO Other error should be displayed
     }
   }
 
@@ -55,6 +62,11 @@ class SessionLoader extends PureComponent {
 }
 
 class Routes extends PureComponent {
+  static getDerivedStateFromError() {
+    // Update state so the next render will show the fallback UI.
+    return { hasError: true }
+  }
+
   constructor(props) {
     super(props)
 
@@ -68,14 +80,8 @@ class Routes extends PureComponent {
     }
   }
 
-  static getDerivedStateFromError(error) {
-    console.log('DERIVED STATE ', error)
-    // Update state so the next render will show the fallback UI.
-    return { hasError: true }
-  }
-
   componentDidCatch(error, info) {
-    console.log('COMPONENT DID CATCH', error, info)
+    console.error('COMPONENT DID CATCH', error, info)
   }
 
   render() {
@@ -114,10 +120,14 @@ class Routes extends PureComponent {
                 <Route exact path="/login" component={Login} />
                 <Route path="/signup" component={Signup} />
                 {this.state.user === null ? (
-                  <div className="loading-screen">
-                    <img src={qboLogoColor} alt="QBO" />
-                    <p>Cargando...</p>
-                  </div>
+                  <Route
+                    render={() => (
+                      <div className="loading-screen">
+                        <img src={qboLogoColor} alt="QBO" />
+                        <p>Cargando...</p>
+                      </div>
+                    )}
+                  />
                 ) : (
                   <Fragment>
                     <Switch>

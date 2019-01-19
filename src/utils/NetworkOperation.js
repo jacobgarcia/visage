@@ -1,9 +1,9 @@
 import axios from 'axios'
 
-console.log(process.env.NODE_ENV)
-console.log(process.env.API_URL)
 const baseUrl = process.env.API_URL
 let token = null
+
+console.log({ baseUrl })
 
 function getToken() {
   token = localStorage.getItem('token')
@@ -152,6 +152,7 @@ class NetworkOperation {
   static setBillingInfo(data) {
     return axios.put(`${baseUrl}/v1/private/users/${data.username}`, data)
   }
+
   /*
   A D M I N S
   */

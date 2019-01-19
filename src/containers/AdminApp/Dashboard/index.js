@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import createReactClass  from 'create-react-class'
+import createReactClass from 'create-react-class'
 import Card from '@material-ui/core/Card'
 import {
   BarChart,
@@ -15,7 +15,7 @@ import {
   PieChart,
   Pie,
   Legend,
-  Cell,
+  Cell
 } from 'recharts'
 import PropTypes from 'prop-types'
 import DefaultTooltipContent from 'recharts/lib/component/DefaultTooltipContent'
@@ -34,9 +34,9 @@ const COLORS = [
   '#E9666E',
 ]
 
-const CustomTooltip = props => {
-    if (props.payload[0] != null) {
-            const newPayload = [
+const CustomTooltip = (props) => {
+  if (props.payload[0] != null) {
+    const newPayload = [
       {
         name: 'Day',
         value: moment(parseInt(props.payload[0].value)).format('YYYY-MM-DD'),
@@ -44,10 +44,10 @@ const CustomTooltip = props => {
       ...props.payload,
     ]
 
-        return <DefaultTooltipContent {...props} payload={newPayload} />
+    return <DefaultTooltipContent {...props} payload={newPayload} />
   }
 
-    return <DefaultTooltipContent {...props} />
+  return <DefaultTooltipContent {...props} />
 }
 
 function CustomizedContent(props) {
@@ -133,8 +133,11 @@ class Dashboard extends Component {
 
       const statsRes = await NetworkOperation.getRequestStats(from, to)
       const billingRes = await NetworkOperation.getUserBillingStats(from, to)
-      const statsResDetailed = await NetworkOperation.getRequestDetailedStats(from, to)
-      billingRes.data?.users?.map((user) => {
+      const statsResDetailed = await NetworkOperation.getRequestDetailedStats(
+        from,
+        to
+      )
+      billingRes?.data?.users?.map((user) => {
         barChartData.push({
           name: user?.username,
           index: user?.indexings?.length,
@@ -148,14 +151,26 @@ class Dashboard extends Component {
           ],
         })
       })
-      let indexGroupedResults = _.groupBy(statsResDetailed.data.requests.indexings, (result) => moment(result['timestamp']).startOf('day').valueOf())
+      const indexGroupedResults = _.groupBy(
+        statsResDetailed.data?.requests.indexings,
+        (result) =>
+          moment(result.timestamp)
+            .startOf('day')
+            .valueOf()
+      )
       Object.keys(indexGroupedResults).map((data) => {
         indexScatterData.push({
           value: indexGroupedResults[data].length,
           time: data,
         })
       })
-      let searchGroupedResults = _.groupBy(statsResDetailed.data.requests.searches, (result) => moment(result['timestamp']).startOf('day').valueOf())
+      const searchGroupedResults = _.groupBy(
+        statsResDetailed.data?.requests.searches,
+        (result) =>
+          moment(result.timestamp)
+            .startOf('day')
+            .valueOf()
+      )
       Object.keys(searchGroupedResults).map((data) => {
         searchScatterData.push({
           value: searchGroupedResults[data].length,
@@ -178,7 +193,7 @@ class Dashboard extends Component {
         searchScatterData: searchScatterData,
       })
     } catch (error) {
-      console.log(error)
+      console.error(error)
     }
   }
 
@@ -209,10 +224,10 @@ class Dashboard extends Component {
                     outerRadius={140}
                     fill="#8884d8"
                     label
+                    dataKey="value"
                   >
-                    <Cell fill={'#A4CFD7'} />
-
-                    <Cell fill={'#98B1CE'} />
+                    <Cell fill="#A4CFD7" />
+                    <Cell fill="#98B1CE" />
                   </Pie>
                   <Legend verticalAlign="bottom" height={36} />
                   <Tooltip />
@@ -232,30 +247,32 @@ class Dashboard extends Component {
                 >
                   <CartesianGrid strokeDasharray="4 4" />
                   <XAxis
-                    dataKey = 'time'
-                    domain = {['auto', 'auto']}
-                    name = 'Time'
-                    tickFormatter = {(unixTime) => moment(unixTime).format("MMM Do YY")}
-                    type = 'number'
+                    dataKey="time"
+                    domain={['auto', 'auto']}
+                    name="Time"
+                    tickFormatter={(unixTime) =>
+                      moment(unixTime).format('MMM Do YY')
+                    }
+                    type="number"
                   />
-                  <YAxis dataKey = 'value' name = 'Value' />
-                  <Tooltip content={<CustomTooltip/>}/>
+                  <YAxis dataKey="value" name="Value" />
+                  <Tooltip content={<CustomTooltip />} />
                   <Legend />
                   <Scatter
-                    data = {this.state.searchScatterData}
-                    line = {{ stroke: '#A4CFD7' }}
-                    lineJointType = 'monotoneX'
-                    lineType = 'joint'
-                    name = 'Busquedas'
-                    fill = '#A4CFD7'
+                    data={this.state.searchScatterData}
+                    line={{ stroke: '#A4CFD7' }}
+                    lineJointType="monotoneX"
+                    lineType="joint"
+                    name="Busquedas"
+                    fill="#A4CFD7"
                   />
                   <Scatter
-                    data = {this.state.indexScatterData}
-                    line = {{ stroke: '#98B1CE' }}
-                    lineJointType = 'monotoneX'
-                    lineType = 'joint'
-                    name = 'Indexaciones'
-                    fill = '#98B1CE'
+                    data={this.state.indexScatterData}
+                    line={{ stroke: '#98B1CE' }}
+                    lineJointType="monotoneX"
+                    lineType="joint"
+                    name="Indexaciones"
+                    fill="#98B1CE"
                   />
                 </ScatterChart>
               </ResponsiveContainer>

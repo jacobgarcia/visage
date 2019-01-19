@@ -156,8 +156,6 @@ class Rates extends Component {
       state: { searchRates, indexRates, message },
     } = this
 
-    console.log('RENDER')
-
     const canEdit = this.context?.user?.services?.rates === true
 
     return (

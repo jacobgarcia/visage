@@ -1,5 +1,4 @@
 import React, { Component } from 'react'
-import { Route } from 'react-router-dom'
 import PropTypes from 'prop-types'
 
 import Dashboard from 'containers/ClientApp/Dashboard'
@@ -10,7 +9,10 @@ import qboLogo from 'assets/qbo-logo-mono.svg'
 import './styles.pcss'
 
 class ClientApp extends Component {
-  static propTypes = {}
+  static propTypes = {
+    history: PropTypes.object.isRequired,
+    location: PropTypes.object.isRequired,
+  }
 
   state = {
     profileModalOpen: false,
@@ -44,7 +46,6 @@ class ClientApp extends Component {
 
   render() {
     const {
-      state: { toolBarHidden },
       props: {
         location: { pathname },
       },

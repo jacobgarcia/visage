@@ -35,7 +35,7 @@ class ClientRow extends Component {
 
       this.setState({ message: 'Llave revocada' })
     } catch (error) {
-      console.error({ error })
+      console.error(error)
       this.setState({ message: 'Error al revocar llave' })
     } finally {
       this.setState({ revokeKeyLoading: false })

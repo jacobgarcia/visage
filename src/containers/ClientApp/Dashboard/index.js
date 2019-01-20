@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import NetworkOperation from 'utils/NetworkOperation'
 
-import { PieChart, Pie, Cell } from 'recharts'
+import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts'
 
 const COLORS = [
   '#BCD1E0',
@@ -15,7 +15,7 @@ const COLORS = [
 
 import UsageBar from 'components/UsageBar'
 import Card from 'components/Card'
-import ProfileModal from 'components/ProfileModal'
+// import ProfileModal from 'components/ProfileModal'
 
 import './styles.pcss'
 
@@ -99,42 +99,42 @@ class Dashboard extends Component {
           </div>
         </Card>
         <Card>
-          <h4>Cantidad de búsqueda</h4>
+          <h4>Número de búsquedas</h4>
+
           <div className="chart-data-container">
             <div className="pie-chart-container">
-              <PieChart width={420} height={420}>
-                <Pie
-                  data={this.state.chardata}
-                  cx={200}
-                  cy={200}
-                  innerRadius={125}
-                  outerRadius={200}
-                  fill="#82ca9d"
-                  dataKey="value"
-                >
-                  {this.state.chardata.map((data, index) => (
-                    <Cell key={index} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-              </PieChart>
+              <ResponsiveContainer width="50%" height={420}>
+                <PieChart>
+                  <Pie
+                    data={this.state.chardata}
+                    innerRadius="60%"
+                    fill="#82ca9d"
+                    dataKey="value"
+                  >
+                    {this.state.chardata.map((data, index) => (
+                      <Cell key={index} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
               <div className="pie-chart__label">
                 <span>Total de búsquedas</span>
                 <p>{this.state.requests.total}</p>
               </div>
-            </div>
-            <div className="pie-chart__legend">
-              {this.state.chardata.map((data, index) => (
-                <div key={index}>
-                  <div
-                    className="bullet"
-                    style={{ backgroundColor: COLORS[index % COLORS.length] }}
-                  />
-                  <span style={{ color: COLORS[index % COLORS.length] }}>
-                    ID: {data.name}
-                  </span>
-                  <span>Cantidad: {data.value}</span>
-                </div>
-              ))}
+              <div className="pie-chart__legend">
+                {this.state.chardata.map((data, index) => (
+                  <div key={index}>
+                    <div
+                      className="bullet"
+                      style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                    />
+                    <span style={{ color: COLORS[index % COLORS.length] }}>
+                      ID: {data.name}
+                    </span>
+                    <span>Cantidad: {data.value}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </Card>

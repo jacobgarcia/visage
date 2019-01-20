@@ -145,11 +145,9 @@ router.route('/images/search').post(upload.single('image'), (req, res) => {
           .exec((error, user) => {
             if (error) {
               console.error('Could not update user information', error)
-              return res
-                .status(500)
-                .json({
-                  error: { message: 'Could not update user information' },
-                })
+              return res.status(500).json({
+                error: { message: 'Could not update user information' },
+              })
             }
             // Get the search rate cost
             let index = 0
@@ -160,11 +158,9 @@ router.route('/images/search').post(upload.single('image'), (req, res) => {
             return user.save((error) => {
               if (error) {
                 console.error('Could not save user information', error)
-                return res
-                  .status(500)
-                  .json({
-                    error: { message: 'Could not save user information' },
-                  })
+                return res.status(500).json({
+                  error: { message: 'Could not save user information' },
+                })
               }
               // Then return response from internal server
               return res.status(200).json(response)

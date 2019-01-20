@@ -63,6 +63,7 @@ const schema = new Schema({
   },
   items: { type: [ItemSchema], default: [] },
   notifications: { type: [Number], default: [0] },
+  token: { type: String },
 })
 
 schema.index({ name: 'text', company: 'text', email: 'text' })

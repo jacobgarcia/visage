@@ -42,8 +42,6 @@ class SessionLoader extends PureComponent {
     try {
       const { data } = await NetworkOperation.getSelf()
 
-      console.log({ data })
-
       this.context.setUserData({
         user: data.user,
         loadingSelf: false,

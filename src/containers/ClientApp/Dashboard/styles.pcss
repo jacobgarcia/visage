@@ -91,6 +91,10 @@
   }
   .pie-chart-container {
     position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
     .recharts-wrapper {
       position: absolute;
       top: 0;
@@ -100,8 +104,10 @@
       text-align: center;
       position: absolute;
       top: 50%;
-      right: 50%;
-      transform: translate(90px, -38px);
+      left: 0;
+      width: 50%;
+      transform: translate(0, -35px);
+      padding: 0 11%;
       span {
         font-size: 1.4rem;
       }

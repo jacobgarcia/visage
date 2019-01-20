@@ -127,7 +127,7 @@ class AppBarComponent extends PureComponent {
             </Modal>
             <Toolbar className="toolbar">
               <div className="toolbar__content">
-                <Typography variant="subtitle1" color="inherit" noWrap>
+                <Typography variant="h5" noWrap>
                   {title}
                 </Typography>
 

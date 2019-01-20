@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
+import Typography from '@material-ui/core/Typography'
 import NetworkOperation from 'utils/NetworkOperation'
 
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts'
@@ -89,21 +90,20 @@ class Dashboard extends Component {
     return (
       <div className="dashboard">
         <Card>
-          <h4>Resumen de consumo de datos</h4>
+          <Typography variant="h6">Resumen de consumo de datos</Typography>
           <div className="chart-data-container">
             <div className="number">
-              <h1>
+              <Typography variant="h1">
                 <span>$</span> {this.state.billing} <span>MXN</span>
-              </h1>
+              </Typography>
             </div>
           </div>
         </Card>
         <Card>
-          <h4>Número de búsquedas</h4>
-
+          <Typography variant="h6">Número de búsquedas</Typography>
           <div className="chart-data-container">
             <div className="pie-chart-container">
-              <ResponsiveContainer width="50%" height={420}>
+              <ResponsiveContainer width="50%" height={300}>
                 <PieChart>
                   <Pie
                     data={this.state.chardata}
@@ -118,8 +118,10 @@ class Dashboard extends Component {
                 </PieChart>
               </ResponsiveContainer>
               <div className="pie-chart__label">
-                <span>Total de búsquedas</span>
-                <p>{this.state.requests.total}</p>
+                <Typography variant="h6">Total de búsquedas</Typography>
+                <Typography variant="h3">
+                  {this.state.requests.total}
+                </Typography>
               </div>
               <div className="pie-chart__legend">
                 {this.state.chardata.map((data, index) => (
@@ -128,10 +130,15 @@ class Dashboard extends Component {
                       className="bullet"
                       style={{ backgroundColor: COLORS[index % COLORS.length] }}
                     />
-                    <span style={{ color: COLORS[index % COLORS.length] }}>
+                    <Typography
+                      variant="body"
+                      style={{ color: COLORS[index % COLORS.length] }}
+                    >
                       ID: {data.name}
-                    </span>
-                    <span>Cantidad: {data.value}</span>
+                    </Typography>
+                    <Typography variant="body">
+                      Cantidad: {data.value}
+                    </Typography>
                   </div>
                 ))}
               </div>
@@ -139,13 +146,13 @@ class Dashboard extends Component {
           </div>
         </Card>
         <Card>
-          <h4>Consumo de datos</h4>
+          <Typography variant="h6">Consumo de datos</Typography>
           <div>
             <div className="usage-bar__data">
-              <h5>Indexaciones</h5>
-              <p className="low">
+              <Typography variant="body">Indexaciones</Typography>
+              <Typography variant="caption" className="low">
                 Dentro del límite <span>{this.state.indexLimit}</span>
-              </p>
+              </Typography>
             </div>
             <UsageBar
               percentage={
@@ -153,10 +160,10 @@ class Dashboard extends Component {
               }
             />
             <div className="usage-bar__data">
-              <h5>Búsquedas</h5>
-              <p className="high">
+              <Typography variant="body">Búsquedas</Typography>
+              <Typography variant="caption" className="high">
                 Dentro del límite <span>{this.state.searchLimit}</span>
-              </p>
+              </Typography>
             </div>
             <UsageBar
               percentage={
@@ -166,18 +173,26 @@ class Dashboard extends Component {
           </div>
         </Card>
         <Card noPadding>
-          <h4>Productos más buscados</h4>
+          <Typography style={{ padding: 16, paddingBottom: 4 }} variant="h6">
+            Productos más buscados
+          </Typography>
           <div className="table">
             <div key="title">
-              <div>Producto</div>
-              <div>Categoría</div>
-              <div>No. búsquedas</div>
+              <Typography variant="h6" style={{ marginBottom: 0 }}>
+                Producto
+              </Typography>
+              <Typography variant="h6" style={{ marginBottom: 0 }}>
+                Categoría
+              </Typography>
+              <Typography variant="h6" style={{ marginBottom: 0 }}>
+                No. búsquedas
+              </Typography>
             </div>
             {this.state.topsearches?.mostSearchedItems?.map((data, index) => (
               <div key={index}>
-                <div>{data.id}</div>
-                <div>{data.cl}</div>
-                <div>{data.count}</div>
+                <Typography variant="body">{data.id}</Typography>
+                <Typography variant="body">{data.cl}</Typography>
+                <Typography variant="body">{data.count}</Typography>
               </div>
             ))}
           </div>

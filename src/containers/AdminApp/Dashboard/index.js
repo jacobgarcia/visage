@@ -1,9 +1,6 @@
 import React, { Component } from 'react'
-import createReactClass from 'create-react-class'
 import Card from '@material-ui/core/Card'
 import {
-  BarChart,
-  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -22,7 +19,7 @@ import DefaultTooltipContent from 'recharts/lib/component/DefaultTooltipContent'
 import NetworkOperation from 'utils/NetworkOperation'
 import { withSaver } from 'utils/portals'
 import moment from 'moment'
-import _ from 'lodash'
+import groupBy from 'lodash/groupBy'
 import './styles.pcss'
 
 const COLORS = [
@@ -155,7 +152,7 @@ class Dashboard extends Component {
           ],
         })
       })
-      const indexGroupedResults = _.groupBy(
+      const indexGroupedResults = groupBy(
         statsResDetailed.data?.requests.indexings,
         (result) =>
           moment(result.timestamp)
@@ -168,7 +165,7 @@ class Dashboard extends Component {
           time: data,
         })
       })
-      const searchGroupedResults = _.groupBy(
+      const searchGroupedResults = groupBy(
         statsResDetailed.data?.requests.searches,
         (result) =>
           moment(result.timestamp)
@@ -208,7 +205,7 @@ class Dashboard extends Component {
           <div className="card-wrapper">
             <Card className="card">
               <h4>Total de peticiones e imágenes indexadas</h4>
-              <ResponsiveContainer width="100%" height={400}>
+              <ResponsiveContainer width="100%" height={250}>
                 <PieChart>
                   <Pie
                     isAnimationActive={true}
@@ -242,7 +239,7 @@ class Dashboard extends Component {
           <div className="card-wrapper">
             <Card className="card">
               <h4>Consumo de datos</h4>
-              <ResponsiveContainer width="100%" height={400}>
+              <ResponsiveContainer width="100%" height={250}>
                 <ScatterChart
                   width={600}
                   height={400}

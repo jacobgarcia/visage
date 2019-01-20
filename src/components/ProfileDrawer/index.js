@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
+import Typography from '@material-ui/core/Typography'
 import TextField from '@material-ui/core/TextField'
 import InputAdornment from '@material-ui/core/InputAdornment'
 import FormControl from '@material-ui/core/FormControl'
@@ -162,10 +163,15 @@ class Profile extends Component {
         <div className="profile-drawer-content">
           <div>
             <div className="title-action-container">
-              <h4>Datos personales</h4>
-              <p tabIndex={0} role="button" onClick={this.handleClickUserModal}>
+              <Typography variant="h6">Datos personales</Typography>
+              <Typography
+                component="button"
+                variant="button"
+                gutterBottom
+                onClick={this.handleClickUserModal}
+              >
                 Editar datos
-              </p>
+              </Typography>
             </div>
             <div className="fields-container">
               <TextField
@@ -204,7 +210,7 @@ class Profile extends Component {
           </div>
           <hr />
           <div>
-            <h4>Llaves de API</h4>
+            <Typography variant="h6">Llaves de API</Typography>
             <FormControl fullWidth>
               <InputLabel htmlFor="adornment-password">Token</InputLabel>
               <Input
@@ -233,7 +239,7 @@ class Profile extends Component {
           </div>
           <hr />
           <div>
-            <h4>Total de búsquedas</h4>
+            <Typography variant="h6">Total de búsquedas</Typography>
             <div className="consults-range">
               <p>{this.context?.user?.searches?.length}</p>
               <div>
@@ -287,8 +293,11 @@ class Profile extends Component {
           <hr />
           <div>
             <div className="title-action-container">
-              <h4>Datos de facturación</h4>
-              <p
+              <Typography variant="h6">Datos de facturación</Typography>
+              <Typography
+                component="button"
+                variant="button"
+                gutterBottom
                 onClick={() =>
                   this.setState(({ editingBilling }) => ({
                     editingBilling: !editingBilling,
@@ -296,7 +305,7 @@ class Profile extends Component {
                 }
               >
                 {editingBilling ? 'Cancelar' : 'Editar datos'}
-              </p>
+              </Typography>
             </div>
             <div className="fields-container">
               <TextField

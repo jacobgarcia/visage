@@ -15,13 +15,12 @@ const User = require(path.resolve('models/User'))
 const Indexing = require(path.resolve('models/Indexing'))
 const Searching = require(path.resolve('models/Searching'))
 
-const s3 = new AWS.S3()
 const router = new express.Router()
 
 const JWT_SECRET = process.env.JWT_SECRET
-
+const STATIC_FOLDER = process.env.STATIC_FOLDER
 const storage = multer.diskStorage({
-  destination: (req, file, callback) => callback(null, 'static/uploads/temp'),
+  destination: (req, file, callback) => callback(null, STATIC_FOLDER),
   filename: (req, file, callback) => {
     crypto.pseudoRandomBytes(16, (error, raw) => {
       callback(
@@ -36,7 +35,19 @@ const storage = multer.diskStorage({
 })
 
 const upload = multer({ storage })
-const serviceUrl = 'https://admin.vs-01-dev.qbo.tech'
+const serviceUrl = process.env.ENGINE_URL
+const BUCKET_NAME = process.env.BUCKET_NAME
+
+AWS.config.update({
+  region: 'us-east-1',
+})
+const { AWS_ACCESS_KEY, AWS_SECRET_KEY } = process.env
+AWS.config.update({
+  accessKeyId: AWS_ACCESS_KEY,
+  secretAccessKey: AWS_SECRET_KEY,
+})
+
+const s3 = new AWS.S3()
 
 /*
   C O R S   S T U F F
@@ -88,7 +99,7 @@ router.route('/images/search').post(upload.single('image'), (req, res) => {
   if (!req.file) return res
       .status(400)
       .json({ error: { message: 'Could not get file info' } })
-  const imagePath = `/static/uploads/temp/${req.file.filename}`
+  const imagePath = `/${STATIC_FOLDER}/${req.file.filename}`
 
   // Call internal Flask service to process petition
   const formData = {
@@ -189,9 +200,11 @@ router.route('/images/index').post(upload.single('image'), (req, res) => {
 
     const base64data = Buffer.from(data, 'binary')
     const key = req._user.username + '/' + image.filename
+    console.log('Nombre del buket:')
+    console.log(BUCKET_NAME)
     return s3.putObject(
       {
-        Bucket: 'visual-search-qbo',
+        Bucket: BUCKET_NAME,
         Key: key,
         Body: base64data,
         ACL: 'public-read',
@@ -239,7 +252,7 @@ router.route('/images/index/now').post(upload.single('image'), (req, res) => {
   const image = req.file
   if (!id || !sku || !image) return res.status(400).json({ error: { message: 'Malformed request' } })
 
-  const url = `/static/uploads/temp/${image.filename}`
+  const url = `/${STATIC_FOLDER}/${image.filename}`
   const indexedImage = {
     url,
     name: image.filename,
@@ -259,7 +272,7 @@ router.route('/images/index/now').post(upload.single('image'), (req, res) => {
     const base64data = Buffer.from(data, 'binary')
     return s3.putObject(
       {
-        Bucket: 'visual-search-qbo',
+        Bucket: BUCKET_NAME,
         Key: req._user.username + '/' + image.filename,
         Body: base64data,
         ACL: 'public-read',
@@ -355,7 +368,7 @@ router.route('/images/:id').delete((req, res) => {
     // Remove object from S3
     return s3.deleteObject(
       {
-        Bucket: 'visual-search-qbo',
+        Bucket: BUCKET_NAME,
         Key: req._user.username + '/' + id,
       },
       (error) => {

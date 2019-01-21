@@ -31,6 +31,7 @@ const {
   DB_URI,
   API_SERV = true,
   API_URL,
+  MONGO_DB_NAME,
 } = process.env
 
 // Important to load all after dotenv config
@@ -40,7 +41,7 @@ const v1 = require(path.resolve('router/v1'))
 mongoose
   .connect(
     DB_URI,
-    { useNewUrlParser: true, dbName: 'visual-search', useCreateIndex: true }
+    { useNewUrlParser: true, dbName: MONGO_DB_NAME, useCreateIndex: true }
   )
   .then(() => logger.info('-- Connected to DB 🍃 --'))
   .catch(() => logger.error('-- ❌ Could not connect to DB --'))

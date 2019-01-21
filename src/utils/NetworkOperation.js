@@ -21,6 +21,14 @@ class NetworkOperation {
     return axios.get(`${baseUrl}/v1/private/stats/requests/${username}`)
   }
 
+  static forgot({ email }) {
+    return axios.post(`${baseUrl}/v1/forgot`, { email })
+  }
+
+  static passwordReset({ token, password }) {
+    return axios.post(`${baseUrl}/v1/reset-password`, { token, password })
+  }
+
   static getRequestStats(from, to) {
     return axios.get(`${baseUrl}/v1/private/stats/requests`, {
       params: {

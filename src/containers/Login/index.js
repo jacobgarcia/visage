@@ -1,6 +1,10 @@
 import React, { Component } from 'react'
+import { Link } from 'react-router-dom'
+
 import TextField from '@material-ui/core/TextField'
 import Button from '@material-ui/core/Button'
+import Typography from '@material-ui/core/Typography'
+
 import PropTypes from 'prop-types'
 import NetworkOperation from 'utils/NetworkOperation'
 
@@ -30,6 +34,7 @@ class Login extends Component {
 
   onSubmit = (event) => {
     event.preventDefault()
+
     const { email, password } = this.state
 
     NetworkOperation.login({ email, password })
@@ -48,10 +53,10 @@ class Login extends Component {
         const { status = 500 } = response
         switch (status) {
           case 400:
-          this.setState({
-            error: 'Error General',
-          })
-          break
+            this.setState({
+              error: 'Error General',
+            })
+            break
           default:
             this.setState({
               error: 'Problemas al iniciar sesión, intenta nuevamente',
@@ -71,13 +76,14 @@ class Login extends Component {
           <img src={qboLogo} alt="" />
           <TextField
             id="standard-name"
-            label="Usuario"
+            label="Correo electrónico"
             value={email}
             name="email"
             onChange={this.onChange}
             margin="normal"
             variant="outlined"
             InputLabelProps={{ shrink: true }}
+            required
           />
           <TextField
             id="standard-password"
@@ -89,6 +95,7 @@ class Login extends Component {
             margin="normal"
             variant="outlined"
             InputLabelProps={{ shrink: true }}
+            required
           />
           {error ? <p>Error: {error}</p> : ''}
           <Button
@@ -99,6 +106,11 @@ class Login extends Component {
           >
             Ingresar
           </Button>
+          <Link to="/forgot">
+            <Typography variant="button" gutterBottom>
+              ¿Olvidaste tu contraseña?
+            </Typography>
+          </Link>
         </form>
       </div>
     )

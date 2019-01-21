@@ -159,7 +159,6 @@ class ClientRow extends Component {
           message={message}
           onClose={this.onCloseSnack}
         />
-
         <TableRow
           key={props.client._id}
           className={`user-row ${props.client.active ? 'active' : 'deactive'}`}

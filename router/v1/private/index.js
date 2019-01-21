@@ -555,6 +555,7 @@ router.route('/admins/invite').post((req, res) => {
 router.post('/signup/:invitation', async (req, res) => {
   const { invitation } = req.params
   const { email, password, username, fullName } = req.body
+
   if (!invitation) return res.status(401).json({ message: 'No invitation token provided' })
 
   try {

@@ -1,5 +1,5 @@
 :root {
-  --tint-color: rgb(0, 176, 251);
+  --tint-color: #5290d7;
 }
 
 html {
@@ -182,5 +182,35 @@ h6 {
     .welcome-message__content {
       padding: 16px;
     }
+  }
+}
+
+.login {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  height: 100vh;
+  img {
+    width: 180px;
+    margin: 0 auto;
+    margin-bottom: 32px;
+  }
+  form {
+    display: flex;
+    flex-direction: column;
+    width: 400px;
+    margin: 0 auto;
+    justify-content: flex-start;
+    p {
+      color: red;
+    }
+    a span {
+      margin-top: 16px;
+      color: var(--tint-color);
+      text-align: center;
+    }
+  }
+  .submit {
+    margin-top: 16px;
   }
 }

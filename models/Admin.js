@@ -17,6 +17,7 @@ const schema = new Schema({
   password: String,
   superAdmin: Boolean,
   active: Boolean,
+  token: String,
 })
 
 schema.virtual('fullname').get(() => {

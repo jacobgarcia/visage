@@ -9,6 +9,8 @@ import ClientApp from 'containers/ClientApp'
 import Login from 'containers/Login'
 import Signup from 'containers/Signup'
 import NotFound from 'containers/NotFound'
+import Forgot from 'containers/Forgot'
+import ResetPassword from 'containers/ResetPassword'
 
 import NetworkOperation from 'utils/NetworkOperation'
 import { UserContext } from 'utils/context'
@@ -35,7 +37,12 @@ class SessionLoader extends PureComponent {
 
   async componentDidMount() {
     const pathname = this.props.location.pathname
-    if (pathname === '/login' || pathname === '/signup') {
+    if (
+      pathname === '/login' ||
+      pathname === '/signup' ||
+      pathname === '/reset-password' ||
+      pathname === '/forgot'
+    ) {
       return
     }
 
@@ -121,6 +128,8 @@ class Routes extends PureComponent {
               <Switch>
                 <Route exact path="/login" component={Login} />
                 <Route path="/signup" component={Signup} />
+                <Route path="/forgot" component={Forgot} />
+                <Route path="/reset-password" component={ResetPassword} />
                 {this.state.user === null ? (
                   <Route
                     render={() => (

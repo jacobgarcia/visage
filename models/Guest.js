@@ -10,12 +10,13 @@ const schema = new Schema({
   password: String,
   services: {
     dashboard: Boolean,
-    clients: {type: Number, enum: [0,1,2]},
-    admins: {type: Number, enum: [0,1,2]},
+    clients: { type: Number, enum: [0, 1, 2] },
+    admins: { type: Number, enum: [0, 1, 2] },
     rates: Boolean,
   },
   invitation: { type: String, required: true, unique: true },
   host: { type: Schema.Types.ObjectId, ref: 'User' },
+  token: String,
 })
 
 module.exports = mongoose.model('Guest', schema)

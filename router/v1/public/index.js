@@ -41,9 +41,9 @@ const BUCKET_NAME = process.env.BUCKET_NAME
 AWS.config.update({
   region: 'us-east-1',
 })
-const { AWS_ACCESS_KEY, AWS_SECRET_KEY } = process.env
+const { AWS_ACCESS_KEY_ID, AWS_SECRET_KEY } = process.env
 AWS.config.update({
-  accessKeyId: AWS_ACCESS_KEY,
+  accessKeyId: AWS_ACCESS_KEY_ID,
   secretAccessKey: AWS_SECRET_KEY,
 })
 
@@ -200,8 +200,6 @@ router.route('/images/index').post(upload.single('image'), (req, res) => {
 
     const base64data = Buffer.from(data, 'binary')
     const key = req._user.username + '/' + image.filename
-    console.log('Nombre del buket:')
-    console.log(BUCKET_NAME)
     return s3.putObject(
       {
         Bucket: BUCKET_NAME,

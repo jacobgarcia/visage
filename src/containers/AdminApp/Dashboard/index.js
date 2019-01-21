@@ -15,6 +15,7 @@ import {
   Cell
 } from 'recharts'
 import PropTypes from 'prop-types'
+import Typography from '@material-ui/core/Typography'
 import DefaultTooltipContent from 'recharts/lib/component/DefaultTooltipContent'
 import NetworkOperation from 'utils/NetworkOperation'
 import { withSaver } from 'utils/portals'
@@ -204,8 +205,10 @@ class Dashboard extends Component {
         <div className="card-container">
           <div className="card-wrapper">
             <Card className="card">
-              <h4>Total de peticiones e imágenes indexadas</h4>
-              <ResponsiveContainer width="100%" height={250}>
+              <Typography variant="h6">
+                Total de peticiones e imágenes indexadas
+              </Typography>
+              <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                   <Pie
                     isAnimationActive={true}
@@ -220,9 +223,7 @@ class Dashboard extends Component {
                       },
                     ]}
                     cx="50%"
-                    cy={170}
-                    innerRadius={80}
-                    outerRadius={140}
+                    innerRadius="60%"
                     fill="#8884d8"
                     label
                     dataKey="value"
@@ -238,11 +239,11 @@ class Dashboard extends Component {
           </div>
           <div className="card-wrapper">
             <Card className="card">
-              <h4>Consumo de datos</h4>
-              <ResponsiveContainer width="100%" height={250}>
+              <Typography variant="h6">Consumo de datos</Typography>
+              <ResponsiveContainer width="100%" height={300}>
                 <ScatterChart
-                  width={600}
-                  height={400}
+                  width="95%"
+                  height={300}
                   margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
                   isAnimationActive={false}
                 >
@@ -281,8 +282,10 @@ class Dashboard extends Component {
           </div>
           <div className="card-wrapper">
             <Card className="card">
-              <h4>Clientes con mayor facturación</h4>
-              <ResponsiveContainer width="100%" height={400}>
+              <Typography variant="h6">
+                Clientes con mayor facturación
+              </Typography>
+              <ResponsiveContainer width="100%" height={300}>
                 <Treemap
                   width={400}
                   height={200}
@@ -298,7 +301,7 @@ class Dashboard extends Component {
           </div>
           <div className="card-wrapper">
             <Card className="card">
-              <h4>Resumen de facturación</h4>
+              <Typography variant="h6">Resumen de facturación</Typography>
               <div className="number">
                 <h1>
                   <span>$</span> {this.state.totalBilling} <span>MXN</span>

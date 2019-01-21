@@ -91,7 +91,7 @@ class AppBarComponent extends PureComponent {
             >
               <div className="paper-container">
                 <div className="paper">
-                  <h3>Mi información</h3>
+                  <Typography variant="h5">Mi información</Typography>
                   <div>
                     <TextField
                       label="Nombre"

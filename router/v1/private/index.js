@@ -734,7 +734,6 @@ router.use((req, res, next) => {
 
   return jwt.verify(token, JWT_SECRET, (err, decoded) => {
     if (err) {
-      console.error('Failed to authenticate token', err, token)
       return res.status(401).json({
         error: { message: 'Failed to authenticate  bearer token' },
       })

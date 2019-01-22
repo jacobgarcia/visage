@@ -24,6 +24,9 @@ const {
   USE_CLIENT,
   NODE_ENV: mode,
   ENGINE_URL,
+  INV_PASS,
+  INV_EMAIL,
+  API_URL,
 } = process.env
 
 let serviceUrl = 'https://admin.vs-01-dev.qbo.tech'
@@ -40,7 +43,7 @@ const adminFields = path.resolve('./ADMIN_FIELDS.json')
 
 nev.configure(
   {
-    verificationURL: 'http://localhost:8080/signup?token=${URL}',
+    verificationURL: API_URL + '/signup?token=${URL}',
     // mongo configuration
     persistentUserModel: User,
     tempUserModel: Guest,
@@ -49,12 +52,12 @@ nev.configure(
     transportOptions: {
       service: 'Gmail',
       auth: {
-        user: 'ingenieria@connus.mx',
-        pass: 'kawlantcloud',
+        user: INV_PASS,
+        pass: INV_EMAIL,
       },
     },
     verifyMailOptions: {
-      from: 'Do Not Reply <ingenieria@connus.mx>',
+      from: 'Do Not Reply <${INV_EMAIL}>',
       subject: 'Confirm your account',
       html:
         '<p>Please verify your account by clicking <a href="${URL}">this link</a>. If you are unable to do so, copy and paste the following link into your browser:</p><p>${URL}</p>',

@@ -9,7 +9,7 @@ const emailVerification = require('email-verification')(mongoose)
 const User = require(path.resolve('models/User'))
 const Admin = require(path.resolve('models/Admin'))
 
-const { JWT_SECRET } = process.env
+const { JWT_SECRET, API_URL, INV_EMAIL, INV_PASS } = process.env
 
 const router = new express.Router()
 
@@ -79,7 +79,7 @@ router.post('/forgot', async (req, res) => {
 
     await emailVerification.sendRecoveryEmail(
       user.email,
-      `http://localhost:8080/reset?token=${token}`,
+      API_URL + `/reset?token=${token}`,
       {
         host: 'smtp.zoho.com',
         from: 'Nure <no-reply@nure.mx>',
@@ -89,12 +89,12 @@ router.post('/forgot', async (req, res) => {
         html: `
           <h1>Recupera tu contraseña</h1>
           <p>
-            Recupera tu contraseña haciendo click en el siguiente <a href="http://localhost:8080/reset-password?token=${token}">link</a>
+            Recupera tu contraseña haciendo click en el siguiente <a href="${API_URL}/reset-password?token=${token}">link</a>
           </p>`,
-        text: `Recupera tu contraseña haciendo click en el siguiente link http://localhost:8080/reset-password?token=${token}`,
+        text: `Recupera tu contraseña haciendo click en el siguiente link ${API_URL}/reset-password?token=${token}`,
         auth: {
-          user: 'no-reply@nure.mx',
-          pass: 'nTXz>q,p5c.dgz8RAPEa9nk#DRcz*W>6v9.=S',
+          user: INV_EMAIL,
+          pass: INV_PASS,
         },
       }
     )

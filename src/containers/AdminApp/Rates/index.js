@@ -146,7 +146,7 @@ class Rates extends Component {
     this.setState({ forSave: true })
 
     this.setState((prevState) => ({
-      [element]: prevState[element].concat([{ _id: String(Date.now()) }]),
+      [element]: prevState[element] ? prevState[element].concat([{ _id: String(Date.now()) }]) : [{ _id: String(Date.now()) }],
     }))
   }
 

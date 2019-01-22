@@ -8,7 +8,7 @@ const mime = require('mime')
 const multer = require('multer')
 const jwt = require('jsonwebtoken')
 const request = require('request')
-const AWS = require('aws-sdk')
+const aws = require('aws-sdk')
 const cors = require('cors')
 
 const User = require(path.resolve('models/User'))
@@ -38,16 +38,18 @@ const upload = multer({ storage })
 const serviceUrl = process.env.ENGINE_URL
 const BUCKET_NAME = process.env.BUCKET_NAME
 
-AWS.config.update({
+aws.config.update({
   region: 'us-east-1',
 })
-const { AWS_ACCESS_KEY_ID, AWS_SECRET_KEY } = process.env
-AWS.config.update({
-  accessKeyId: AWS_ACCESS_KEY_ID,
+
+const { AWS_ACCESS_KEY, AWS_SECRET_KEY } = process.env
+
+aws.config.update({
+  accessKeyId: AWS_ACCESS_KEY,
   secretAccessKey: AWS_SECRET_KEY,
 })
 
-const s3 = new AWS.S3()
+const s3 = new aws.S3()
 
 /*
   C O R S   S T U F F

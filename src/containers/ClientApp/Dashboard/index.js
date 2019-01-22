@@ -41,10 +41,22 @@ class Dashboard extends Component {
       const to = date.getTime()
       date.setMonth(date.getMonth() - 1)
       const from = date.getTime()
-      const {
-        data: { user: data },
-      } = await NetworkOperation.getSelf()
-
+      let data = null
+      try {
+        const {
+          data: { user: userData },
+        } = await NetworkOperation.getSelf()
+        data = userData
+      } catch (error) {
+        if (error.response?.status === 401) {
+          this.props.history.replace('/login')
+        } else if (error.response?.status === 400) {
+          this.props.history.replace('/login')
+        } else {
+          // TODO Other error should be displayed
+          console.error(error)
+        }
+      }
       const statsRes = await NetworkOperation.getClientRequestStats(
         data?.username,
         from,

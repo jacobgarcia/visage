@@ -50,10 +50,13 @@ nev.configure(
     expirationTime: 86400, // 24 hour expiration
     URLFieldName: 'invitation',
     transportOptions: {
-      service: 'Gmail',
+      host: 'smtp.zoho.com',
+      from: 'Nure <no-reply@nure.mx>',
+      port: 587,
+      secure: false,
       auth: {
-        user: INV_PASS,
-        pass: INV_EMAIL,
+        user: INV_EMAIL,
+        pass: INV_PASS,
       },
     },
     verifyMailOptions: {

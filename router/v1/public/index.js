@@ -41,17 +41,11 @@ const BUCKET_NAME = process.env.BUCKET_NAME
 aws.config.update({
   region: 'us-east-1',
 })
-<<<<<<< HEAD
 
 const { AWS_ACCESS_KEY, AWS_SECRET_KEY } = process.env
 
 aws.config.update({
   accessKeyId: AWS_ACCESS_KEY,
-=======
-const { AWS_ACCESS_KEY_ID, AWS_SECRET_KEY } = process.env
-AWS.config.update({
-  accessKeyId: AWS_ACCESS_KEY_ID,
->>>>>>> b2143b986a2fd905ceb95f03f1712eba20867efe
   secretAccessKey: AWS_SECRET_KEY,
 })
 

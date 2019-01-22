@@ -177,12 +177,14 @@ class Profile extends Component {
               <TextField
                 name="name"
                 label="Nombre"
+                disabled
                 value={name}
                 onChange={this.onChange}
               />
               <TextField
                 name="username"
                 label="Nombre de usuario"
+                disabled
                 value={username}
                 onChange={this.onChange}
               />
@@ -195,6 +197,7 @@ class Profile extends Component {
               <TextField
                 name="email"
                 label="Email"
+                disabled
                 value={email}
                 onChange={this.onChange}
               />

@@ -57,7 +57,7 @@ class Dashboard extends Component {
       )
       const topsearches = await NetworkOperation.getTopSearches()
       const chardata = topsearches?.data?.mostSearchedItems.map(
-        (data, index) => {
+        (data) => {
           return { name: data.id, value: data.count }
         }
       )
@@ -100,7 +100,7 @@ class Dashboard extends Component {
           </div>
         </Card>
         <Card>
-          <Typography variant="h6">Número de búsquedas</Typography>
+          <Typography variant="h6">Búsquedas e indexaciones</Typography>
           <div className="chart-data-container">
             <div className="pie-chart-container">
               <ResponsiveContainer width="50%" height={300}>
@@ -110,37 +110,60 @@ class Dashboard extends Component {
                     innerRadius="60%"
                     fill="#82ca9d"
                     dataKey="value"
+                    label
                   >
                     {this.state.chardata.map((data, index) => (
                       <Cell key={index} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
+                  <Pie
+                    data={this.state.chardata}
+                    innerRadius="30%"
+                    outerRadius="50%"
+                    fill="#82ca9d"
+                    dataKey="value"
+                    label
+                  >
+                    {this.state.chardata.map((data, index) => (
+                      <Cell key={index} fill={COLORS[(index % COLORS.length) + 3]} />
+                    ))}
+                  </Pie>
                 </PieChart>
               </ResponsiveContainer>
-              <div className="pie-chart__label">
-                <Typography variant="h6">Total de búsquedas</Typography>
-                <Typography variant="h3">
-                  {this.state.requests.total}
-                </Typography>
-              </div>
-              <div className="pie-chart__legend">
-                {this.state.chardata.map((data, index) => (
-                  <div key={index}>
-                    <div
-                      className="bullet"
-                      style={{ backgroundColor: COLORS[index % COLORS.length] }}
-                    />
-                    <Typography
-                      variant="body"
-                      style={{ color: COLORS[index % COLORS.length] }}
-                    >
-                      ID: {data.name}
-                    </Typography>
-                    <Typography variant="body">
-                      Cantidad: {data.value}
+              <div className="pie-chart-info">
+                <div className="pie-chart-info-totals">
+                  <div className="pie-chart__label">
+                    <Typography variant="h6">Total de búsquedas</Typography>
+                    <Typography variant="h4">
+                      {this.state.requests.total}
                     </Typography>
                   </div>
-                ))}
+                  <div className="pie-chart__label">
+                    <Typography variant="h6">Total de indexaciones</Typography>
+                    <Typography variant="h4">
+                      {this.state.requests.total}
+                    </Typography>
+                  </div>
+                </div>
+                <div className="pie-chart__legend">
+                  {this.state.chardata.map((data, index) => (
+                    <div key={index}>
+                      <div
+                        className="bullet"
+                        style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                      />
+                      <Typography
+                        variant="body"
+                        style={{ color: COLORS[index % COLORS.length] }}
+                      >
+                        ID: {data.name}
+                      </Typography>
+                      <Typography variant="body">
+                        Cantidad: {data.value}
+                      </Typography>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>

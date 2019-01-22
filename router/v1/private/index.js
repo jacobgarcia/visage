@@ -27,6 +27,7 @@ const {
   INV_PASS,
   INV_EMAIL,
   API_URL,
+  DEFAULT_ADMIN_PASSWORD,
 } = process.env
 
 let serviceUrl = 'https://admin.vs-01-dev.qbo.tech'
@@ -38,8 +39,9 @@ function getUserData(data) {
   return { ...data.toObject(), access: data.services ? 'admin' : 'user' }
 }
 
-const fields = path.resolve('./FIELDS.json')
-const adminFields = path.resolve('./ADMIN_FIELDS.json')
+const fields = JSON.parse(fs.readFileSync(path.resolve('./router/v1/private/FIELDS.json')))
+const adminFields = JSON.parse(fs.readFileSync(path.resolve('./router/v1/private/ADMIN_FIELDS.json')))
+
 
 nev.configure(
   {
@@ -72,8 +74,7 @@ nev.configure(
       text: 'Your account has been successfully verified.',
     },
     hashingFunction: null,
-  },
-  (error) => {
+  }, (error) => {
     if (error) {
       console.error({ error })
     }
@@ -505,12 +506,12 @@ router.route('/users/invite').post(async (req, res) => {
     return nev.createTempUser(
       guest,
       (error, existingPersistentUser, newTempUser) => {
+        console.log('llegue hasta aqui')
         if (error) {
           console.error({ error })
           return res.status(500).json({ error })
         }
         if (existingPersistentUser) return res.status(409).json({ error: 'User already registered' })
-
         if (newTempUser) {
           const URL = newTempUser[nev.options.URLFieldName]
           return nev.sendVerificationEmail(email, URL, (error) => {
@@ -531,18 +532,20 @@ router.route('/users/invite').post(async (req, res) => {
   return res.status(409).json({ error: 'User is an admin' })
 })
 
-router.route('/admins/invite').post((req, res) => {
-  const { email, services, username, name } = req.body
+router.route('/admins/invite').post(async (req, res) => {
+  const { email, services, username, name } = await req.body
   if (!name || !username || !email || !services) {
     console.info({ name, username, email })
     return res.status(400).json({ error: { message: 'Malformed request' } })
   }
-  const admin = Admin({
+  const password = await bcrypt.hash(`${DEFAULT_ADMIN_PASSWORD}${JWT_SECRET}`, 10)
+  const admin = await Admin({
     username,
     name,
     email,
     services,
     host: req._user,
+    password: password,
   })
   return admin.save((error) => {
     if (error) {

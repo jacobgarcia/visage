@@ -11,6 +11,17 @@ const Rate = new Schema({
   cost: { type: Number, default: 0 },
 })
 
+const BillingMonth = new Schema({
+  month: {
+    type: String,
+    default: new Date().toLocaleDateString('es-MX', {
+      year: 'numeric',
+      month: 'numeric',
+    }),
+  },
+  billing: { type: Number, default: 0 },
+})
+
 const IndexedImage = new Schema({
   url: String,
   name: String,
@@ -47,6 +58,14 @@ const schema = new Schema({
   searchLimit: { type: Number, default: 1000 },
   indexCost: { type: Number, default: 0 },
   searchCost: { type: Number, default: 0 },
+  monthlyIndexCosts: {
+    type: [BillingMonth],
+    default: [],
+  },
+  monthlySearchCosts: {
+    type: [BillingMonth],
+    default: [],
+  },
   aceptanceRate: Number,
   photo: String,
   indexings: {

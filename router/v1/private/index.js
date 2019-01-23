@@ -43,8 +43,12 @@ function getUserData(data) {
   return { ...data.toObject(), access: data.services ? 'admin' : 'user' }
 }
 
-const fields = JSON.parse(fs.readFileSync(path.resolve('./router/v1/private/FIELDS.json')))
-const adminFields = JSON.parse(fs.readFileSync(path.resolve('./router/v1/private/ADMIN_FIELDS.json')))
+const fields = JSON.parse(
+  fs.readFileSync(path.resolve('./router/v1/private/FIELDS.json'))
+)
+const adminFields = JSON.parse(
+  fs.readFileSync(path.resolve('./router/v1/private/ADMIN_FIELDS.json'))
+)
 
 let transportOptions = {
     host: INV_EMAIL_HOST,
@@ -90,7 +94,8 @@ nev.configure(
       text: 'Your account has been successfully verified.',
     },
     hashingFunction: null,
-  }, (error) => {
+  },
+  (error) => {
     if (error) {
       console.error({ error })
     }
@@ -201,46 +206,48 @@ router.route('/images/index/:username').post((req, res) => {
           })
           .then((resp) => {
             console.info(resp.statusCode, resp.body)
-            if (resp.statusCode === 200) count += 1
-            // Build response object
-            const response = {
-              success: JSON.parse(resp.body).success,
-              status: resp.statusCode,
-              features: JSON.parse(resp.body).features,
-            }
-
-            // After getting response from internal server service, create a new Indexing Object
-            // First create the request custom Object
-            const request = {
-              route: req.route,
-              files: req.files,
-              token: req._token,
-              headers: req.headers,
-            }
-
-            // Create new Searching object
-            new Indexing({
-              response,
-              request,
-              user,
-            }).save((error) => {
-              if (error) {
-                console.info('Could not create indexing object', error)
-                return
+            if (resp.statusCode === 200) {
+              count += 1
+              // Build response object
+              const response = {
+                success: JSON.parse(resp.body).success,
+                status: resp.statusCode,
+                features: JSON.parse(resp.body).features,
               }
-              // Add Indexing object to User and move toIndex object to IndexedImages
-              // Remove item form the toIndex batch
-              User.findOneAndUpdate(
-                { username },
-                {
-                  $pull: { toIndex: image },
-                }
-              ).exec((error) => {
+
+              // After getting response from internal server service, create a new Indexing Object
+              // First create the request custom Object
+              const request = {
+                route: req.route,
+                files: req.files,
+                token: req._token,
+                headers: req.headers,
+              }
+
+              // Create new Searching object
+              new Indexing({
+                response,
+                request,
+                user,
+              }).save((error) => {
                 if (error) {
-                  console.error('Could not update user information')
+                  console.info('Could not create indexing object', error)
+                  return
                 }
+                // Add Indexing object to User and move toIndex object to IndexedImages
+                // Remove item form the toIndex batch
+                User.findOneAndUpdate(
+                  { username },
+                  {
+                    $pull: { toIndex: image },
+                  }
+                ).exec((error) => {
+                  if (error) {
+                    console.error('Could not update user information')
+                  }
+                })
               })
-            })
+            }
           })
           .catch((error) => {
             if (error) {
@@ -560,7 +567,10 @@ router.route('/admins/invite').post(async (req, res) => {
     console.info({ name, username, email })
     return res.status(400).json({ error: { message: 'Malformed request' } })
   }
-  const password = await bcrypt.hash(`${DEFAULT_ADMIN_PASSWORD}${JWT_SECRET}`, 10)
+  const password = await bcrypt.hash(
+    `${DEFAULT_ADMIN_PASSWORD}${JWT_SECRET}`,
+    10
+  )
   const admin = await Admin({
     username,
     name,
@@ -1071,6 +1081,40 @@ router.route('/users/password').patch(async (req, res) => {
     return res
       .status(500)
       .json({ error: { message: 'Could not update password' } })
+  }
+})
+
+// RESET BILLING AND IT TO THE MONTHLY COSTS OF EVERY USER
+router.route('/users/billing/reset').patch(async (req, res) => {
+  try {
+    const users = await User.find({}).select(
+      'indexCost searchCost monthlyIndexCosts monthlySearchCosts'
+    )
+
+    users.map(async (user) => {
+      const monthlyIndexCost = {
+        billing: user.indexCost,
+      }
+
+      const monthlySearchCost = {
+        billing: user.searchCost,
+      }
+
+      user.indexCost = 0
+      user.searchCost = 0
+
+      user.monthlyIndexCosts.push(monthlyIndexCost)
+      user.monthlySearchCosts.push(monthlySearchCost)
+
+      await user.save()
+    })
+
+    return res.status(200).json({ users })
+  } catch (error) {
+    console.error('Could not reset billing', error)
+    return res
+      .status(500)
+      .json({ error: { message: 'Could not reset billing' } })
   }
 })
 

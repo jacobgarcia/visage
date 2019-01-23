@@ -19,6 +19,7 @@ const router = new express.Router()
 
 const JWT_SECRET = process.env.JWT_SECRET
 const STATIC_FOLDER = process.env.STATIC_FOLDER
+const ENGINE_THRESHOLD = process.env.ENGINE_THRESHOLD
 const storage = multer.diskStorage({
   destination: (req, file, callback) => callback(null, STATIC_FOLDER),
   filename: (req, file, callback) => {
@@ -122,11 +123,14 @@ router.route('/images/search').post(upload.single('image'), (req, res) => {
           .status(500)
           .json({ error: { message: 'Could not index image' } })
       }
-
+      const items = []
+      JSON.parse(resp.body).hits.map((item) => {
+          item.score > ENGINE_THRESHOLD ? items.push(item) : {}
+      })
       const response = {
         success: resp.statusCode === 200,
         status: resp.statusCode,
-        items: JSON.parse(resp.body).hits,
+        items: items,
       }
       // After getting response from internal server service, create a new Indexing Object
       // First create the request custom Object

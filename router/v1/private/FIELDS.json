@@ -18,5 +18,13 @@
   {
     "label": "Email",
     "value": "email"
+  },
+  {
+    "label": "Index Billing",
+    "value": "indexCost"
+  },
+  {
+    "label": "Search Billing",
+    "value": "searchCost"
   }
 ]

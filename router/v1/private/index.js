@@ -191,46 +191,48 @@ router.route('/images/index/:username').post((req, res) => {
           })
           .then((resp) => {
             console.info(resp.statusCode, resp.body)
-            if (resp.statusCode === 200) count += 1
-            // Build response object
-            const response = {
-              success: JSON.parse(resp.body).success,
-              status: resp.statusCode,
-              features: JSON.parse(resp.body).features,
-            }
-
-            // After getting response from internal server service, create a new Indexing Object
-            // First create the request custom Object
-            const request = {
-              route: req.route,
-              files: req.files,
-              token: req._token,
-              headers: req.headers,
-            }
-
-            // Create new Searching object
-            new Indexing({
-              response,
-              request,
-              user,
-            }).save((error) => {
-              if (error) {
-                console.info('Could not create indexing object', error)
-                return
+            if (resp.statusCode === 200) {
+              count += 1
+              // Build response object
+              const response = {
+                success: JSON.parse(resp.body).success,
+                status: resp.statusCode,
+                features: JSON.parse(resp.body).features,
               }
-              // Add Indexing object to User and move toIndex object to IndexedImages
-              // Remove item form the toIndex batch
-              User.findOneAndUpdate(
-                { username },
-                {
-                  $pull: { toIndex: image },
-                }
-              ).exec((error) => {
+
+              // After getting response from internal server service, create a new Indexing Object
+              // First create the request custom Object
+              const request = {
+                route: req.route,
+                files: req.files,
+                token: req._token,
+                headers: req.headers,
+              }
+
+              // Create new Searching object
+              new Indexing({
+                response,
+                request,
+                user,
+              }).save((error) => {
                 if (error) {
-                  console.error('Could not update user information')
+                  console.info('Could not create indexing object', error)
+                  return
                 }
+                // Add Indexing object to User and move toIndex object to IndexedImages
+                // Remove item form the toIndex batch
+                User.findOneAndUpdate(
+                  { username },
+                  {
+                    $pull: { toIndex: image },
+                  }
+                ).exec((error) => {
+                  if (error) {
+                    console.error('Could not update user information')
+                  }
+                })
               })
-            })
+            }
           })
           .catch((error) => {
             if (error) {

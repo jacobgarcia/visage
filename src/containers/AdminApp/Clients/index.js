@@ -32,6 +32,8 @@ class Clients extends Component {
     search: '',
     rows: [],
     filteredRows: [],
+    filteredRowsGuest: [],
+    rowsGuests: [],
     anchorEl: null,
     addUserModalOpen: false,
     admin: true,
@@ -48,9 +50,16 @@ class Clients extends Component {
   reloadData = async () => {
     try {
       let users = await NetworkOperation.getUsers()
+      let guests = await NetworkOperation.getGuests()
       users = users.data.users || []
+      guests = guests.data.guests || []
 
-      this.setState({ rows: users, filteredRows: users })
+      this.setState({
+        rows: users,
+        filteredRows: users,
+        rowsGuests: guests,
+        filteredRowsGuest: guests,
+      })
     } catch (error) {
       console.log({ error })
     }
@@ -127,6 +136,8 @@ class Clients extends Component {
             return company1 > company2
           case 'rol':
             return isSuperAdmin1 > isSuperAdmin2
+          default:
+            return true
         }
       }
     )
@@ -141,7 +152,7 @@ class Clients extends Component {
   render() {
     const ROWS = 15
     const {
-      state: { search, filteredRows, addUserModalOpen, selectedClient,selectedSort
+      state: { search, filteredRows, filteredRowsGuest, addUserModalOpen, selectedClient,selectedSort
 ,reverseSort },
     } = this
 
@@ -212,6 +223,38 @@ class Clients extends Component {
             rowsPerPageOptions={[1]}
             component="div"
             count={filteredRows.length}
+            rowsPerPage={ROWS}
+            page={0}
+            backIconButtonProps={{
+              'aria-label': 'Anterior',
+            }}
+            nextIconButtonProps={{
+              'aria-label': 'Siguiente',
+            }}
+            onChangePage={this.handleChangePage}
+          />
+        </Card>
+        <Card>
+          <Table className="table">
+            <TableHead>
+              <TableRow>
+                <TableCell className={selectedSort === 'email' ? `--selected-sort ${reverseSort ? '--reverse' : ''}` : ''} onClick={this.sortBy('name')}>Nombre</TableCell>
+                <TableCell>Resend Invitation</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {filteredRowsGuest.map((item) => (
+                <ClientRow
+                  guests={item}
+                  key={item._id}
+                />
+              ))}
+            </TableBody>
+          </Table>
+          <TablePagination
+            rowsPerPageOptions={[1]}
+            component="div"
+            count={filteredRowsGuest.length}
             rowsPerPage={ROWS}
             page={0}
             backIconButtonProps={{

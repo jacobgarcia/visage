@@ -17,6 +17,8 @@ const Guest = require(path.resolve('models/Guest'))
 const Admin = require(path.resolve('models/Admin'))
 const Indexing = require(path.resolve('models/Indexing'))
 const Searching = require(path.resolve('models/Searching'))
+const sesTransport = require('nodemailer-ses-transport')
+
 
 const {
   JWT_SECRET,
@@ -26,14 +28,16 @@ const {
   ENGINE_URL,
   INV_PASS,
   INV_EMAIL,
+  INV_USER,
+  INV_EMAIL_HOST,
+  AWS_SES,
   API_URL,
   DEFAULT_ADMIN_PASSWORD,
+  AWS_SECRET_KEY,
+  AWS_ACCESS_KEY,
 } = process.env
 
-let serviceUrl = 'https://admin.vs-01-dev.qbo.tech'
-if (mode === 'production') {
-  serviceUrl = ENGINE_URL
-}
+let serviceUrl = ENGINE_URL
 
 function getUserData(data) {
   return { ...data.toObject(), access: data.services ? 'admin' : 'user' }
@@ -42,6 +46,24 @@ function getUserData(data) {
 const fields = JSON.parse(fs.readFileSync(path.resolve('./router/v1/private/FIELDS.json')))
 const adminFields = JSON.parse(fs.readFileSync(path.resolve('./router/v1/private/ADMIN_FIELDS.json')))
 
+let transportOptions = {
+    host: INV_EMAIL_HOST,
+    from: `Do Not Reply <${INV_EMAIL}>`,
+    port: 587,
+    secure: false,
+    auth: {
+      user: INV_USER,
+      pass: INV_PASS,
+    },
+}
+if (AWS_SES === 'true') {
+    transportOptions = sesTransport({
+      accessKeyId: AWS_ACCESS_KEY,
+      secretAccessKey: AWS_SECRET_KEY,
+      rateLimit: 5,
+      ServiceUrl: INV_EMAIL_HOST,
+    })
+}
 
 nev.configure(
   {
@@ -51,17 +73,9 @@ nev.configure(
     tempUserModel: Guest,
     expirationTime: 86400, // 24 hour expiration
     URLFieldName: 'invitation',
-    transportOptions: {
-      host: 'smtp.zoho.com',
-      from: 'Nure <no-reply@nure.mx>',
-      port: 587,
-      secure: false,
-      auth: {
-        user: INV_EMAIL,
-        pass: INV_PASS,
-      },
-    },
+    transportOptions: transportOptions,
     verifyMailOptions: {
+      from: `Do Not Reply <${INV_EMAIL}>`,
       subject: 'Confirm your account',
       html:
         '<p>Please verify your account by clicking <a href="${URL}">this link</a>. If you are unable to do so, copy and paste the following link into your browser:</p><p>${URL}</p>',
@@ -70,7 +84,7 @@ nev.configure(
     },
     shouldSendConfirmation: true,
     confirmMailOptions: {
-      from: 'Do Not Reply <no-reply@nure.mx>',
+      from: `Do Not Reply <${INV_EMAIL}>` ,
       subject: 'Successfully verified!',
       html: '<p>Your account has been successfully verified.</p>',
       text: 'Your account has been successfully verified.',

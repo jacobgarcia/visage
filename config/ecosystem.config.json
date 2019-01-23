@@ -8,6 +8,14 @@
       "env_production": {
         "NODE_ENV": "production"
       }
+    },
+    {
+      "name": "BillingReset",
+      "script": "../billing-cron.js",
+      "merge_logs": true,
+      "error_file": "billing-error.log",
+      "out_file": "billing-out.log",
+      "cron_restart": "0 0 1 * *"
     }
   ]
 }

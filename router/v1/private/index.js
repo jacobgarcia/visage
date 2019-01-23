@@ -62,7 +62,6 @@ nev.configure(
       },
     },
     verifyMailOptions: {
-      from: 'Do Not Reply <${INV_EMAIL}>',
       subject: 'Confirm your account',
       html:
         '<p>Please verify your account by clicking <a href="${URL}">this link</a>. If you are unable to do so, copy and paste the following link into your browser:</p><p>${URL}</p>',
@@ -71,7 +70,7 @@ nev.configure(
     },
     shouldSendConfirmation: true,
     confirmMailOptions: {
-      from: 'Do Not Reply <ingenieria@connus.mx>',
+      from: 'Do Not Reply <no-reply@nure.mx>',
       subject: 'Successfully verified!',
       html: '<p>Your account has been successfully verified.</p>',
       text: 'Your account has been successfully verified.',
@@ -509,7 +508,6 @@ router.route('/users/invite').post(async (req, res) => {
     return nev.createTempUser(
       guest,
       (error, existingPersistentUser, newTempUser) => {
-        console.log('llegue hasta aqui')
         if (error) {
           console.error({ error })
           return res.status(500).json({ error })
@@ -524,8 +522,15 @@ router.route('/users/invite').post(async (req, res) => {
               .json({ message: 'Invitation successfully sent' })
           })
         }
+        return nev.resendVerificationEmail(email, (error, userFound) => {
+          if (userFound) return res.status(409).json({ error: 'User already invited' })
+          if (error) return res.status(500).json({ error })
+          return res
+            .status(200)
+            .json({ message: 'Invitation resent successfully' })
+        })
         // user already have been invited
-        return res.status(409).json({ error: 'User already invited' })
+        // return res.status(409).json({ error: 'User already invited' })
       },
       (error) => {
         console.error({ error })

@@ -204,6 +204,10 @@ class NetworkOperation {
     return axios.post(`${baseUrl}/v1/private/users/invite`, { email })
   }
 
+  static getGuests() {
+    return axios.get(`${baseUrl}/v1/private/guests`)
+  }
+
   /*
   R A T E S
   */

@@ -19,7 +19,6 @@ const Indexing = require(path.resolve('models/Indexing'))
 const Searching = require(path.resolve('models/Searching'))
 const sesTransport = require('nodemailer-ses-transport')
 
-
 const {
   JWT_SECRET,
   USE_ADMIN,
@@ -37,7 +36,7 @@ const {
   AWS_ACCESS_KEY,
 } = process.env
 
-let serviceUrl = ENGINE_URL
+const serviceUrl = ENGINE_URL
 
 function getUserData(data) {
   return { ...data.toObject(), access: data.services ? 'admin' : 'user' }
@@ -51,22 +50,22 @@ const adminFields = JSON.parse(
 )
 
 let transportOptions = {
-    host: INV_EMAIL_HOST,
-    from: `Do Not Reply <${INV_EMAIL}>`,
-    port: 587,
-    secure: false,
-    auth: {
-      user: INV_USER,
-      pass: INV_PASS,
-    },
+  host: INV_EMAIL_HOST,
+  from: `Do Not Reply <${INV_EMAIL}>`,
+  port: 587,
+  secure: false,
+  auth: {
+    user: INV_USER,
+    pass: INV_PASS,
+  },
 }
 if (AWS_SES === 'true') {
-    transportOptions = sesTransport({
-      accessKeyId: AWS_ACCESS_KEY,
-      secretAccessKey: AWS_SECRET_KEY,
-      rateLimit: 5,
-      ServiceUrl: INV_EMAIL_HOST,
-    })
+  transportOptions = sesTransport({
+    accessKeyId: AWS_ACCESS_KEY,
+    secretAccessKey: AWS_SECRET_KEY,
+    rateLimit: 5,
+    ServiceUrl: INV_EMAIL_HOST,
+  })
 }
 
 nev.configure(
@@ -88,7 +87,7 @@ nev.configure(
     },
     shouldSendConfirmation: true,
     confirmMailOptions: {
-      from: `Do Not Reply <${INV_EMAIL}>` ,
+      from: `Do Not Reply <${INV_EMAIL}>`,
       subject: 'Successfully verified!',
       html: '<p>Your account has been successfully verified.</p>',
       text: 'Your account has been successfully verified.',
@@ -544,14 +543,12 @@ router.route('/users/invite').post(async (req, res) => {
           })
         }
         return nev.resendVerificationEmail(email, (error, userFound) => {
-          if (userFound) return res.status(409).json({ error: 'User already invited' })
+          if (userFound) return res
+              .status(200)
+              .json({ message: 'Invitation resent successfully' })
           if (error) return res.status(500).json({ error })
-          return res
-            .status(200)
-            .json({ message: 'Invitation resent successfully' })
+          return res.status(409).json({ error: 'User already invited' })
         })
-        // user already have been invited
-        // return res.status(409).json({ error: 'User already invited' })
       },
       (error) => {
         console.error({ error })

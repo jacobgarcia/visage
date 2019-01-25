@@ -208,6 +208,10 @@ class NetworkOperation {
     return axios.get(`${baseUrl}/v1/private/guests`)
   }
 
+  static deleteGuest(email) {
+    return axios.post(`${baseUrl}/v1/private/guests`, { email })
+  }
+
   /*
   R A T E S
   */

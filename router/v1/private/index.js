@@ -1494,4 +1494,20 @@ router.route('/guests').get(async (req, res) => {
       .json({ error: { message: 'Could not fetch guests' } })
   }
 })
+.post((req, res) => {
+  const { email } = req.body
+  return Guest.findOneAndDelete({ email }).exec((error) => {
+    if (error) {
+      console.error('Could not delete guest')
+      return res
+        .status(500)
+        .json({ error: { message: 'Could not delete guest' } })
+    }
+    return res.status(200).json({
+      success: true,
+      message: 'Successfully deleted guest',
+    })
+  })
+})
+
 module.exports = router

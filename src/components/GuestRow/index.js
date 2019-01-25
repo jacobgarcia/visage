@@ -101,7 +101,7 @@ class GuestRow extends Component {
                   />
                 )}
                 <DeleteForever
-                  onClick={this.resentInvitation}
+                  onClick={this.deletingInvitation}
                   className="circular-progress--button"
                 />
               </div>

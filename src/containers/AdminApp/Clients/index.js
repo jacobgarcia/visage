@@ -150,8 +150,15 @@ class Clients extends Component {
   render() {
     const ROWS = 12
     const {
-      state: { search, filteredRows, filteredRowsGuest, addUserModalOpen, selectedClient,
-               selectedSort, reverseSort },
+      state: {
+        search,
+        filteredRows,
+        filteredRowsGuest,
+        addUserModalOpen,
+        selectedClient,
+        selectedSort,
+        reverseSort,
+      },
     } = this
 
     const canEdit = this.context?.user?.services?.clients === 2
@@ -196,9 +203,36 @@ class Clients extends Component {
           <Table className="table">
             <TableHead>
               <TableRow>
-                <TableCell className={selectedSort === 'name' ? `--selected-sort ${reverseSort ? '--reverse' : ''}` : ''} onClick={this.sortBy('name')}>Nombre</TableCell>
-                <TableCell className={selectedSort === 'company' ? `--selected-sort ${reverseSort ? '--reverse' : ''}` : ''} onClick={this.sortBy('company')}>Empresa</TableCell>
-                <TableCell className={selectedSort === 'email' ? `--selected-sort ${reverseSort ? '--reverse' : ''}` : ''} onClick={this.sortBy('email')}>Mail</TableCell>
+                <TableCell
+                  className={
+                    selectedSort === 'name'
+                      ? `--selected-sort ${reverseSort ? '--reverse' : ''}`
+                      : ''
+                  }
+                  onClick={this.sortBy('name')}
+                >
+                  Nombre
+                </TableCell>
+                <TableCell
+                  className={
+                    selectedSort === 'company'
+                      ? `--selected-sort ${reverseSort ? '--reverse' : ''}`
+                      : ''
+                  }
+                  onClick={this.sortBy('company')}
+                >
+                  Empresa
+                </TableCell>
+                <TableCell
+                  className={
+                    selectedSort === 'email'
+                      ? `--selected-sort ${reverseSort ? '--reverse' : ''}`
+                      : ''
+                  }
+                  onClick={this.sortBy('email')}
+                >
+                  Mail
+                </TableCell>
                 <TableCell>Indexación</TableCell>
                 <TableCell>API Keys</TableCell>
                 {canEdit && <TableCell numeric />}
@@ -236,8 +270,18 @@ class Clients extends Component {
           <Table className="table">
             <TableHead>
               <TableRow>
-                <TableCell className={selectedSort === 'email' ? `--selected-sort ${reverseSort ? '--reverse' : ''}` : ''} onClick={this.sortBy('name')}>Nombre</TableCell>
+                <TableCell
+                  className={
+                    selectedSort === 'email'
+                      ? `--selected-sort ${reverseSort ? '--reverse' : ''}`
+                      : ''
+                  }
+                  onClick={this.sortBy('name')}
+                >
+                  Nombre
+                </TableCell>
                 <TableCell>Reenviar Invitación</TableCell>
+                <TableCell>Eliminar Invitación</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>

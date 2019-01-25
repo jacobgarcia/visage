@@ -10,6 +10,7 @@ import CircularProgress from '@material-ui/core/CircularProgress'
 import BlockIcon from '@material-ui/icons/Block'
 import RefreshIcon from '@material-ui/icons/Refresh'
 import EmailIcon from '@material-ui/icons/Email'
+import DeleteForever from '@material-ui/icons/DeleteForever'
 
 import SnackMessage from 'components/SnackMessage'
 import MoreButton from 'components/MoreButton'
@@ -21,6 +22,7 @@ class GuestRow extends Component {
   state = {
     guests: [],
     sendingInvitation: false,
+    deletingInvitation: false,
   }
 
   resentInvitation = async () => {
@@ -38,41 +40,73 @@ class GuestRow extends Component {
     }
   }
 
+  deletingInvitation = async () => {
+    this.setState({ deletingInvitation: true })
+    try {
+      await NetworkOperation.deleteGuest(this.props.guest.email)
+
+      this.setState({ message: 'Invitación Eliminada' })
+    } catch (error) {
+      console.error(error)
+      this.setState({ message: 'Error al eliminar Invitación' })
+    } finally {
+      this.setState({ deletingInvitation: false })
+      this.props.reloadData()
+    }
+  }
+
+  onCloseSnack = () => this.setState({ message: null })
+
   render() {
     const {
       props,
-      state: {
-        sendingInvitation,
-      },
+      state: { sendingInvitation, deletingInvitation, message },
     } = this
     return (
       <Fragment>
-        <TableRow
-          key={props.guest._id}
-          className={'guest-row'}
-        >
+        <SnackMessage
+          open={message}
+          message={message}
+          onClose={this.onCloseSnack}
+        />
+        <TableRow key={props.guest._id} className={'guest-row'}>
           <TableCell component="th" scope="item" className="user-row__body">
             {props.guest.email}
           </TableCell>
-            <TableCell numeric>
-            </TableCell>
-            <TableCell>
-              <IconButton>
-                  <div className="circular-progress__container">
-                    {sendingInvitation && (
-                      <CircularProgress
-                        size={48}
-                        color="primary"
-                        className="circular-progress"
-                      />
-                    )}
-                    <EmailIcon
-                      onClick={this.resentInvitation}
-                      className="circular-progress--button"
-                    />
-                  </div>
-              </IconButton>
-            </TableCell>
+          <TableCell>
+            <IconButton>
+              <div className="circular-progress__container">
+                {sendingInvitation && (
+                  <CircularProgress
+                    size={48}
+                    color="primary"
+                    className="circular-progress"
+                  />
+                )}
+                <EmailIcon
+                  onClick={this.resentInvitation}
+                  className="circular-progress--button"
+                />
+              </div>
+            </IconButton>
+          </TableCell>
+          <TableCell>
+            <IconButton>
+              <div className="circular-progress__container">
+                {deletingInvitation && (
+                  <CircularProgress
+                    size={48}
+                    color="primary"
+                    className="circular-progress"
+                  />
+                )}
+                <DeleteForever
+                  onClick={this.resentInvitation}
+                  className="circular-progress--button"
+                />
+              </div>
+            </IconButton>
+          </TableCell>
         </TableRow>
       </Fragment>
     )

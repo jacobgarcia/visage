@@ -108,20 +108,20 @@ class Rates extends Component {
     }
   }
 
-  onChange = ({ target: { name, value } }, rate, field) => {
+  onChange = async ({ target: { name, value } }, rate, field) => {
     this.props.toggle({ [name]: value, saveButton: true })
     this.setState({ forSave: true })
     // These lines follow Cesar's enigmatic paradigm,
     // it just updates rates values and uses RETURN as an ELSE.
     if (rate && field) {
       if (field === 'searchRates') {
-        this.setState((prev) => ({
+        await this.setState((prev) => ({
           searchRates: prev.searchRates.map(($0) =>
             $0._id === rate._id ? { ...$0, [name]: value } : $0
           ),
         }))
       } else {
-        this.setState((prev) => ({
+        await this.setState((prev) => ({
           indexRates: prev.indexRates.map(($0) =>
             $0._id === rate._id ? { ...$0, [name]: value } : $0
           ),
@@ -132,7 +132,7 @@ class Rates extends Component {
 
   deleteItem = async (element, rateId) => {
     if (!this.state.forSave) {
-      this.setState((prevState) => ({
+      await this.setState((prevState) => ({
         [element]: prevState[element].filter(({ _id }) => _id !== rateId),
       }))
       await this.onSave()

@@ -22,11 +22,11 @@ class NetworkOperation {
   }
 
   static forgot({ email }) {
-    return axios.post(`${baseUrl}/v1/forgot`, { email })
+    return axios.post(`${baseUrl}/v1/private/forgot`, { email })
   }
 
   static passwordReset({ token, password }) {
-    return axios.post(`${baseUrl}/v1/reset-password`, { token, password })
+    return axios.post(`${baseUrl}/v1/private/reset-password`, { token, password })
   }
 
   static getRequestStats(from, to) {

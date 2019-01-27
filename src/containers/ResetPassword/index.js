@@ -59,7 +59,7 @@ class ResetPassword extends Component {
         loadingSelf: false,
       })
 
-      this.props.history.replace('/')
+      this.props.history.replace('/login')
     } catch (error) {
       this.setState({
         message: 'No fue posible enviar el correo, intenta nuevamente',

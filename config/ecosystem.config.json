@@ -11,7 +11,7 @@
     },
     {
       "name": "BillingReset",
-      "script": "../billing-cron.js",
+      "script": "../cron/billing-cron.js",
       "merge_logs": true,
       "error_file": "billing-error.log",
       "out_file": "billing-out.log",

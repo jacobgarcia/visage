@@ -11,6 +11,8 @@ import VisibilityOff from '@material-ui/icons/VisibilityOff'
 import InputLabel from '@material-ui/core/InputLabel'
 import Input from '@material-ui/core/Input'
 import Drawer from '@material-ui/core/Drawer'
+
+import SnackMessage from 'components/SnackMessage'
 import ChangePassModal from 'components/ChangePassModal'
 import EditUserModal from 'components/EditUserModal'
 import NetworkOperation from 'utils/NetworkOperation'
@@ -23,7 +25,6 @@ class Profile extends Component {
   static propTypes = {}
 
   static contextType = UserContext
-
   state = {
     name: this.context?.user?.name,
     company: this.context?.user?.company,
@@ -36,9 +37,11 @@ class Profile extends Component {
     postalCode: this.context?.user?.postalCode,
     businessName: this.context?.user?.businessName,
     rfc: this.context?.user?.rfc,
-    currentRange: null,
+    currentIndexRange: null,
+    currentSearchRange: null,
     changePassModal: false,
     editingBilling: false,
+    message: null,
   }
 
   componentDidMount() {
@@ -59,14 +62,23 @@ class Profile extends Component {
 
   setCurrentRate = async () => {
     try {
-      const userRateRes = await NetworkOperation.getUserRate(
+    const userRateRes = await NetworkOperation.getUserRate(
         this.context?.user?.username
       )
-
-      this.setState({ currentRange: userRateRes.data })
+    await this.setState({
+      currentIndexRange: userRateRes.data,
+      currentSearchRange: userRateRes.data,
+    })
     } catch (error) {
       console.error(error)
     }
+  }
+
+  onCloseMessage = () => {
+    this.setState({
+      message: null,
+      editingBilling: false,
+    })
   }
 
   onSaveBillingInfo = async () => {
@@ -77,22 +89,30 @@ class Profile extends Component {
         rfc,
         businessName,
         name: this.state.name,
-        company: this.state.company,
+        company: this.state.company || '',
         email: this.state.email,
         username: this.state.username,
         searchLimit: this.state.searchLimit,
         indexLimit: this.state.indexLimit,
       })
+      this.setState({ message: 'Cambios Guardados' })
+      setTimeout(() => {
+        this.onCloseMessage()
+      }, 2000)
     } catch (error) {
       console.error(error)
+      this.setState({ message: 'Error guardando cambios' })
+      setTimeout(() => {
+        this.onCloseMessage()
+      }, 1500)
     }
   }
 
   onChange = ({ target: { name, value } }) => this.setState({ [name]: value })
 
-  handleClickShowPassword = () =>
+  handleClickShowPassword = () => {
     this.setState((state) => ({ showPassword: !state.showPassword }))
-
+  }
   handleClickPassModal = () =>
     this.setState((state) => ({ changePassModal: !state.changePassModal }))
 
@@ -110,8 +130,11 @@ class Profile extends Component {
         currentRange,
         postalCode,
         businessName,
+        currentIndexRange,
+        currentSearchRange,
         rfc,
         editingBilling,
+        message,
       },
     } = this
 
@@ -168,6 +191,7 @@ class Profile extends Component {
                 component="button"
                 variant="button"
                 gutterBottom
+                style={{cursor: 'pointer'}}
                 onClick={this.handleClickUserModal}
               >
                 Editar datos
@@ -245,30 +269,17 @@ class Profile extends Component {
             <Typography variant="h6">Total de búsquedas</Typography>
             <div className="consults-range">
               <p>{this.context?.user?.searches?.length}</p>
-              <div>
-                {this.context?.user?.indexRates?.map((rate, index) =>
-                  currentRange?.requests?.indexings > rate.min &&
-                  currentRange?.requests?.indexings < rate.max ? (
-                    <span>
-                      Rango actual entre {rate.min} y {rate.max}
-                    </span>
-                  ) : (
-                    ''
-                  )
-                )}
-              </div>
-              <div style={{ display: 'flex', marginTop: 16 }}>
+              <div style={{ display: 'flex', marginTop: 10, marginBottom: 18 }}>
                 <div style={{ marginRight: 8, flex: 1, flexBasis: 200 }}>
-                  <h4>Límite de búsquedas</h4>
-
+                  <h4>Rango de búsquedas</h4>
                   {this.context?.user?.searchRates?.map((rate, index) =>
-                    currentRange?.requests?.searches > rate.min &&
-                    currentRange?.requests?.searches < rate.max ? (
+                    currentSearchRange?.requests?.searches >= rate.min &&
+                    currentSearchRange?.requests?.searches < rate.max ? (
                       <p>
                         {rate.min} a {rate.max}
                       </p>
                     ) : (
-                      ''
+                      <p style={{ color: '#a2a2a2',fontWeight: 400 }}>Fuera de rango</p>
                     )
                   )}
                 </div>
@@ -287,8 +298,43 @@ class Profile extends Component {
                   </p>
                 </div>
               </div>
+            </div>
+          </div>
+          <div>
+            <Typography variant="h6">Total de indexaciones</Typography>
+            <div className="consults-range">
+              <p>{this.context?.user?.indexings?.length}</p>
+              <div style={{ display: 'flex', marginTop: 16 }}>
+                <div style={{ marginRight: 8, flex: 1, flexBasis: 200 }}>
+                  <h4>Rango de indexaciones</h4>
+                  {this.context?.user?.indexRates?.map((rate, index) =>
+                    currentSearchRange?.requests?.indexings >= rate.min &&
+                    currentSearchRange?.requests?.indexings < rate.max ? (
+                      <p>
+                        {rate.min} a {rate.max}
+                      </p>
+                    ) : (
+                      <p style={{ color: '#a2a2a2',fontWeight: 400 }}>Fuera de rango</p>
+                    )
+                  )}
+                </div>
+                <div style={{ marginLeft: 8, flex: 1, flexBasis: 200 }}>
+                  <h4>Tarifa por indexación</h4>
+                  <p>
+                    <span style={{ display: 'inline-block', marginRight: 4 }}>
+                      $
+                    </span>
+                    {this.context?.user?.indexCost}{' '}
+                    <span
+                      style={{ display: 'inline-block', fontSize: '0.8rem' }}
+                    >
+                      MXN
+                    </span>
+                  </p>
+                </div>
+              </div>
               <p style={{ color: 'gray', fontSize: 13, marginTop: 16 }}>
-                * Al exeder el máximo de búsquedas los límites y la tarifa
+                * Al exeder el máximo de búsquedas o indexaciones los límites y la tarifa
                 actual se actualizarán automáticamente.
               </p>
             </div>
@@ -300,6 +346,7 @@ class Profile extends Component {
               <Typography
                 component="button"
                 variant="button"
+                style={{cursor: 'pointer'}}
                 gutterBottom
                 onClick={() =>
                   this.setState(({ editingBilling }) => ({
@@ -337,7 +384,10 @@ class Profile extends Component {
               />
             </div>
             {editingBilling && (
-              <Button onClick={this.onSaveBillingInfo}>Guardar</Button>
+              <Button style={{color: '#5290d7'}} onClick={this.onSaveBillingInfo}>Guardar</Button>
+            )}
+            {message && (
+              <p style={{display: 'inline-block', color: 'red', marginLeft: 10}} >{message}</p>
             )}
           </div>
           <hr />

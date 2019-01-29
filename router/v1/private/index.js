@@ -944,37 +944,32 @@ router.route('/users/token').get(async (req, res) => {
 
 // Edit user
 router.route('/users/:user').put((req, res) => {
-  const {
-    name,
-    company,
-    username,
-    email,
-    searchLimit,
-    indexLimit,
-    rfc,
-    postalCode,
-    businessName,
-  } = req.body
+  const newValues = {}
+  const acceptedKeys = [
+    'name',
+    'company',
+    'username',
+    'email',
+    'searchLimit',
+    'indexLimit',
+    'rfc',
+    'postalCode',
+    'businessName',
+  ]
   const { user } = req.params
-  if (!name || !company || !username || !email || !searchLimit || !indexLimit) return res.status(400).json({ error: { message: 'Malformed request' } })
+  for (const key in req.body) {
+    if (acceptedKeys.includes(key)) {
+    newValues[key] = req.body[key]
+    }
+  }
+  if (!newValues.name || !newValues.username || !newValues.email) return res.status(400).json({ error: { message: 'Malformed request' } })
   return User.findOneAndUpdate(
     { username: user },
     {
-      $set: {
-        name,
-        company,
-        username,
-        email,
-        searchLimit,
-        indexLimit,
-        rfc,
-        postalCode,
-        businessName,
-      },
+      $set: newValues,
     }
   ).exec((error, user) => {
     if (error) {
-      console.error('Could not update user information')
       return res.status(500).json({
         error: { message: 'Could not update user information' },
       })

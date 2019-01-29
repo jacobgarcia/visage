@@ -11,7 +11,11 @@
     },
     {
       "name": "BillingReset",
-      "script": "../cron/billing-cron.js",
+      "env_production": {
+        "NODE_ENV": "production",
+        "API_URL": "https://api.vs-01-dev.qbo.tech"
+      },
+      "script": "./cron/billing-cron.js",
       "merge_logs": true,
       "error_file": "billing-error.log",
       "out_file": "billing-out.log",

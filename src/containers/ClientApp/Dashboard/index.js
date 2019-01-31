@@ -6,10 +6,10 @@ import NetworkOperation from 'utils/NetworkOperation'
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts'
 
 const COLORS = [
-  '#BCD1E0',
-  '#F4DCDC',
-  '#BCD1E0',
   '#98B1CE',
+  '#BCD1E0',
+  '#C5D4DB',
+  '#F4DCDC',
   '#F9CC7A',
   '#E9666E',
 ]
@@ -125,7 +125,7 @@ class Dashboard extends Component {
                     label
                   >
                     {this.state.chardata.map((data, index) => (
-                      <Cell key={index} fill={COLORS[index % COLORS.length]} />
+                      <Cell key={index} fill={COLORS[index % COLORS.length]} stroke={'#395371'} strokeWidth={2}/>
                     ))}
                   </Pie>
                   <Pie
@@ -137,7 +137,7 @@ class Dashboard extends Component {
                     label
                   >
                     {this.state.chardata.map((data, index) => (
-                      <Cell key={index} fill={COLORS[(index % COLORS.length) + 3]} />
+                      <Cell key={index} fill={COLORS[(index % COLORS.length) + 1]} stroke={'#4776AC'} strokeWidth={2}/>
                     ))}
                   </Pie>
                 </PieChart>
@@ -145,13 +145,13 @@ class Dashboard extends Component {
               <div className="pie-chart-info">
                 <div className="pie-chart-info-totals">
                   <div className="pie-chart__label">
-                    <Typography variant="h6">Total de búsquedas</Typography>
+                    <p style={{color: '#395371', fontSize: '0.9rem', fontWeight: 500}}>Total de búsquedas</p>
                     <Typography variant="h4">
                       {this.state.requests.total}
                     </Typography>
                   </div>
                   <div className="pie-chart__label">
-                    <Typography variant="h6">Total de indexaciones</Typography>
+                    <p style={{color: '#4776AC', fontSize: '0.9rem', fontWeight: 500}}>Total de indexaciones</p>
                     <Typography variant="h4">
                       {this.state.requests.total}
                     </Typography>

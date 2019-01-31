@@ -13,6 +13,7 @@ import FileSaver from 'file-saver'
 import PropTypes from 'prop-types'
 
 import ClientRow from 'components/ClientRow'
+import GuestRow from 'components/GuestRow'
 import ClientModal from 'components/ClientModal'
 import NetworkOperation from 'utils/NetworkOperation'
 import { withSaver } from 'utils/portals'
@@ -43,7 +44,6 @@ class Clients extends Component {
 
   componentDidMount() {
     this.props.toggle({ saveButton: false, dateFilter: false })
-
     this.reloadData()
   }
 
@@ -53,7 +53,7 @@ class Clients extends Component {
       let guests = await NetworkOperation.getGuests()
       users = users.data.users || []
       guests = guests.data.guests || []
-
+      console.log(guests)
       this.setState({
         rows: users,
         filteredRows: users,
@@ -136,8 +136,6 @@ class Clients extends Component {
             return company1 > company2
           case 'rol':
             return isSuperAdmin1 > isSuperAdmin2
-          default:
-            return true
         }
       }
     )
@@ -150,10 +148,17 @@ class Clients extends Component {
   }
 
   render() {
-    const ROWS = 15
+    const ROWS = 12
     const {
-      state: { search, filteredRows, filteredRowsGuest, addUserModalOpen, selectedClient,selectedSort
-,reverseSort },
+      state: {
+        search,
+        filteredRows,
+        filteredRowsGuest,
+        addUserModalOpen,
+        selectedClient,
+        selectedSort,
+        reverseSort,
+      },
     } = this
 
     const canEdit = this.context?.user?.services?.clients === 2
@@ -194,13 +199,40 @@ class Clients extends Component {
             </Button>
           </div>
         </div>
-        <Card>
+        <Card className="card-table">
           <Table className="table">
             <TableHead>
               <TableRow>
-                <TableCell className={selectedSort === 'name' ? `--selected-sort ${reverseSort ? '--reverse' : ''}` : ''} onClick={this.sortBy('name')}>Nombre</TableCell>
-                <TableCell className={selectedSort === 'company' ? `--selected-sort ${reverseSort ? '--reverse' : ''}` : ''} onClick={this.sortBy('company')}>Empresa</TableCell>
-                <TableCell className={selectedSort === 'email' ? `--selected-sort ${reverseSort ? '--reverse' : ''}` : ''} onClick={this.sortBy('email')}>Mail</TableCell>
+                <TableCell
+                  className={
+                    selectedSort === 'name'
+                      ? `--selected-sort ${reverseSort ? '--reverse' : ''}`
+                      : ''
+                  }
+                  onClick={this.sortBy('name')}
+                >
+                  Nombre
+                </TableCell>
+                <TableCell
+                  className={
+                    selectedSort === 'company'
+                      ? `--selected-sort ${reverseSort ? '--reverse' : ''}`
+                      : ''
+                  }
+                  onClick={this.sortBy('company')}
+                >
+                  Empresa
+                </TableCell>
+                <TableCell
+                  className={
+                    selectedSort === 'email'
+                      ? `--selected-sort ${reverseSort ? '--reverse' : ''}`
+                      : ''
+                  }
+                  onClick={this.sortBy('email')}
+                >
+                  Mail
+                </TableCell>
                 <TableCell>Indexación</TableCell>
                 <TableCell>API Keys</TableCell>
                 {canEdit && <TableCell numeric />}
@@ -238,15 +270,26 @@ class Clients extends Component {
           <Table className="table">
             <TableHead>
               <TableRow>
-                <TableCell className={selectedSort === 'email' ? `--selected-sort ${reverseSort ? '--reverse' : ''}` : ''} onClick={this.sortBy('name')}>Nombre</TableCell>
-                <TableCell>Resend Invitation</TableCell>
+                <TableCell
+                  className={
+                    selectedSort === 'email'
+                      ? `--selected-sort ${reverseSort ? '--reverse' : ''}`
+                      : ''
+                  }
+                  onClick={this.sortBy('name')}
+                >
+                  Nombre
+                </TableCell>
+                <TableCell>Reenviar Invitación</TableCell>
+                <TableCell>Eliminar Invitación</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {filteredRowsGuest.map((item) => (
-                <ClientRow
-                  guests={item}
+                <GuestRow
+                  guest={item}
                   key={item._id}
+                  reloadData={this.reloadData}
                 />
               ))}
             </TableBody>

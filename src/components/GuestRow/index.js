@@ -9,60 +9,113 @@ import CircularProgress from '@material-ui/core/CircularProgress'
 
 import BlockIcon from '@material-ui/icons/Block'
 import RefreshIcon from '@material-ui/icons/Refresh'
-import KeyIcon from '@material-ui/icons/VpnKey'
+import EmailIcon from '@material-ui/icons/Email'
+import DeleteForever from '@material-ui/icons/DeleteForever'
 
 import SnackMessage from 'components/SnackMessage'
 import MoreButton from 'components/MoreButton'
 import NetworkOperation from 'utils/NetworkOperation'
 
-class ClientRow extends Component {
+class GuestRow extends Component {
   static propTypes = {}
 
   state = {
     guests: [],
+    sendingInvitation: false,
+    deletingInvitation: false,
   }
 
-  revokeKey = async () => {
-    this.setState({ revokeKeyLoading: true })
+  resentInvitation = async () => {
+    this.setState({ sendingInvitation: true })
     try {
-      await NetworkOperation.getGests(this.props.client.username)
+      await NetworkOperation.inviteUser(this.props.guest.email)
 
-      this.setState({ message: 'Llave revocada' })
+      this.setState({ message: 'Invitación Reenviada' })
     } catch (error) {
       console.error(error)
-      this.setState({ message: 'Error al revocar llave' })
+      this.setState({ message: 'Error al enviar Invitación' })
     } finally {
-      this.setState({ revokeKeyLoading: false })
+      this.setState({ sendingInvitation: false })
       this.props.reloadData()
     }
   }
 
+  deletingInvitation = async () => {
+    this.setState({ deletingInvitation: true })
+    try {
+      await NetworkOperation.deleteGuest(this.props.guest.email)
+
+      this.setState({ message: 'Invitación Eliminada' })
+    } catch (error) {
+      console.error(error)
+      this.setState({ message: 'Error al eliminar Invitación' })
+    } finally {
+      this.setState({ deletingInvitation: false })
+      this.props.reloadData()
+    }
+  }
+
+  onCloseSnack = () => this.setState({ message: null })
+
   render() {
     const {
       props,
+      state: { sendingInvitation, deletingInvitation, message },
     } = this
     return (
       <Fragment>
-        <TableRow
-          key={props.guests._id}
-          className={`user-row ${props.client.active ? 'active' : 'deactive'}`}
-        >
+        <SnackMessage
+          open={message}
+          message={message}
+          onClose={this.onCloseSnack}
+        />
+        <TableRow key={props.guest._id} className={'guest-row'}>
           <TableCell component="th" scope="item" className="user-row__body">
             {props.guest.email}
           </TableCell>
-          {props.canEdit && (
-            <TableCell numeric>
-            </TableCell>
-          )}
+          <TableCell>
+            <IconButton>
+              <div className="circular-progress__container">
+                {sendingInvitation && (
+                  <CircularProgress
+                    size={48}
+                    color="primary"
+                    className="circular-progress"
+                  />
+                )}
+                <EmailIcon
+                  onClick={this.resentInvitation}
+                  className="circular-progress--button"
+                />
+              </div>
+            </IconButton>
+          </TableCell>
+          <TableCell>
+            <IconButton>
+              <div className="circular-progress__container">
+                {deletingInvitation && (
+                  <CircularProgress
+                    size={48}
+                    color="primary"
+                    className="circular-progress"
+                  />
+                )}
+                <DeleteForever
+                  onClick={this.deletingInvitation}
+                  className="circular-progress--button"
+                />
+              </div>
+            </IconButton>
+          </TableCell>
         </TableRow>
       </Fragment>
     )
   }
 }
 
-ClientRow.propTypes = {
-  client: PropTypes.object,
+GuestRow.propTypes = {
+  guest: PropTypes.object,
   reloadData: PropTypes.func,
 }
 
-export default ClientRow
+export default GuestRow

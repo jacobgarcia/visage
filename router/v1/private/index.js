@@ -71,6 +71,7 @@ if (AWS_SES === 'true') {
 nev.configure(
   {
     verificationURL: API_URL + '/signup?token=${URL}',
+    recoveryURL: API_URL + '/reset-password?token=${URL}',
     // mongo configuration
     persistentUserModel: User,
     tempUserModel: Guest,
@@ -91,6 +92,13 @@ nev.configure(
       subject: 'Successfully verified!',
       html: '<p>Your account has been successfully verified.</p>',
       text: 'Your account has been successfully verified.',
+    },
+    recoveryOptions: {
+        from: `Do Not Reply <${INV_EMAIL}>`,
+        subject: 'Recupera tu contraseña',
+        html: '<p>Recover your password using<a href="${URL}">this link</a>. If you are unable to do so, copy and ' +
+            'paste the following link into your browser:</p><p>${URL}</p>',
+        text: 'Recover your password clicking the following link, or by copying and pasting it into your browser: ${URL}',
     },
     hashingFunction: null,
   },
@@ -154,6 +162,81 @@ router.route('/users/token/:username').patch((req, res) => {
       })
     })
   })
+})
+
+router.post('/reset-password', async (req, res) => {
+  const { token, password } = req.body
+
+  try {
+    const decoded = await jwt.verify(token, JWT_SECRET)
+
+    let user = await User.findOne({ email: decoded.email })
+    if (!user) {
+      user = await Admin.findOne({ email: decoded.email })
+    }
+
+    if (!user || user.token !== token) {
+      return res.status(400).json({ message: 'Invalid reset token' })
+    }
+
+    user.password = await bcrypt.hash(`${password}${JWT_SECRET}`, 10)
+    user.token = null
+    await user.save()
+
+    const sessionToken = jwt.sign(
+      {
+        _id: user._id,
+        acc: user.access,
+        cmp: user.company,
+      },
+      JWT_SECRET
+    )
+
+    const userObject = user.toObject()
+
+    return res.status(200).json({
+      token: sessionToken,
+      user: {
+        _id: userObject._id,
+        name: userObject.name || 'User',
+        access: userObject.access,
+      },
+    })
+  } catch (error) {
+    return res.status(500).json({ message: 'Server error' })
+  }
+})
+
+router.post('/forgot', async (req, res) => {
+  const { email } = req.body
+
+  try {
+    let user = await User.findOne({ email })
+
+    if (!user) {
+      user = await Admin.findOne({ email })
+    }
+
+    if (!user) {
+      return res.status(200).json({ message: 'Email sent' })
+    }
+
+    const token = jwt.sign({ email: user.email }, JWT_SECRET)
+
+    user.token = token
+    await user.save()
+
+    await nev.sendRecoveryEmail(
+      user.email,
+      token)
+
+    return res.status(200).json({ message: 'Email sent' })
+  } catch (error) {
+    console.error(error)
+    return res.status(500).json({
+      error: { message: 'Could not generate API token' },
+    })
+  }
 })
 
 // Index images getting objects from S3
@@ -682,7 +765,7 @@ router.post('/signup/:invitation', async (req, res) => {
             console.error('Could not  image', error)
             return res.status(500).json({
               success: false,
-              message: 'Could not create user',
+              message: 'Could not create user on Engine',
             })
           })
       })
@@ -879,37 +962,32 @@ router.route('/users/token').get(async (req, res) => {
 
 // Edit user
 router.route('/users/:user').put((req, res) => {
-  const {
-    name,
-    company,
-    username,
-    email,
-    searchLimit,
-    indexLimit,
-    rfc,
-    postalCode,
-    businessName,
-  } = req.body
+  const newValues = {}
+  const acceptedKeys = [
+    'name',
+    'company',
+    'username',
+    'email',
+    'searchLimit',
+    'indexLimit',
+    'rfc',
+    'postalCode',
+    'businessName',
+  ]
   const { user } = req.params
-  if (!name || !company || !username || !email || !searchLimit || !indexLimit) return res.status(400).json({ error: { message: 'Malformed request' } })
+  for (const key in req.body) {
+    if (acceptedKeys.includes(key)) {
+    newValues[key] = req.body[key]
+    }
+  }
+  if (!newValues.name || !newValues.username || !newValues.email) return res.status(400).json({ error: { message: 'Malformed request' } })
   return User.findOneAndUpdate(
     { username: user },
     {
-      $set: {
-        name,
-        company,
-        username,
-        email,
-        searchLimit,
-        indexLimit,
-        rfc,
-        postalCode,
-        businessName,
-      },
+      $set: newValues,
     }
   ).exec((error, user) => {
     if (error) {
-      console.error('Could not update user information')
       return res.status(500).json({
         error: { message: 'Could not update user information' },
       })
@@ -1512,4 +1590,20 @@ router.route('/guests').get(async (req, res) => {
       .json({ error: { message: 'Could not fetch guests' } })
   }
 })
+.post((req, res) => {
+  const { email } = req.body
+  return Guest.findOneAndDelete({ email }).exec((error) => {
+    if (error) {
+      console.error('Could not delete guest')
+      return res
+        .status(500)
+        .json({ error: { message: 'Could not delete guest' } })
+    }
+    return res.status(200).json({
+      success: true,
+      message: 'Successfully deleted guest',
+    })
+  })
+})
+
 module.exports = router

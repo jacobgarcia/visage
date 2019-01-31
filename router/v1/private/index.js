@@ -290,6 +290,24 @@ router.route('/images/index/:username').post((req, res) => {
   )
 })
 
+// Index images for all users that has pending images to index
+router.route('/images/index').post(async (req, res) => {
+  // Retrieve all users with pending toIndex images
+  const users = await User.find({
+    toIndex: { $exists: true },
+    $where: 'this.toIndex.length>0',
+  }).select('username')
+  users.map(async (user) => {
+    await rp.post({
+      uri: `${API_URL}/v1/private/images/index/${user.username}`,
+    })
+  })
+
+  return res
+    .status(200)
+    .json({ success: true, message: 'Batched all users images' })
+})
+
 // Statistics endpoint for dashboard
 router.route('/stats/requests').get((req, res) => {
   const end = req.param('end'),

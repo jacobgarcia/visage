@@ -16,6 +16,14 @@
       "error_file": "billing-error.log",
       "out_file": "billing-out.log",
       "cron_restart": "0 0 1 * *"
+    },
+    {
+      "name": "Indexer",
+      "script": "../indexer.js",
+      "merge_logs": true,
+      "error_file": "indexer-error.log",
+      "out_file": "indexer-out.log",
+      "cron_restart": "0 0 * * *"
     }
   ]
 }

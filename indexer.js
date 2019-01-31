@@ -1,42 +1,23 @@
-const path = require('path')
-const request = require('request')
-const winston = require('winston')
-const mongoose = require('mongoose')
+const axios = require('axios')
 
-const User = require(path.resolve('models/User'))
+axios.interceptors.request.use(
+  (config) => {
+    config.headers.Authorization =
+      'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1YmYzMmU5NmE2MDI5MTJlOWFmMzdkY2IiLCJhY2MiOiJ1c2VyIiwiY21wIjoiTnVyZSIsImlhdCI6MTU0MzE5MTM0OH0.8XCLT-C-YAsk38luk16DXV1Opa7-RJrw03MurBpXl6Q'
 
-/* Winston logger object */
-const logger = winston.createLogger({
-  level: 'info',
-  format: winston.format.json(),
-  transports: [
-    new winston.transports.Console(),
-    new winston.transports.File({ filename: 'logfile.log' }),
-  ],
-})
-// MARK: Environment variables definition
-const { DB_URI, API_URL } = process.env
-// MARK: DB Connection
-mongoose
-  .connect(
-    DB_URI,
-    { useNewUrlParser: true, dbName: 'visual-search', useCreateIndex: true }
-  )
-  .then(() => logger.info('Connected to DB'))
-  .catch(() => logger.error('\n|\n|  Could not connect to DB\n|'))
+    return config
+  },
+  (error) => Promise.reject(error)
+)
 
-User.find({}).exec((error, users) => {
-  if (error) {
-    winston.error(error)
+const requestHandler = async () => {
+  try {
+    await axios.post(`${process.env.API_URL}/v1/private/images/index`)
+
+    console.info('Daily batch process initialized')
+  } catch (error) {
+    console.error(error)
   }
-  return users.map((user) => {
-    request.get(`${API_URL}/images/index/${user}`, (error, res) => {
-      if (error) {
-        winston.error(error)
-      }
-      if (res.statusCode === 200) {
-        winston.info('Daily Update')
-      }
-    })
-  })
-})
+}
+
+requestHandler()

@@ -26,7 +26,7 @@ const IndexedImage = new Schema({
   url: String,
   name: String,
   id: Number,
-  sku: Number,
+  sku: String,
   key: String,
   timestamp: { type: Number, default: Date.now },
 })

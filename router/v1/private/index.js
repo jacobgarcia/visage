@@ -42,6 +42,12 @@ function getUserData(data) {
   return { ...data.toObject(), access: data.services ? 'admin' : 'user' }
 }
 
+async function asyncForEach(array, callback) {
+  for (let index = 0; index < array.length; index++) {
+    await callback(array[index], index, array)
+  }
+}
+
 const fields = JSON.parse(
   fs.readFileSync(path.resolve('./router/v1/private/FIELDS.json'))
 )
@@ -240,137 +246,101 @@ router.post('/forgot', async (req, res) => {
 })
 
 // Index images getting objects from S3
-router.route('/images/index/:username').post((req, res) => {
+router.route('/images/index/:username').post(async (req, res) => {
   // Specific username to index images at the moment of petition
   const { username } = req.params
   let count = 0
-  User.findOneAndUpdate({ username }, { $set: { isIndexing: true } }).exec(
-    (error, user) => {
-      if (error) {
-        console.error('Could not get user information', error)
-        return res.status(500).json({
-          error: { message: 'Could not get user information' },
-        })
-      }
-      if (!user) return res
-          .status(404)
-          .json({ error: { message: 'User has not been found' } })
-      if (user.toIndex.length === 0) return res
-          .status(200)
-          .json({ success: false, message: 'Nothing to index' })
-      // Iterate over the batch of images
-      const promises = user.toIndex.map(async (image) => {
-        const { id, sku, key } = image
+  try {
+    const user = await User.findOneAndUpdate(
+      { username },
+      { $set: { inIndexing: true } }
+    )
+    console.log(user)
+    if (user.toIndex.length === 0) {
+      return res
+        .status(200)
+        .json({ success: false, message: 'Nothing to index' })
+    }
 
-        // Create formData object to send to the service
-        const formData = {
-          id,
-          sku,
-          image: {
-            value: fs.createReadStream(
-              process.env.PWD +
-                '/static/uploads/temp/' +
-                key.substr(key.lastIndexOf('/') + 1)
-            ),
-            options: {
-              filename: image.filename,
-            },
+    asyncForEach(user.toIndex , async (image) => {
+      const { id, sku, key } = image
+      const path = process.env.PWD +
+                      '/static/uploads/temp/' +
+                      key.substr(key.lastIndexOf('/') + 1)
+
+      // Create formData object to send to the service
+      const formData = {
+        id,
+        sku,
+        image: {
+          value: fs.createReadStream(
+            path
+          ),
+          options: {
+            filename: image.filename,
           },
-          username,
+        },
+        username,
+      }
+
+      // Call internal Flask service to process petition
+      let response = await rp.post({
+          url: serviceUrl + '/v1/images/index',
+          formData,
+          resolveWithFullResponse: true,
+      })
+      console.info(response.statusCode, response.body)
+      if (response.statusCode === 200) {
+        fs.unlink(path, (err) => {
+            return Promise.reject(err)
+        })
+        count += 1
+        // Build response object
+        response = {
+          success: JSON.parse(response.body).success,
+          status: response.statusCode,
+          features: JSON.parse(response.body).features,
         }
 
-        // Call internal Flask service to process petition
-        await rp
-          .post({
-            url: serviceUrl + '/v1/images/index',
-            formData,
-            resolveWithFullResponse: true,
-          })
-          .then((resp) => {
-            console.info(resp.statusCode, resp.body)
-            if (resp.statusCode === 200) {
-              count += 1
-              // Build response object
-              const response = {
-                success: JSON.parse(resp.body).success,
-                status: resp.statusCode,
-                features: JSON.parse(resp.body).features,
-              }
+        // After getting response from internal server service, create a new Indexing Object
+        // First create the request custom Object
+        const request = {
+          route: req.route,
+          files: req.files,
+          token: req._token,
+          headers: req.headers,
+        }
 
-              // After getting response from internal server service, create a new Indexing Object
-              // First create the request custom Object
-              const request = {
-                route: req.route,
-                files: req.files,
-                token: req._token,
-                headers: req.headers,
-              }
-
-              // Create new Searching object
-              new Indexing({
-                response,
-                request,
-                user,
-              }).save((error) => {
-                if (error) {
-                  console.info('Could not create indexing object', error)
-                  return
-                }
-                // Add Indexing object to User and move toIndex object to IndexedImages
-                // Remove item form the toIndex batch
-                User.findOneAndUpdate(
-                  { username },
-                  {
-                    $pull: { toIndex: image },
-                  }
-                ).exec((error) => {
-                  if (error) {
-                    console.error('Could not update user information')
-                  }
-                })
-              })
+        // Create new Searching object
+        await new Indexing({
+          response,
+          request,
+          user,
+        })
+            // Add Indexing object to User and move toIndex object to IndexedImages
+            // Remove item form the toIndex batch
+        await User.findOneAndUpdate(
+            { username },
+            {
+              $pull: { toIndex: image },
+              $set: { isIndexing: false},
             }
-          })
-          .catch((error) => {
-            if (error) {
-              console.error('Could not index image', error)
-            }
-          })
-      })
-      return Promise.all(promises).then(() => {
-        User.findOneAndUpdate({ username }, { $set: { isIndexing: false } })
-          .select('indexRates indexCost indexings')
-          .exec((error, user) => {
-            if (error) {
-              console.error('Could not update user information')
-              return res.status(500).json({
-                error: {
-                  message: 'Could not update user information',
-                },
-              })
-            }
-            // Get the search rate cost
-            let index = 0
-            for (index; index < user.indexRates.length; index += 1) {
-              if (user.indexings.length <= user.indexRates[index].max) break
-            }
-            user.indexCost += user.indexRates[index].cost
-            return user.save((error) => {
-              if (error) {
-                console.error('Could not save user information', error)
-                return res.status(500).json({
-                  error: {
-                    message: 'Could not save user information',
-                  },
-                })
-              }
-              // Then return response from internal server
-              return res.status(200).json({ success: true, count, user })
-            })
-          })
-      })
-    }
-  )
+        )
+        let index = 0
+        for (index; index < user.indexRates.length; index += 1) {
+          if (user.indexings.length <= user.indexRates[index].max) break
+        }
+        user.indexCost += user.indexRates[index].cost
+        await user.save()
+        return Promise.resolve()
+      }
+      return Promise.reject(new Error('Engine is not working correctly' + response.statusCode))
+    })
+    return res.status(200).json({ success: true, count, user })
+  } catch (err) {
+    console.error('Could not index image', err)
+    return res.status(500).json({ message: 'Server error' })
+  }
 })
 
 // Index images for all users that has pending images to index

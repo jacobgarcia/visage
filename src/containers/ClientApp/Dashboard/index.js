@@ -1,5 +1,4 @@
 import React, { Component } from 'react'
-import PropTypes from 'prop-types'
 import Typography from '@material-ui/core/Typography'
 import NetworkOperation from 'utils/NetworkOperation'
 
@@ -32,7 +31,8 @@ class Dashboard extends Component {
     searchLimit: 1000,
     indexLimit: 1000,
     topsearches: { mostSearchedItems: [] },
-    chardata: [{ name: 'none', value: 100 }],
+    searchChardata: [{ name: 'none', value: 100 }],
+    indexChardata: [{ name: 'none', value: 0 }],
   }
 
   async componentDidMount() {
@@ -73,13 +73,19 @@ class Dashboard extends Component {
           return { name: data.id, value: data.count }
         }
       )
+      const maxRate = billingRes.data.indexRates.map((rate) =>{
+        statsRes.data.requests.indexings >= rate.min &&
+        statsRes.data.requests.indexings < rate.max ?  rate.max : statsRes.data.requests.indexings
+      })
 
       this.setState({
         billing: billingRes.data.billing,
         requests: statsRes.data.requests,
         topsearches: topsearches.data,
-        chardata:
+        searchChardata:
           chardata.length > 0 ? chardata : [{ name: 'none', value: 100 }],
+        indexChardata: [{name: 'indexed', value: statsRes.data.requests.indexings * 100 / maxRate},
+                        {name: 'available', value: (statsRes.data.requests.indexings * 100 / maxRate) - 100}],
         searchLimit: data.searchLimit,
         indexLimit: data.indexLimit,
       })
@@ -118,25 +124,25 @@ class Dashboard extends Component {
               <ResponsiveContainer width="50%" height={300}>
                 <PieChart>
                   <Pie
-                    data={this.state.chardata}
+                    data={this.state.searchChardata}
                     innerRadius="60%"
                     fill="#82ca9d"
                     dataKey="value"
                     label
                   >
-                    {this.state.chardata.map((data, index) => (
+                    {this.state.searchChardata.map((data, index) => (
                       <Cell key={index} fill={COLORS[index % COLORS.length]} stroke={'#395371'} strokeWidth={2}/>
                     ))}
                   </Pie>
                   <Pie
-                    data={this.state.chardata}
+                    data={this.state.indexChardata}
                     innerRadius="30%"
                     outerRadius="50%"
                     fill="#82ca9d"
                     dataKey="value"
                     label
                   >
-                    {this.state.chardata.map((data, index) => (
+                    {this.state.indexChardata.map((data, index) => (
                       <Cell key={index} fill={COLORS[(index % COLORS.length) + 1]} stroke={'#4776AC'} strokeWidth={2}/>
                     ))}
                   </Pie>
@@ -147,18 +153,19 @@ class Dashboard extends Component {
                   <div className="pie-chart__label">
                     <p style={{color: '#395371', fontSize: '0.9rem', fontWeight: 500}}>Total de búsquedas</p>
                     <Typography variant="h4">
-                      {this.state.requests.total}
+                      {this.state.requests.searches}
                     </Typography>
                   </div>
                   <div className="pie-chart__label">
                     <p style={{color: '#4776AC', fontSize: '0.9rem', fontWeight: 500}}>Total de indexaciones</p>
                     <Typography variant="h4">
-                      {this.state.requests.total}
+                      {this.state.requests.indexings}
                     </Typography>
                   </div>
                 </div>
                 <div className="pie-chart__legend">
-                  {this.state.chardata.map((data, index) => (
+                  <p style={{fontSize: '0.9rem', fontWeight: 500, color: 'gray'}}>Mejores Resultados</p>
+                  {this.state.searchChardata.map((data, index) => (
                     <div key={index}>
                       <div
                         className="bullet"

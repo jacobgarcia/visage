@@ -272,7 +272,7 @@ class Profile extends Component {
               <div style={{ display: 'flex', marginTop: 10, marginBottom: 18 }}>
                 <div style={{ marginRight: 8, flex: 1, flexBasis: 200 }}>
                   <h4>Rango de búsquedas</h4>
-                  {this.context?.user?.searchRates?.map((rate, index) =>
+                  {this.context?.user?.searchRates?.map((rate) =>
                     currentSearchRange?.requests?.searches >= rate.min &&
                     currentSearchRange?.requests?.searches < rate.max ? (
                       <p>

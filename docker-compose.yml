@@ -29,6 +29,8 @@ services:
       - 443:443
     networks:
       - frontend
+    depends_on:
+      - visualsearchapi
     restart: always
   visualsearchapi:
     build: .

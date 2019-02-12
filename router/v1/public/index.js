@@ -10,16 +10,19 @@ const jwt = require('jsonwebtoken')
 const request = require('request')
 const aws = require('aws-sdk')
 const cors = require('cors')
-
+const fileType = require('file-type')
 const User = require(path.resolve('models/User'))
 const Indexing = require(path.resolve('models/Indexing'))
 const Searching = require(path.resolve('models/Searching'))
+const readChunk = require('read-chunk')
 
 const router = new express.Router()
 
 const JWT_SECRET = process.env.JWT_SECRET
 const STATIC_FOLDER = process.env.STATIC_FOLDER
 const ENGINE_THRESHOLD = process.env.ENGINE_THRESHOLD
+const accepted_extensions = ['jpg', 'png', 'jpeg']
+
 const storage = multer.diskStorage({
   destination: (req, file, callback) => callback(null, STATIC_FOLDER),
   filename: (req, file, callback) => {
@@ -35,7 +38,18 @@ const storage = multer.diskStorage({
   },
 })
 
-const upload = multer({ storage })
+const upload = multer({ storage: storage,
+                        limits: {
+                          fileSize: 5 * 1024 * 1024,// 5 MB upload limit
+                          files: 1,// 1 file
+                        },
+                        fileFilter: (req, file, callback) => {
+                          if (accepted_extensions.some((ext) => file.originalname.endsWith('.' + ext))) {
+                              return callback(null, true)
+                          }
+                          // otherwise, return error
+                          return callback(new Error('Only ' + accepted_extensions.join(', ') + ' files are allowed!:' + file.originalname))
+                        }})
 const serviceUrl = process.env.ENGINE_URL
 const BUCKET_NAME = process.env.BUCKET_NAME
 
@@ -51,6 +65,22 @@ aws.config.update({
 })
 
 const s3 = new aws.S3()
+
+/*
+   middleware file type verification
+*/
+
+function validate_format(req, res, next) {
+    // For MemoryStorage, validate the format using `req.file.buffer`
+    // For DiskStorage, validate the format using `fs.readFile(req.file.path)` from Node.js File System Module
+    const buffer = readChunk.sync(req.file.path, 0, fileType.minimumBytes)
+    const mime = fileType(buffer)
+    // if can't be determined or format not accepted
+    if (!mime || !accepted_extensions.includes(mime.ext)) {
+        return next(new Error('The uploaded file is not in ' + accepted_extensions.join(', ') + ' format!'))
+    }
+    return next()
+}
 
 /*
   C O R S   S T U F F
@@ -118,10 +148,10 @@ router.route('/images/search').post(upload.single('image'), (req, res) => {
     { url: serviceUrl + '/v1/images/search', formData },
     (error, resp) => {
       if (error) {
-        console.info('Could not index image', error)
+        console.info('Could not search image', error)
         return res
           .status(500)
-          .json({ error: { message: 'Could not index image' } })
+          .json({ error: { message: 'Could not search image' } })
       }
       const items = []
       JSON.parse(resp.body).hits.map((item) => {
@@ -189,7 +219,7 @@ router.route('/images/search').post(upload.single('image'), (req, res) => {
 })
 
 // This method uploads the image to S3 and adds it to an toIndex array
-router.route('/images/index').post(upload.single('image'), (req, res) => {
+router.route('/images/index').post(upload.single('image'), validate_format, (req, res) => {
   const { id, sku } = req.body
   const image = req.file
   if (!id || !sku || !image) return res.status(400).json({ error: { message: 'Malformed Request' } })

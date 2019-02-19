@@ -3,7 +3,7 @@
     {
       "name": "VisualSearch",
       "script": "./server.js",
-      "instances": "max",
+      "instances": "1",
       "exec_mode": "cluster",
       "env_production": {
         "NODE_ENV": "production"
@@ -12,22 +12,30 @@
     {
       "name": "BillingReset",
       "env_production": {
-        "NODE_ENV": "production",
-        "API_URL": "https://api.vs-01-dev.qbo.tech"
+        "NODE_ENV": "production"
       },
+      "instances": 1,
+      "exec_mode": "fork",
       "script": "./cron/billing-cron.js",
       "merge_logs": true,
       "error_file": "billing-error.log",
       "out_file": "billing-out.log",
-      "cron_restart": "0 0 1 * *"
+      "cron_restart": "0 0 1 * *",
+      "autorestart": false
     },
     {
       "name": "Indexer",
-      "script": "../indexer.js",
+      "env_production": {
+        "NODE_ENV": "production"
+      },
+      "instances": 1,
+      "exec_mode": "fork",
+      "script": "./cron/indexer.js",
       "merge_logs": true,
       "error_file": "indexer-error.log",
       "out_file": "indexer-out.log",
-      "cron_restart": "0 0 * * *"
+      "cron_restart": "0 0 * * *",
+      "autorestart": false
     }
   ]
 }

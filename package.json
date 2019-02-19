@@ -7,7 +7,7 @@
     "start": "NODE_ENV=development npx nodemon --ignore 'src/**' --ext \"graphql js\"",
     "serve": "NODE_ENV=production npx pm2 start server.js",
     "build:prod": "npx webpack-cli --config ./config/webpack.prod.js",
-    "serve:docker": "npx pm2-docker start ./config/ecosystem.config.json",
+    "serve:docker": "npx pm2-docker start ./config/ecosystem.config.json --env production",
     "test": "npx jest",
     "precommit": "npx lint-staged",
     "stats": "npx webpack-cli --config ./config/webpack.prod.js --json > stats.json"

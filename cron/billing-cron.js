@@ -1,5 +1,15 @@
+const path = require('path')
 const axios = require('axios')
+const dotenv = require('dotenv')
 
+if (new Date().getHours() !== 0) {
+  console.log(`Current hours is ${new Date().getHours()}, not running.`)
+  process.exit(0)
+}
+
+dotenv.config({ path: path.resolve('config/.env/.production') })
+const URL = process.env.API_URL
+console.log(URL)
 axios.interceptors.request.use(
   (config) => {
     config.headers.Authorization =
@@ -12,8 +22,7 @@ axios.interceptors.request.use(
 
 const requestHandler = async () => {
   try {
-    await axios.patch(`${process.env.API_URL}/v1/private/users/billing/reset`)
-
+    await axios.patch(`${URL}/v1/private/users/billing/reset`)
     console.info('Billing reset successful')
   } catch (error) {
     console.error(error)

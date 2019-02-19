@@ -62,6 +62,7 @@ class Dashboard extends Component {
         from,
         to
       )
+      console.log(statsRes)
       const billingRes = await NetworkOperation.getClientBillingStats(
         data?.username,
         from,
@@ -73,9 +74,9 @@ class Dashboard extends Component {
           return { name: data.id, value: data.count }
         }
       )
-      const maxRate = billingRes.data.indexRates.map((rate) =>{
+      const maxRate = billingRes.data.indexRates.map((rate) => {
         statsRes.data.requests.indexings >= rate.min &&
-        statsRes.data.requests.indexings < rate.max ?  rate.max : statsRes.data.requests.indexings
+        statsRes.data.requests.indexings < rate.max ? rate.max : statsRes.data.requests.indexings
       })
 
       this.setState({

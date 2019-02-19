@@ -4,7 +4,6 @@ const path = require('path')
 const crypto = require('crypto')
 const express = require('express')
 const winston = require('winston')
-const mime = require('mime')
 const multer = require('multer')
 const jwt = require('jsonwebtoken')
 const request = require('request')
@@ -32,7 +31,7 @@ const storage = multer.diskStorage({
         raw.toString('hex') +
           Date.now() +
           '.' +
-          mime.getExtension(file.mimetype)
+          file.originalname.split('.').pop()
       )
     })
   },
@@ -251,7 +250,6 @@ router.route('/images/index').post(upload.single('image'), validate_format, (req
             message: 'Could not put object to S3 bucket',
           })
         }
-
         // Put the image to the toIndex on User
         const indexedImage = {
           name: image.filename,

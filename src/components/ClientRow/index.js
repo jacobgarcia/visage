@@ -117,12 +117,11 @@ class ClientRow extends Component {
     try {
       this.setState({ isIndexing: true })
       await NetworkOperation.indexImages(this.props.client.username)
-      this.setState({ message: 'Imágenes indexadas exitósamente' })
+      this.setState({ message: 'Imágenes indexandose' })
     } catch (error) {
       console.error(error)
       this.setState({ message: 'Error al indexar imágenes' })
     } finally {
-      this.setState({ isIndexing: false })
       this.props.reloadData()
     }
   }

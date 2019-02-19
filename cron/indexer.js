@@ -1,4 +1,15 @@
+const path = require('path')
 const axios = require('axios')
+const dotenv = require('dotenv')
+
+if (new Date().getHours() !== 0) {
+  console.log(`Current hours is ${new Date().getHours()}, not running.`)
+  process.exit(0)
+}
+
+dotenv.config({ path: path.resolve('config/.env/.production') })
+
+const URL = process.env.API_URL
 
 axios.interceptors.request.use(
   (config) => {
@@ -12,7 +23,7 @@ axios.interceptors.request.use(
 
 const requestHandler = async () => {
   try {
-    await axios.post(`${process.env.API_URL}/v1/private/images/index`)
+    await axios.post(`${URL}/v1/private/images/index`)
 
     console.info('Daily batch process initialized')
   } catch (error) {

@@ -42,9 +42,13 @@ function getUserData(data) {
   return { ...data.toObject(), access: data.services ? 'admin' : 'user' }
 }
 
-async function asyncForEach(array, callback) {
-  for (let index = 0; index < array.length; index++) {
-    await callback(array[index], index, array)
+async function asyncForEach(array, end, callback) {
+  for (let index = 0; index < array.length + 1; index++) {
+    if (index === array.length) {
+      await end()
+    } else {
+      await callback(array[index], index, array)
+    }
   }
 }
 
@@ -250,19 +254,36 @@ router.route('/images/index/:username').post(async (req, res) => {
   // Specific username to index images at the moment of petition
   const { username } = req.params
   let count = 0
+  let user = ''
+  let response = ''
   try {
-    const user = await User.findOneAndUpdate(
+    user = await User.findOneAndUpdate(
       { username },
-      { $set: { inIndexing: true } }
+      { $set: { isIndexing: true } }
     )
-    console.log(user)
+    if (!user) {
+      return res.status(500).json({ message: 'User not found' })
+    }
     if (user.toIndex.length === 0) {
       return res
         .status(200)
         .json({ success: false, message: 'Nothing to index' })
     }
+  } catch (err) {
+    console.error('User error', err)
+    return res.status(500).json({ message: 'User Error' })
+  }
 
-    asyncForEach(user.toIndex , async (image) => {
+  asyncForEach(user.toIndex ,
+    async () => {
+      await User.findOneAndUpdate(
+          { username },
+          {
+            $set: { isIndexing: false},
+          }
+      )
+    },
+    async (image) => {
       const { id, sku, key } = image
       const path = process.env.PWD +
                       '/static/uploads/temp/' +
@@ -282,65 +303,68 @@ router.route('/images/index/:username').post(async (req, res) => {
         },
         username,
       }
-
+      try {
       // Call internal Flask service to process petition
-      let response = await rp.post({
-          url: serviceUrl + '/v1/images/index',
-          formData,
-          resolveWithFullResponse: true,
-      })
-      console.info(response.statusCode, response.body)
-      if (response.statusCode === 200) {
-        fs.unlink(path, (err) => {
-            return Promise.reject(err)
+        response = await rp.post({
+            url: serviceUrl + '/v1/images/index',
+            formData,
+            resolveWithFullResponse: true,
         })
-        count += 1
-        // Build response object
-        response = {
-          success: JSON.parse(response.body).success,
-          status: response.statusCode,
-          features: JSON.parse(response.body).features,
-        }
+        if (response.statusCode === 200) {
+          fs.unlink(path, (err) => {
+              return Promise.reject(err)
+          })
+          count += 1
+          // Build response object
+          response = {
+            success: JSON.parse(response.body).success,
+            status: response.statusCode,
+            features: JSON.parse(response.body).features,
+          }
 
-        // After getting response from internal server service, create a new Indexing Object
-        // First create the request custom Object
-        const request = {
-          route: req.route,
-          files: req.files,
-          token: req._token,
-          headers: req.headers,
-        }
+          // After getting response from internal server service, create a new Indexing Object
+          // First create the request custom Object
+          const request = {
+            route: req.route,
+            files: req.files,
+            token: req._token,
+            headers: req.headers,
+          }
 
-        // Create new Searching object
-        await new Indexing({
-          response,
-          request,
-          user,
-        })
-            // Add Indexing object to User and move toIndex object to IndexedImages
-            // Remove item form the toIndex batch
-        await User.findOneAndUpdate(
-            { username },
-            {
-              $pull: { toIndex: image },
-              $set: { isIndexing: false},
-            }
-        )
-        let index = 0
-        for (index; index < user.indexRates.length; index += 1) {
-          if (user.indexings.length <= user.indexRates[index].max) break
+          // Create new Searching object
+          const indexObject = await new Indexing({
+            response,
+            request,
+            user,
+          })
+
+          indexObject.save()
+              // Add Indexing object to User and move toIndex object to IndexedImages
+              // Remove item form the toIndex batch
+          await User.findOneAndUpdate(
+              { username },
+              {
+                $pull: { toIndex: image },
+                $push: { indexings: indexObject._id},
+              }
+          )
+          let index = 0
+          for (index; index < user.indexRates.length; index += 1) {
+            if (user.indexings.length <= user.indexRates[index].max) break
+          }
+          user.indexCost += user.indexRates[index].cost
+          await user.save()
+          return Promise.resolve()
         }
-        user.indexCost += user.indexRates[index].cost
-        await user.save()
-        return Promise.resolve()
+      } catch (err) {
+        console.error('Could not index image', err)
+        return res.status(500).json({ message: 'Server error ' + err })
       }
       return Promise.reject(new Error('Engine is not working correctly' + response.statusCode))
-    })
-    return res.status(200).json({ success: true, count, user })
-  } catch (err) {
-    console.error('Could not index image', err)
-    return res.status(500).json({ message: 'Server error' })
-  }
+  }).catch((err) => {
+    return res.status(410).json({ message: 'Error' + err})
+  })
+  return res.status(200).json({ success: true, count, user })
 })
 
 // Index images for all users that has pending images to index
@@ -445,6 +469,8 @@ router.route('/stats/requests/:username').get(async (req, res) => {
           .status(500)
           .json({ error: { message: 'Could not fetch indexings' } })
       }
+      console.log('indexings encontrados: ')
+      console.log(indexings)
       return Searching.find({
         timestamp: { $gte: start, $lte: end },
         _id: { $in: user.searches },

@@ -14,7 +14,6 @@ const User = require(path.resolve('models/User'))
 const Indexing = require(path.resolve('models/Indexing'))
 const Searching = require(path.resolve('models/Searching'))
 const readChunk = require('read-chunk')
-
 const router = new express.Router()
 
 const JWT_SECRET = process.env.JWT_SECRET
@@ -48,7 +47,7 @@ const upload = multer({ storage: storage,
                           }
                           // otherwise, return error
                           return callback(new Error('Only ' + accepted_extensions.join(', ') + ' files are allowed!:' + file.originalname))
-                        }})
+                        }}).single('image')
 const serviceUrl = process.env.ENGINE_URL
 const BUCKET_NAME = process.env.BUCKET_NAME
 
@@ -127,98 +126,110 @@ router.use((req, res, next) => {
   })
 })
 
-router.route('/images/search').post(upload.single('image'), (req, res) => {
-  if (!req.file) return res
-      .status(400)
-      .json({ error: { message: 'Could not get file info' } })
-  const imagePath = `/${STATIC_FOLDER}/${req.file.filename}`
+router.route('/images/search').post((req, res) => {
+  upload(req,res, (err) => {
+    if (err instanceof multer.MulterError) {
+      return res
+        .status(500)
+        .json({ error: { message: 'Error uploading file' + err } })
+    } else if (err) {
+      return res
+        .status(500)
+        .json({ error: { message: 'Error uploading file, check extensions' + err } })
+    }
+    if (!req.file) return res
+        .status(400)
+        .json({ error: { message: 'Could not get file info' } })
+    const imagePath = `/${STATIC_FOLDER}/${req.file.filename}`
 
-  // Call internal Flask service to process petition
-  const formData = {
-    image: {
-      value: fs.createReadStream(process.env.PWD + imagePath),
-      options: {
-        filename: req.file.filename,
+    // Call internal Flask service to process petition
+    const formData = {
+      image: {
+        value: fs.createReadStream(process.env.PWD + imagePath),
+        options: {
+          filename: req.file.filename,
+        },
       },
-    },
-    username: req._user.username,
-  }
-  return request.post(
-    { url: serviceUrl + '/v1/images/search', formData },
-    (error, resp) => {
-      if (error) {
-        console.info('Could not search image', error)
-        return res
-          .status(500)
-          .json({ error: { message: 'Could not search image' } })
-      }
-      const items = []
-      JSON.parse(resp.body).hits.map((item) => {
-          item.score > ENGINE_THRESHOLD ? items.push(item) : {}
-      })
-      const response = {
-        success: resp.statusCode === 200,
-        status: resp.statusCode,
-        items: items,
-      }
-      // After getting response from internal server service, create a new Indexing Object
-      // First create the request custom Object
-      const request = {
-        route: req.route,
-        file: req.file,
-        token: req._token,
-        headers: req.headers,
-      }
-
-      // Create new Indexing object
-      return new Searching({
-        response,
-        request,
-        user: req._user._id,
-      }).save((error, search) => {
+      username: req._user.username,
+    }
+    return request.post(
+      { url: serviceUrl + '/v1/images/search', formData , timeout: 200000},
+      (error, resp) => {
         if (error) {
-          console.info('Could not create searching object', error)
+          console.info('Could not search image', error)
           return res
             .status(500)
-            .json({ error: { message: 'Could not create searching object' } })
+            .json({ error: { message: 'Could not search image' } })
         }
-        // Update the user search cost
-        return User.findOneAndUpdate(
-          { username: req._user.username },
-          { $push: { searches: search._id } }
-        )
-          .select('searchRates searchCost searches')
-          .exec((error, user) => {
-            if (error) {
-              console.error('Could not update user information', error)
-              return res.status(500).json({
-                error: { message: 'Could not update user information' },
-              })
-            }
-            // Get the search rate cost
-            let index = 0
-            for (index; index < user.searchRates.length; index += 1) {
-              if (user.searches.length <= user.searchRates[index].max) break
-            }
-            user.searchCost += user.searchRates[index].cost
-            return user.save((error) => {
+        const items = []
+        JSON.parse(resp.body).hits.map((item) => {
+            item.score > ENGINE_THRESHOLD ? items.push(item) : {}
+        })
+        const response = {
+          success: resp.statusCode === 200,
+          status: resp.statusCode,
+          items: items,
+        }
+        // After getting response from internal server service, create a new Indexing Object
+        // First create the request custom Object
+        const request = {
+          route: req.route,
+          file: req.file,
+          token: req._token,
+          headers: req.headers,
+        }
+
+        // Create new Indexing object
+        return new Searching({
+          response,
+          request,
+          user: req._user._id,
+        }).save((error, search) => {
+          if (error) {
+            console.info('Could not create searching object', error)
+            return res
+              .status(500)
+              .json({ error: { message: 'Could not create searching object' } })
+          }
+          // Update the user search cost
+          return User.findOneAndUpdate(
+            { username: req._user.username },
+            { $push: { searches: search._id } }
+          )
+            .select('searchRates searchCost searches')
+            .exec((error, user) => {
               if (error) {
-                console.error('Could not save user information', error)
+                console.error('Could not update user information', error)
                 return res.status(500).json({
-                  error: { message: 'Could not save user information' },
+                  error: { message: 'Could not update user information' },
                 })
               }
-              // Then return response from internal server
-              return res.status(200).json(response)
+              // Get the search rate cost
+              let index = 0
+              for (index; index < user.searchRates.length; index += 1) {
+                if (user.searches.length <= user.searchRates[index].max) break
+              }
+              user.searchCost += user.searchRates[index].cost
+              return user.save((error) => {
+                if (error) {
+                  console.error('Could not save user information', error)
+                  return res.status(500).json({
+                    error: { message: 'Could not save user information' },
+                  })
+                }
+                // Then return response from internal server
+                return res.status(200).json(response)
+              })
             })
-          })
-      })
-    }
-  )
+        })
+      }
+    )
+  })
+
 })
 
 // This method uploads the image to S3 and adds it to an toIndex array
-router.route('/images/index').post(upload.single('image'), validate_format, (req, res) => {
+router.route('/images/index').post(upload, validate_format, (req, res) => {
   const { id, sku } = req.body
   const image = req.file
   if (!id || !sku || !image) return res.status(400).json({ error: { message: 'Malformed Request' } })
@@ -278,7 +289,7 @@ router.route('/images/index').post(upload.single('image'), validate_format, (req
 })
 
 // DEPRECATED
-router.route('/images/index/now').post(upload.single('image'), (req, res) => {
+router.route('/images/index/now').post(upload, (req, res) => {
   const { id, sku } = req.body
   const indexedImages = []
   const image = req.file
@@ -330,7 +341,7 @@ router.route('/images/index/now').post(upload.single('image'), (req, res) => {
           },
         }
         return request.post(
-          { url: serviceUrl + '/v1/images/index', formData },
+          { url: serviceUrl + '/v1/images/index', formData, timeout: 200000 },
           (error, resp) => {
             if (error) {
               console.error('Could not index image', error)
@@ -415,7 +426,7 @@ router.route('/images/:id').delete((req, res) => {
           id,
         }
         return request.delete(
-          { url: serviceUrl + '/v1/images/delete', formData },
+          { url: serviceUrl + '/v1/images/delete', formData, timeout: 200000 },
           (error, resp) => {
             if (error) {
               console.error('Could not index image', error)

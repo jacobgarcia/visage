@@ -50,8 +50,9 @@ const app = express()
 
 app.use(helmet())
 app.use(hpp())
-app.use(bodyParser.urlencoded({ extended: false }))
-app.use(bodyParser.json())
+app.use(bodyParser.json({limit: '5mb'}))
+app.use(bodyParser.urlencoded({limit: '5mb', extended: true, parameterLimit: 5000}))
+
 if (API_SERV === 'true') {
   app.use('/v1', v1)
 } else {

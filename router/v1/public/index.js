@@ -127,7 +127,7 @@ router.use((req, res, next) => {
 })
 
 router.route('/images/search').post((req, res) => {
-  upload(req,res, (err) => {
+  upload(req, res, (err) => {
     if (err instanceof multer.MulterError) {
       return res
         .status(500)
@@ -156,6 +156,20 @@ router.route('/images/search').post((req, res) => {
       { url: serviceUrl + '/v1/images/search', formData , timeout: 200000},
       (error, resp) => {
         if (error) {
+          if (error.code) {
+            if (error.code === 'ETIMEDOUT') {
+              console.info('Engine Timeout', error)
+              return res
+                .status(500)
+                .json({ error: { message: 'Engine timeout' } })
+            }
+            if (error.code === 'ECONNREFUSED') {
+              console.info('Engine ECONNREFUSED', error)
+              return res
+                .status(500)
+                .json({ error: { message: 'Engine connection refused' } })
+            }
+          }
           console.info('Could not search image', error)
           return res
             .status(500)
@@ -344,6 +358,20 @@ router.route('/images/index/now').post(upload, (req, res) => {
           { url: serviceUrl + '/v1/images/index', formData, timeout: 200000 },
           (error, resp) => {
             if (error) {
+              if (error.code) {
+                if (error.code === 'ETIMEDOUT') {
+                  console.info('Engine Timeout', error)
+                  return res
+                    .status(500)
+                    .json({ error: { message: 'Engine timeout' } })
+                }
+                if (error.code === 'ECONNREFUSED') {
+                  console.info('Engine ECONNREFUSED', error)
+                  return res
+                    .status(500)
+                    .json({ error: { message: 'Engine connection refused' } })
+                }
+              }
               console.error('Could not index image', error)
               return res
                 .status(500)
@@ -416,6 +444,20 @@ router.route('/images/:id').delete((req, res) => {
       },
       (error) => {
         if (error) {
+          if (error.code) {
+            if (error.code === 'ETIMEDOUT') {
+              console.info('Engine Timeout', error)
+              return res
+                .status(500)
+                .json({ error: { message: 'Engine timeout' } })
+            }
+            if (error.code === 'ECONNREFUSED') {
+              console.info('Engine ECONNREFUSED', error)
+              return res
+                .status(500)
+                .json({ error: { message: 'Engine connection refused' } })
+            }
+          }
           console.info('Could not delete indexed image from S3', error)
           return res.status(500).json({
             error: { message: 'Could not delete indexed image from S3' },

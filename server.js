@@ -41,7 +41,7 @@ const v1 = require(path.resolve('router/v1'))
 mongoose
   .connect(
     DB_URI,
-    { useNewUrlParser: true, dbName: MONGO_DB_NAME, useCreateIndex: true }
+    { useNewUrlParser: false, dbName: MONGO_DB_NAME, useCreateIndex: true }
   )
   .then(() => logger.info('-- Connected to DB 🍃 --'))
   .catch(() => logger.error('-- ❌ Could not connect to DB --'))
@@ -50,8 +50,10 @@ const app = express()
 
 app.use(helmet())
 app.use(hpp())
-app.use(bodyParser.json({limit: '5mb'}))
-app.use(bodyParser.urlencoded({limit: '5mb', extended: true, parameterLimit: 5000}))
+app.use(bodyParser.json({ limit: '5mb' }))
+app.use(
+  bodyParser.urlencoded({ limit: '5mb', extended: true, parameterLimit: 5000 })
+)
 
 if (API_SERV === 'true') {
   app.use('/v1', v1)

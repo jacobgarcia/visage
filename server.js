@@ -41,7 +41,7 @@ const v1 = require(path.resolve('router/v1'))
 mongoose
   .connect(
     DB_URI,
-    { useNewUrlParser: false, dbName: MONGO_DB_NAME, useCreateIndex: true }
+    { useNewUrlParser: true, dbName: MONGO_DB_NAME, useCreateIndex: true }
   )
   .then(() => logger.info('-- Connected to DB 🍃 --'))
   .catch(() => logger.error('-- ❌ Could not connect to DB --'))

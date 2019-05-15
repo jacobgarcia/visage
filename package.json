@@ -5,6 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "NODE_ENV=development npx nodemon --ignore 'src/**' --ext \"graphql js\"",
+    "start:prod": "NODE_ENV=production npx nodemon --ignore 'src/**' --ext \"graphql js\"",
     "serve": "NODE_ENV=production npx pm2 start server.js",
     "build:prod": "npx webpack-cli --config ./config/webpack.prod.js",
     "serve:docker": "npx pm2-docker start ./config/ecosystem.config.json --env production",

@@ -7,6 +7,7 @@ const winston = require('winston')
 const multer = require('multer')
 const jwt = require('jsonwebtoken')
 const request = require('request')
+const rp = require('request-promise')
 const aws = require('aws-sdk')
 const cors = require('cors')
 const fileType = require('file-type')
@@ -36,18 +37,29 @@ const storage = multer.diskStorage({
   },
 })
 
-const upload = multer({ storage: storage,
-                        limits: {
-                          fileSize: 5 * 1024 * 1024,// 5 MB upload limit
-                          files: 1,// 1 file
-                        },
-                        fileFilter: (req, file, callback) => {
-                          if (accepted_extensions.some((ext) => file.originalname.endsWith('.' + ext))) {
-                              return callback(null, true)
-                          }
-                          // otherwise, return error
-                          return callback(new Error('Only ' + accepted_extensions.join(', ') + ' files are allowed!:' + file.originalname))
-                        }}).single('image')
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5 MB upload limit
+    files: 1, // 1 file
+  },
+  fileFilter: (req, file, callback) => {
+    if (
+      accepted_extensions.some((ext) => file.originalname.endsWith('.' + ext))
+    ) {
+      return callback(null, true)
+    }
+    // otherwise, return error
+    return callback(
+      new Error(
+        'Only ' +
+          accepted_extensions.join(', ') +
+          ' files are allowed!:' +
+          file.originalname
+      )
+    )
+  },
+}).single('image')
 const serviceUrl = process.env.ENGINE_URL
 const BUCKET_NAME = process.env.BUCKET_NAME
 
@@ -69,15 +81,21 @@ const s3 = new aws.S3()
 */
 
 function validate_format(req, res, next) {
-    // For MemoryStorage, validate the format using `req.file.buffer`
-    // For DiskStorage, validate the format using `fs.readFile(req.file.path)` from Node.js File System Module
-    const buffer = readChunk.sync(req.file.path, 0, fileType.minimumBytes)
-    const mime = fileType(buffer)
-    // if can't be determined or format not accepted
-    if (!mime || !accepted_extensions.includes(mime.ext)) {
-        return next(new Error('The uploaded file is not in ' + accepted_extensions.join(', ') + ' format!'))
-    }
-    return next()
+  // For MemoryStorage, validate the format using `req.file.buffer`
+  // For DiskStorage, validate the format using `fs.readFile(req.file.path)` from Node.js File System Module
+  const buffer = readChunk.sync(req.file.path, 0, fileType.minimumBytes)
+  const mime = fileType(buffer)
+  // if can't be determined or format not accepted
+  if (!mime || !accepted_extensions.includes(mime.ext)) {
+    return next(
+      new Error(
+        'The uploaded file is not in ' +
+          accepted_extensions.join(', ') +
+          ' format!'
+      )
+    )
+  }
+  return next()
 }
 
 /*
@@ -126,120 +144,110 @@ router.use((req, res, next) => {
   })
 })
 
+// Search an image using the engine
 router.route('/images/search').post((req, res) => {
-  upload(req, res, (err) => {
-    if (err instanceof multer.MulterError) {
-      return res
-        .status(500)
-        .json({ error: { message: 'Error uploading file' + err } })
-    } else if (err) {
-      return res
-        .status(500)
-        .json({ error: { message: 'Error uploading file, check extensions' + err } })
-    }
-    if (!req.file) return res
-        .status(400)
-        .json({ error: { message: 'Could not get file info' } })
-    const imagePath = `/${STATIC_FOLDER}/${req.file.filename}`
-
-    // Call internal Flask service to process petition
-    const formData = {
-      image: {
-        value: fs.createReadStream(process.env.PWD + imagePath),
-        options: {
-          filename: req.file.filename,
-        },
-      },
-      username: req._user.username,
-    }
-    return request.post(
-      { url: serviceUrl + '/v1/images/search', formData , timeout: 200000},
-      (error, resp) => {
-        if (error) {
-          if (error.code) {
-            if (error.code === 'ETIMEDOUT') {
-              console.info('Engine Timeout', error)
-              return res
-                .status(500)
-                .json({ error: { message: 'Engine timeout' } })
-            }
-            if (error.code === 'ECONNREFUSED') {
-              console.info('Engine ECONNREFUSED', error)
-              return res
-                .status(500)
-                .json({ error: { message: 'Engine connection refused' } })
-            }
-          }
-          console.info('Could not search image', error)
-          return res
-            .status(500)
-            .json({ error: { message: 'Could not search image' } })
-        }
-        const items = []
-        JSON.parse(resp.body).hits.map((item) => {
-            item.score > ENGINE_THRESHOLD ? items.push(item) : {}
-        })
-        const response = {
-          success: resp.statusCode === 200,
-          status: resp.statusCode,
-          items: items,
-        }
-        // After getting response from internal server service, create a new Indexing Object
-        // First create the request custom Object
-        const request = {
-          route: req.route,
-          file: req.file,
-          token: req._token,
-          headers: req.headers,
-        }
-
-        // Create new Indexing object
-        return new Searching({
-          response,
-          request,
-          user: req._user._id,
-        }).save((error, search) => {
-          if (error) {
-            console.info('Could not create searching object', error)
-            return res
-              .status(500)
-              .json({ error: { message: 'Could not create searching object' } })
-          }
-          // Update the user search cost
-          return User.findOneAndUpdate(
-            { username: req._user.username },
-            { $push: { searches: search._id } }
-          )
-            .select('searchRates searchCost searches')
-            .exec((error, user) => {
-              if (error) {
-                console.error('Could not update user information', error)
-                return res.status(500).json({
-                  error: { message: 'Could not update user information' },
-                })
-              }
-              // Get the search rate cost
-              let index = 0
-              for (index; index < user.searchRates.length; index += 1) {
-                if (user.searches.length <= user.searchRates[index].max) break
-              }
-              user.searchCost += user.searchRates[index].cost
-              return user.save((error) => {
-                if (error) {
-                  console.error('Could not save user information', error)
-                  return res.status(500).json({
-                    error: { message: 'Could not save user information' },
-                  })
-                }
-                // Then return response from internal server
-                return res.status(200).json(response)
-              })
-            })
+  // Have to use thus syntax  because of multer callback handling
+  // Upload the image to server for temporal processing using multer
+  upload(req, res, async (err) => {
+    try {
+      // File uploading errors
+      if (err instanceof multer.MulterError) {
+        return res
+          .status(500)
+          .json({ message: 'Error uploading file', error: err })
+      } else if (err) {
+        return res.status(500).json({
+          message: 'Error uploading file, check extensions',
+          error: err,
         })
       }
-    )
-  })
+      // Fields validation
+      if (!req.file) return res
+          .status(400)
+          .json({ error: { message: 'Could not get file info' } })
 
+      // Call internal Flask service to process petition
+      const imagePath = `/${STATIC_FOLDER}/${req.file.filename}`
+      const formData = {
+        image: {
+          value: fs.createReadStream(process.env.PWD + imagePath),
+          options: {
+            filename: req.file.filename,
+          },
+        },
+        username: req._user.username,
+      }
+      const resp = await rp.post({
+        url: serviceUrl + '/v1/images/search',
+        formData,
+        timeout: 200000,
+      })
+
+      const items = []
+      JSON.parse(resp.body).hits.map((item) => {
+        item.score > ENGINE_THRESHOLD ? items.push(item) : {}
+      })
+
+      const response = {
+        success: resp.statusCode === 200,
+        status: resp.statusCode,
+        items: items,
+      }
+      // After getting response from internal server service, create a new Indexing Object
+      // First create the request custom Object
+      const request = {
+        route: req.route,
+        file: req.file,
+        token: req._token,
+        headers: req.headers,
+      }
+
+      // Create new Searching object
+      const search = await new Searching({
+        response,
+        request,
+        user: req._user._id,
+      }).save()
+
+      // Update the user search cost
+      const user = await User.findOneAndUpdate(
+        { username: req._user.username },
+        { $push: { searches: search._id } }
+      )
+        .select('searchRates searchCost searches')
+        .exec()
+      // Get the search rate cost
+      let index = 0
+      for (index; index < user.searchRates.length; index += 1) {
+        if (user.searches.length <= user.searchRates[index].max) break
+      }
+      user.searchCost += user.searchRates[index].cost
+      await user.save()
+      // Then return response from internal server
+      return res.status(200).json(response)
+    } catch (error) {
+      if (error instanceof multer.MulterError) {
+        return res
+          .status(500)
+          .json({ error: { message: 'Error uploading file', error } })
+      } else if (error.code) {
+        if (error.code === 'ETIMEDOUT') {
+          console.error('Engine Timeout', error)
+          return res.status(500).json({ error: { message: 'Engine timeout' } })
+        }
+        if (error.code === 'ECONNREFUSED') {
+          console.error('Engine ECONNREFUSED', error)
+          return res
+            .status(500)
+            .json({ error: { message: 'Engine connection refused' } })
+        }
+      }
+      console.error('Could not search image', error)
+      return res
+        .status(500)
+        .json({ error: { message: 'Could not search image', error } })
+    }
+  })
 })
 
 // This method uploads the image to S3 and adds it to an toIndex array

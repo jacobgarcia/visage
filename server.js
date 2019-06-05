@@ -72,7 +72,7 @@ if (isProd && DASHBOARD_SERV === 'true') {
 // Server
 app.listen(PORT, () =>
   console.info(`
-Visual search is now running\n
+Visual Search is now running\n
 🕳  Port: \t${PORT}
 👾  Server: \t${API_SERV}
 📊  Dashboard: \t${DASHBOARD_SERV}

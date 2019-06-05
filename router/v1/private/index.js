@@ -121,13 +121,15 @@ nev.configure(
 )
 
 // TODO: Only admins can trigger this action. Left here for RAD
-router.route('/users/token/:username').post((req, res) => {
+router.route('/users/token/:username').post(async (req, res) => {
   const { username } = req.params
-  User.findOne({ username }).exec((error, user) => {
-    if (error || !user) {
-      console.info('Failed to get user information', error)
-      return res.status(500).json({
-        error: { message: 'Could not fetch user information' },
+  try {
+    const user = await User.findOne({ username }).exec()
+    if (!user) {
+      console.error('Failed to get user information')
+      return res.status(404).json({
+        message: 'Could not fetch user information',
+        error: 'User not found',
       })
     }
     const value = jwt.sign(
@@ -139,16 +141,14 @@ router.route('/users/token/:username').post((req, res) => {
       active: true,
     }
     user.apiKey = apiKey
-    return user.save((error) => {
-      if (error) {
-        console.info('Could not save api token ', error)
-        return res.status(500).json({
-          error: { message: 'Could not generate API token' },
-        })
-      }
-      return res.status(200).json({ success: true, apiKey })
+    await user.save()
+    return res.status(200).json({ success: true, apiKey })
+  } catch (error) {
+    console.error('Could not save API token ', error)
+    return res.status(500).json({
+      message: 'Could not generate API token',
     })
-  })
+  }
 })
 
 // TODO: Only admins can trigger this action. Left here for RAD

@@ -12,7 +12,6 @@ const aws = require('aws-sdk')
 const cors = require('cors')
 const fileType = require('file-type')
 const User = require(path.resolve('models/User'))
-const Indexing = require(path.resolve('models/Indexing'))
 const Searching = require(path.resolve('models/Searching'))
 const readChunk = require('read-chunk')
 const router = new express.Router()
@@ -315,191 +314,58 @@ router.route('/images/index').post(upload, validate_format, (req, res) => {
   })
 })
 
-// DEPRECATED
-router.route('/images/index/now').post(upload, (req, res) => {
-  const { id, sku } = req.body
-  const indexedImages = []
-  const image = req.file
-  if (!id || !sku || !image) return res.status(400).json({ error: { message: 'Malformed request' } })
-
-  const url = `/${STATIC_FOLDER}/${image.filename}`
-  const indexedImage = {
-    url,
-    name: image.filename,
-  }
-  indexedImages.push(indexedImage)
-
-  // Upload image to S3
-  return fs.readFile(image.path, (error, data) => {
-    if (error) {
-      console.error(error)
-      return res.status(500).json({
-        success: false,
-        message: 'Could not read uploaded file',
-      })
-    }
-
-    const base64data = Buffer.from(data, 'binary')
-    return s3.putObject(
-      {
-        Bucket: BUCKET_NAME,
-        Key: req._user.username + '/' + image.filename,
-        Body: base64data,
-        ACL: 'public-read',
-      },
-      (error) => {
-        if (error) {
-          console.error(error)
-          return res.status(500).json({
-            success: false,
-            message: 'Could not put object to S3 bucket',
-          })
-        }
-
-        // Call internal Flask service to process petition
-        const formData = {
-          id,
-          sku,
-          image: {
-            value: fs.createReadStream(process.env.PWD + url),
-            options: {
-              filename: image.filename,
-            },
-          },
-        }
-        return request.post(
-          { url: serviceUrl + '/v1/images/index', formData, timeout: 200000 },
-          (error, resp) => {
-            if (error) {
-              if (error.code) {
-                if (error.code === 'ETIMEDOUT') {
-                  console.info('Engine Timeout', error)
-                  return res
-                    .status(500)
-                    .json({ error: { message: 'Engine timeout' } })
-                }
-                if (error.code === 'ECONNREFUSED') {
-                  console.info('Engine ECONNREFUSED', error)
-                  return res
-                    .status(500)
-                    .json({ error: { message: 'Engine connection refused' } })
-                }
-              }
-              console.error('Could not index image', error)
-              return res
-                .status(500)
-                .json({ error: { message: 'Could not index image' } })
-            }
-
-            const response = {
-              success: JSON.parse(resp.body).success,
-              status: 200 || resp.statusCode,
-              count: 1,
-              features: JSON.parse(resp.body).features,
-            }
-
-            // After getting response from internal server service, create a new Indexing Object
-            // First create the request custom Object
-            const request = {
-              route: req.route,
-              files: req.files,
-              token: req._token,
-              headers: req.headers,
-            }
-
-            // Create new Searching object
-            return new Indexing({
-              response,
-              request,
-              user: req._user._id,
-            }).save((error, indexing) => {
-              if (error) {
-                return res.status(500).json({
-                  error: { message: 'Could not create indexing object' },
-                })
-              }
-              // Add Indexing object to User
-              User.findOneAndUpdate(
-                { username: req._user.username },
-                { $push: { indexings: indexing._id, indexedImages } }
-              ).exec(error)
-              // Then return response from internal server
-              return res.status(200).json(response)
-            })
-          }
-        )
-      }
-    )
-  })
-})
-
 // Delete image from the indexed images
-router.route('/images/:id').delete((req, res) => {
-  const { id } = req.params
+router.route('/images/:id').delete(async (req, res) => {
+  try {
+    const { id } = req.params
 
-  // Remove object from database
-  User.findOneAndUpdate(
-    { username: req._user.username },
-    { $pull: { indexedImages: { name: id } } }
-  ).exec((error) => {
-    if (error) {
-      console.info('Could not delete indexed image', error)
-      return res
-        .status(500)
-        .json({ error: { message: 'Could not delete indexed image' } })
-    }
+    // Remove object from database
+    await User.findOneAndUpdate(
+      { username: req._user.username },
+      { $pull: { indexedImages: { name: id } } }
+    ).exec()
 
     // Remove object from S3
-    return s3.deleteObject(
-      {
-        Bucket: BUCKET_NAME,
-        Key: req._user.username + '/' + id,
-      },
-      (error) => {
-        if (error) {
-          if (error.code) {
-            if (error.code === 'ETIMEDOUT') {
-              console.info('Engine Timeout', error)
-              return res
-                .status(500)
-                .json({ error: { message: 'Engine timeout' } })
-            }
-            if (error.code === 'ECONNREFUSED') {
-              console.info('Engine ECONNREFUSED', error)
-              return res
-                .status(500)
-                .json({ error: { message: 'Engine connection refused' } })
-            }
-          }
-          console.info('Could not delete indexed image from S3', error)
-          return res.status(500).json({
-            error: { message: 'Could not delete indexed image from S3' },
-          })
-        }
-        // Call internal service
-        const formData = {
-          id,
-        }
-        return request.delete(
-          { url: serviceUrl + '/v1/images/delete', formData, timeout: 200000 },
-          (error, resp) => {
-            if (error) {
-              console.error('Could not index image', error)
-              return res
-                .status(500)
-                .json({ error: { message: 'Could not index image' } })
-            }
-            const response = {
-              success: JSON.parse(resp.body).success.deleted > 0,
-              status: resp.statusCode,
-            }
+    await s3.deleteObject({
+      Bucket: BUCKET_NAME,
+      Key: req._user.username + '/' + id,
+    })
 
-            return res.status(200).json(response)
-          }
-        )
+    // Call internal service to remove indexed image on engine
+    const formData = {
+      id,
+    }
+    const resp = await rp.delete({
+      url: serviceUrl + '/v1/images/delete',
+      formData,
+      timeout: 200000,
+    })
+
+    const response = {
+      success: JSON.parse(resp.body).success.deleted > 0,
+      status: resp.statusCode,
+    }
+
+    return res.status(200).json(response)
+  } catch (error) {
+    console.error('Could not delete indexed image', error)
+    if (error.code) {
+      if (error.code === 'ETIMEDOUT') {
+        console.error('Engine Timeout', error)
+        return res.status(500).json({ error: { message: 'Engine timeout' } })
       }
-    )
-  })
+      if (error.code === 'ECONNREFUSED') {
+        console.error('Engine ECONNREFUSED', error)
+        return res
+          .status(500)
+          .json({ error: { message: 'Engine connection refused' } })
+      }
+    } else {
+      return res
+        .status(500)
+        .json({ message: 'Could not delete indexed image', error })
+    }
+  }
 })
 
 module.exports = router

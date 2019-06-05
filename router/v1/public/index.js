@@ -183,17 +183,20 @@ router.route('/images/search').post((req, res) => {
         timeout: 200000,
       })
 
+      // Image items
       const items = []
       JSON.parse(resp.body).hits.map((item) => {
         item.score > ENGINE_THRESHOLD ? items.push(item) : {}
       })
 
+      // Build the response object
       const response = {
         success: resp.statusCode === 200,
         status: resp.statusCode,
         items: items,
       }
-      // After getting response from internal server service, create a new Indexing Object
+
+      // After getting response from internal server service, create a new Searching Object
       // First create the request custom Object
       const request = {
         route: req.route,
@@ -216,6 +219,7 @@ router.route('/images/search').post((req, res) => {
       )
         .select('searchRates searchCost searches')
         .exec()
+
       // Get the search rate cost
       let index = 0
       for (index; index < user.searchRates.length; index += 1) {
@@ -226,6 +230,7 @@ router.route('/images/search').post((req, res) => {
       // Then return response from internal server
       return res.status(200).json(response)
     } catch (error) {
+      // ALL ERROR HANDLING
       if (error instanceof multer.MulterError) {
         return res
           .status(500)

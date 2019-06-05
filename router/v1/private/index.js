@@ -23,7 +23,6 @@ const {
   JWT_SECRET,
   USE_ADMIN,
   USE_CLIENT,
-  NODE_ENV: mode,
   ENGINE_URL,
   INV_PASS,
   INV_EMAIL,
@@ -43,7 +42,7 @@ function getUserData(data) {
 }
 
 async function asyncForEach(array, end, callback) {
-  for (let index = 0; index < array.length + 1; index++) {
+  for (let index = 0; index < array.length + 1; index += 1) {
     if (index === array.length) {
       await end()
     } else {
@@ -104,11 +103,13 @@ nev.configure(
       text: 'Your account has been successfully verified.',
     },
     recoveryOptions: {
-        from: `Do Not Reply <${INV_EMAIL}>`,
-        subject: 'Recupera tu contraseña',
-        html: '<p>Recover your password using<a href="${URL}">this link</a>. If you are unable to do so, copy and ' +
-            'paste the following link into your browser:</p><p>${URL}</p>',
-        text: 'Recover your password clicking the following link, or by copying and pasting it into your browser: ${URL}',
+      from: `Do Not Reply <${INV_EMAIL}>`,
+      subject: 'Recupera tu contraseña',
+      html:
+        '<p>Recover your password using<a href="${URL}">this link</a>. If you are unable to do so, copy and ' +
+        'paste the following link into your browser:</p><p>${URL}</p>',
+      text:
+        'Recover your password clicking the following link, or by copying and pasting it into your browser: ${URL}',
     },
     hashingFunction: null,
   },
@@ -236,9 +237,7 @@ router.post('/forgot', async (req, res) => {
     user.token = token
     await user.save()
 
-    await nev.sendRecoveryEmail(
-      user.email,
-      token)
+    await nev.sendRecoveryEmail(user.email, token)
 
     return res.status(200).json({ message: 'Email sent' })
   } catch (error) {
@@ -265,38 +264,36 @@ router.route('/images/index/:username').post(async (req, res) => {
       return res.status(500).json({ message: 'User not found' })
     }
     if (user.toIndex.length === 0) {
-      return res
-        .status(200)
-        .json({ success: false, message: 'Nothing to index' })
+      return res.status(200).json({ message: 'Nothing to index' })
     }
-  } catch (err) {
-    console.error('User error', err)
-    return res.status(500).json({ message: 'User Error' })
+  } catch (error) {
+    console.error('User error', error)
+    return res.status(500).json({ message: 'User Error', error })
   }
 
-  asyncForEach(user.toIndex ,
+  await asyncForEach(
+    user.toIndex,
     async () => {
       await User.findOneAndUpdate(
-          { username },
-          {
-            $set: { isIndexing: false},
-          }
+        { username },
+        {
+          $set: { isIndexing: false },
+        }
       )
     },
     async (image) => {
       const { id, sku, key } = image
-      const path = process.env.PWD +
-                      '/static/uploads/temp/' +
-                      key.substr(key.lastIndexOf('/') + 1)
+      const path =
+        process.env.PWD +
+        '/static/uploads/temp/' +
+        key.substr(key.lastIndexOf('/') + 1)
 
       // Create formData object to send to the service
       const formData = {
         id,
         sku,
         image: {
-          value: fs.createReadStream(
-            path
-          ),
+          value: fs.createReadStream(path),
           options: {
             filename: image.filename,
           },
@@ -304,15 +301,15 @@ router.route('/images/index/:username').post(async (req, res) => {
         username,
       }
       try {
-      // Call internal Flask service to process petition
+        // Call internal Flask service to process petition
         response = await rp.post({
-            url: serviceUrl + '/v1/images/index',
-            formData,
-            resolveWithFullResponse: true,
+          url: serviceUrl + '/v1/images/index',
+          formData,
+          resolveWithFullResponse: true,
         })
         if (response.statusCode === 200) {
           fs.unlink(path, (err) => {
-              return Promise.reject(err)
+            return Promise.reject(err)
           })
           count += 1
           // Build response object
@@ -338,15 +335,15 @@ router.route('/images/index/:username').post(async (req, res) => {
             user,
           })
 
-          indexObject.save()
-              // Add Indexing object to User and move toIndex object to IndexedImages
-              // Remove item form the toIndex batch
+          await indexObject.save()
+          // Add Indexing object to User and move toIndex object to IndexedImages
+          // Remove item form the toIndex batch
           await User.findOneAndUpdate(
-              { username },
-              {
-                $pull: { toIndex: image },
-                $push: { indexings: indexObject._id},
-              }
+            { username },
+            {
+              $pull: { toIndex: image },
+              $push: { indexings: indexObject._id },
+            }
           )
           let index = 0
           for (index; index < user.indexRates.length; index += 1) {
@@ -356,13 +353,16 @@ router.route('/images/index/:username').post(async (req, res) => {
           await user.save()
           return Promise.resolve()
         }
-      } catch (err) {
-        console.error('Could not index image', err)
-        return res.status(500).json({ message: 'Server error ' + err })
+      } catch (error) {
+        console.error('Could not index image', error)
+        return res.status(500).json({ message: 'Server error ', error })
       }
-      return Promise.reject(new Error('Engine is not working correctly' + response.statusCode))
-  }).catch((err) => {
-    return res.status(410).json({ message: 'Error' + err})
+      return Promise.reject(
+        new Error('Engine is not working correctly' + response.statusCode)
+      )
+    }
+  ).catch((err) => {
+    return res.status(410).json({ message: 'Error' + err })
   })
   return res.status(200).json({ success: true, count, user })
 })
@@ -973,7 +973,7 @@ router.route('/users/:user').put((req, res) => {
   const { user } = req.params
   for (const key in req.body) {
     if (acceptedKeys.includes(key)) {
-    newValues[key] = req.body[key]
+      newValues[key] = req.body[key]
     }
   }
   if (!newValues.name || !newValues.username || !newValues.email) return res.status(400).json({ error: { message: 'Malformed request' } })
@@ -1561,45 +1561,47 @@ router.route('/admins').get(async (req, res) => {
 })
 
 // Get all guests information
-router.route('/guests').get(async (req, res) => {
-  const search = req.param('search')
-  try {
-    const [guests, itemCount] = await Promise.all([
-      Guest.find({ email: { $regex: new RegExp(search, 'i') } })
-        .sort({ email: 1 })
-        .limit(req.query.limit)
-        .skip(req.skip)
-        .lean(),
-      Guest.count({}),
-    ])
+router
+  .route('/guests')
+  .get(async (req, res) => {
+    const search = req.param('search')
+    try {
+      const [guests, itemCount] = await Promise.all([
+        Guest.find({ email: { $regex: new RegExp(search, 'i') } })
+          .sort({ email: 1 })
+          .limit(req.query.limit)
+          .skip(req.skip)
+          .lean(),
+        Guest.count({}),
+      ])
 
-    const pageCount = Math.ceil(itemCount / req.query.limit)
+      const pageCount = Math.ceil(itemCount / req.query.limit)
 
-    return res.status(200).json({
-      guests,
-      hasMore: paginate.hasNextPages(req)(pageCount),
-      pageCount,
-    })
-  } catch (error) {
-    return res
-      .status(500)
-      .json({ error: { message: 'Could not fetch guests' } })
-  }
-})
-.post((req, res) => {
-  const { email } = req.body
-  return Guest.findOneAndDelete({ email }).exec((error) => {
-    if (error) {
-      console.error('Could not delete guest')
+      return res.status(200).json({
+        guests,
+        hasMore: paginate.hasNextPages(req)(pageCount),
+        pageCount,
+      })
+    } catch (error) {
       return res
         .status(500)
-        .json({ error: { message: 'Could not delete guest' } })
+        .json({ error: { message: 'Could not fetch guests' } })
     }
-    return res.status(200).json({
-      success: true,
-      message: 'Successfully deleted guest',
+  })
+  .post((req, res) => {
+    const { email } = req.body
+    return Guest.findOneAndDelete({ email }).exec((error) => {
+      if (error) {
+        console.error('Could not delete guest')
+        return res
+          .status(500)
+          .json({ error: { message: 'Could not delete guest' } })
+      }
+      return res.status(200).json({
+        success: true,
+        message: 'Successfully deleted guest',
+      })
     })
   })
-})
 
 module.exports = router

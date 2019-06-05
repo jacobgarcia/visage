@@ -1,19 +1,19 @@
 /* eslint-env node */
 const fs = require('fs')
+const { promisify } = require('util')
+const readFile = promisify(fs.readFile)
+
 const path = require('path')
 const crypto = require('crypto')
 const express = require('express')
 const winston = require('winston')
 const multer = require('multer')
 const jwt = require('jsonwebtoken')
-const request = require('request')
 const rp = require('request-promise')
 const aws = require('aws-sdk')
 const cors = require('cors')
-const fileType = require('file-type')
 const User = require(path.resolve('models/User'))
 const Searching = require(path.resolve('models/Searching'))
-const readChunk = require('read-chunk')
 const router = new express.Router()
 
 const JWT_SECRET = process.env.JWT_SECRET
@@ -76,31 +76,8 @@ aws.config.update({
 const s3 = new aws.S3()
 
 /*
-   middleware file type verification
-*/
-
-function validate_format(req, res, next) {
-  // For MemoryStorage, validate the format using `req.file.buffer`
-  // For DiskStorage, validate the format using `fs.readFile(req.file.path)` from Node.js File System Module
-  const buffer = readChunk.sync(req.file.path, 0, fileType.minimumBytes)
-  const mime = fileType(buffer)
-  // if can't be determined or format not accepted
-  if (!mime || !accepted_extensions.includes(mime.ext)) {
-    return next(
-      new Error(
-        'The uploaded file is not in ' +
-          accepted_extensions.join(', ') +
-          ' format!'
-      )
-    )
-  }
-  return next()
-}
-
-/*
   C O R S   S T U F F
 */
-
 router.options('*', cors())
 router.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*')
@@ -229,22 +206,10 @@ router.route('/images/search').post((req, res) => {
       // Then return response from internal server
       return res.status(200).json(response)
     } catch (error) {
-      // ALL ERROR HANDLING
       if (error instanceof multer.MulterError) {
         return res
           .status(500)
           .json({ error: { message: 'Error uploading file', error } })
-      } else if (error.code) {
-        if (error.code === 'ETIMEDOUT') {
-          console.error('Engine Timeout', error)
-          return res.status(500).json({ error: { message: 'Engine timeout' } })
-        }
-        if (error.code === 'ECONNREFUSED') {
-          console.error('Engine ECONNREFUSED', error)
-          return res
-            .status(500)
-            .json({ error: { message: 'Engine connection refused' } })
-        }
       }
       console.error('Could not search image', error)
       return res
@@ -255,62 +220,57 @@ router.route('/images/search').post((req, res) => {
 })
 
 // This method uploads the image to S3 and adds it to an toIndex array
-router.route('/images/index').post(upload, validate_format, (req, res) => {
-  const { id, sku } = req.body
-  const image = req.file
-  if (!id || !sku || !image) return res.status(400).json({ error: { message: 'Malformed Request' } })
+router.route('/images/index').post((req, res) => {
+  upload(req, res, async (err) => {
+    try {
+      // File uploading errors
+      if (err instanceof multer.MulterError) {
+        return res
+          .status(500)
+          .json({ message: 'Error uploading file', error: err })
+      } else if (err) {
+        return res.status(500).json({
+          message: 'Error uploading file, check extensions',
+          error: err,
+        })
+      }
 
-  // Upload image to S3
-  return fs.readFile(image.path, (error, data) => {
-    if (error) {
-      console.error(error)
-      return res.status(500).json({
-        success: false,
-        message: 'Could not read uploaded file',
-      })
-    }
+      // Field validation
+      const { id, sku } = req.body
+      const image = req.file
+      if (!id || !sku || !image) return res.status(400).json({ error: { message: 'Malformed Request' } })
 
-    const base64data = Buffer.from(data, 'binary')
-    const key = req._user.username + '/' + image.filename
-    return s3.putObject(
-      {
+      // Upload image to S3
+      const data = await readFile(image.path)
+
+      const base64data = Buffer.from(data, 'binary')
+      const key = req._user.username + '/' + image.filename
+      await s3.putObject({
         Bucket: BUCKET_NAME,
         Key: key,
         Body: base64data,
         ACL: 'public-read',
-      },
-      (error) => {
-        if (error) {
-          console.error(error)
-          return res.status(500).json({
-            success: false,
-            message: 'Could not put object to S3 bucket',
-          })
-        }
-        // Put the image to the toIndex on User
-        const indexedImage = {
-          name: image.filename,
-          id,
-          sku,
-          key,
-        }
-        return User.findOneAndUpdate(
-          { username: req._user.username },
-          { $push: { toIndex: indexedImage } }
-        ).exec((error) => {
-          if (error) {
-            console.error('Could not batch image', error)
-            return res
-              .status(500)
-              .json({ error: { message: 'Could not batch image' } })
-          }
-          // Then return response from internal server
-          return res
-            .status(200)
-            .json({ success: true, message: 'Batched image' })
-        })
+      })
+      // Put the image to the toIndex on User
+      const indexedImage = {
+        name: image.filename,
+        id,
+        sku,
+        key,
       }
-    )
+      await User.findOneAndUpdate(
+        { username: req._user.username },
+        { $push: { toIndex: indexedImage } }
+      ).exec()
+
+      // Then return response from internal server
+      return res.status(200).json({ success: true, message: 'Batched image' })
+    } catch (error) {
+      console.error('Could not batch image', error)
+      return res
+        .status(500)
+        .json({ error: { message: 'Could not batch image' } })
+    }
   })
 })
 
@@ -360,11 +320,10 @@ router.route('/images/:id').delete(async (req, res) => {
           .status(500)
           .json({ error: { message: 'Engine connection refused' } })
       }
-    } else {
-      return res
-        .status(500)
-        .json({ message: 'Could not delete indexed image', error })
     }
+    return res
+      .status(500)
+      .json({ message: 'Could not delete indexed image', error })
   }
 })
 

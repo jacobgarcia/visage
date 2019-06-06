@@ -12,6 +12,12 @@ const jwt = require('jsonwebtoken')
 const rp = require('request-promise')
 const aws = require('aws-sdk')
 const cors = require('cors')
+const base64Img = require('base64-img')
+const shortid = require('shortid')
+const isBase64 = require('is-base64')
+
+const decodeImage = promisify(base64Img.img)
+
 const User = require(path.resolve('models/User'))
 const Searching = require(path.resolve('models/Searching'))
 const router = new express.Router()
@@ -121,106 +127,96 @@ router.use((req, res, next) => {
 })
 
 // Search an image using the engine
-router.route('/images/search').post((req, res) => {
+router.route('/images/search').post(async (req, res) => {
   // Have to use thus syntax  because of multer callback handling
   // Upload the image to server for temporal processing using multer
-  upload(req, res, async (err) => {
-    try {
-      // File uploading errors
-      if (err instanceof multer.MulterError) {
-        return res
-          .status(500)
-          .json({ message: 'Error uploading file', error: err })
-      } else if (err) {
-        return res.status(500).json({
-          message: 'Error uploading file, check extensions',
-          error: err,
-        })
-      }
-      // Fields validation
-      if (!req.file) return res
-          .status(400)
-          .json({ error: { message: 'Could not get file info' } })
+  try {
+    const { image } = req.body
+    if (isBase64(image)) {
+      return res
+        .status(400)
+        .json({ message: 'Malformed request', error: 'Image is not base64' })
+    }
+    const filename = `${shortid.generate()}${Date.now()}`
+    const path = await decodeImage(image, STATIC_FOLDER, filename)
 
-      // Call internal Flask service to process petition
-      const imagePath = `/${STATIC_FOLDER}/${req.file.filename}`
-      const formData = {
-        image: {
-          value: fs.createReadStream(process.env.PWD + imagePath),
-          options: {
-            filename: req.file.filename,
-          },
+    // Call internal Flask service to process petition
+    const formData = {
+      image: {
+        value: fs.createReadStream(`${process.env.PWD}/${path}`),
+        options: {
+          filename,
         },
-        username: req._user.username,
-      }
-      const resp = await rp.post({
-        url: serviceUrl + '/v1/images/search',
-        formData,
-        timeout: 200000,
-        json: true,
-      })
-      // Image items
-      const items = []
+      },
+      username: req._user.username,
+    }
+    const resp = await rp.post({
+      url: serviceUrl + '/v1/images/search',
+      formData,
+      timeout: 200000,
+      json: true,
+    })
+    // Image items
+    const items = []
 
-      resp.hits.map((item) => {
-        item.im_src = `https://${BUCKET_NAME}.s3.amazonaws.com/${
-          req._user.username
-        }${item.im_src.substr(item.im_src.lastIndexOf('/'))}`
-        item.score > ENGINE_THRESHOLD ? items.push(item) : {}
-      })
+    resp.hits.map((item) => {
+      item.im_src = `https://${BUCKET_NAME}.s3.amazonaws.com/${
+        req._user.username
+      }${item.im_src.substr(item.im_src.lastIndexOf('/'))}`
+      item.score > ENGINE_THRESHOLD ? items.push(item) : {}
+    })
 
-      // Build the response object
-      const response = {
-        success: items.length > 0,
-        status: items.length > 0 ? 200 : 404,
-        items: items,
-      }
+    // Build the response object
+    const response = {
+      success: items.length > 0,
+      status: items.length > 0 ? 200 : 404,
+      items: items,
+    }
 
-      // After getting response from internal server service, create a new Searching Object
-      // First create the request custom Object
-      const request = {
-        route: req.route,
-        file: req.file,
-        token: req._token,
-        headers: req.headers,
-      }
+    // After getting response from internal server service, create a new Searching Object
+    // First create the request custom Object
+    const request = {
+      route: req.route,
+      file: req.file,
+      token: req._token,
+      headers: req.headers,
+    }
 
-      // Create new Searching object
-      const search = await new Searching({
-        response,
-        request,
-        user: req._user._id,
-      }).save()
+    // Create new Searching object
+    const search = await new Searching({
+      response,
+      request,
+      user: req._user._id,
+    }).save()
 
-      // Update the user search cost
-      const user = await User.findOneAndUpdate(
-        { username: req._user.username },
-        { $push: { searches: search._id } }
-      )
-        .select('searchRates searchCost searches')
-        .exec()
+    // Update the user search cost
+    const user = await User.findOneAndUpdate(
+      { username: req._user.username },
+      { $push: { searches: search._id } }
+    )
+      .select('searchRates searchCost searches')
+      .exec()
 
-      // Get the search rate cost
-      let index = 0
-      for (index; index < user.searchRates.length; index += 1) {
-        if (user.searches.length <= user.searchRates[index].max) break
-      }
-      user.searchCost += user.searchRates[index].cost
-      await user.save()
-      // Then return response from internal server
-      return res.status(200).json(response)
-    } catch (error) {
-      if (error instanceof multer.MulterError) {
-        return res
-          .status(500)
-          .json({ error: { message: 'Error uploading file', error } })
-      }
-      console.error('Could not search image', error)
+    // Get the search rate cost
+    let index = 0
+    for (index; index < user.searchRates.length; index += 1) {
+      if (user.searches.length <= user.searchRates[index].max) break
+    }
+    user.searchCost += user.searchRates[index].cost
+    await user.save()
+    // Then return response from internal server
+    return res.status(200).json(response)
+  } catch (error) {
+    if (error instanceof multer.MulterError) {
       return res
         .status(500)
-        .json({ error: { message: 'Could not search image', error } })
+        .json({ error: { message: 'Error uploading file', error } })
     }
-  })
+    console.error('Could not search image', error)
+    return res
+      .status(500)
+      .json({ message: 'Could not search image', error: error.toString() })
+  }
 })
 
 // This method uploads the image to S3 and adds it to an toIndex array

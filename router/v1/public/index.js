@@ -157,18 +157,22 @@ router.route('/images/search').post((req, res) => {
         url: serviceUrl + '/v1/images/search',
         formData,
         timeout: 200000,
+        json: true,
       })
-
       // Image items
       const items = []
-      JSON.parse(resp.body).hits.map((item) => {
+
+      resp.hits.map((item) => {
+        item.im_src = `https://${BUCKET_NAME}.s3.amazonaws.com/${
+          req._user.username
+        }${item.im_src.substr(item.im_src.lastIndexOf('/'))}`
         item.score > ENGINE_THRESHOLD ? items.push(item) : {}
       })
 
       // Build the response object
       const response = {
-        success: resp.statusCode === 200,
-        status: resp.statusCode,
+        success: items.length > 0,
+        status: items.length > 0 ? 200 : 404,
         items: items,
       }
 
@@ -245,12 +249,14 @@ router.route('/images/index').post((req, res) => {
 
       const base64data = Buffer.from(data, 'binary')
       const key = req._user.username + '/' + image.filename
-      await s3.putObject({
-        Bucket: BUCKET_NAME,
-        Key: key,
-        Body: base64data,
-        ACL: 'public-read',
-      })
+      await s3
+        .putObject({
+          Bucket: BUCKET_NAME,
+          Key: key,
+          Body: base64data,
+          ACL: 'public-read',
+        })
+        .promise()
       // Put the image to the toIndex on User
       const indexedImage = {
         name: image.filename,

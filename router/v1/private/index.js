@@ -361,10 +361,12 @@ router.route('/images/index/:username').post(async (req, res) => {
         new Error('Engine is not working correctly' + response.statusCode)
       )
     }
-  ).catch((err) => {
-    return res.status(410).json({ message: 'Error' + err })
+  ).catch((error) => {
+    return res
+      .status(410)
+      .json({ message: 'An error occured while indexing', error })
   })
-  return res.status(200).json({ success: true, count, user })
+  return res.status(200).json({ success: true, count })
 })
 
 // Index images for all users that has pending images to index

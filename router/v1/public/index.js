@@ -13,6 +13,7 @@ const cors = require('cors')
 const base64Img = require('base64-img')
 const shortid = require('shortid')
 const isBase64 = require('is-base64')
+const { check, validationResult } = require('express-validator')
 
 const decodeImage = promisify(base64Img.img)
 
@@ -179,54 +180,67 @@ router.route('/images/search').post(async (req, res) => {
 })
 
 // This method uploads the image to S3 and adds it to an toIndex array
-router.route('/images/index').post(async (req, res) => {
-  try {
-    // Field validation
-    const { id, sku, image } = req.body
-    if (!id || !sku || !image) return res.status(400).json({ error: { message: 'Malformed Request' } })
+router.route('/images/index').post(
+  [
+    check('id').isNumeric(),
+    check('sku').isAlphanumeric(),
+    check('image')
+      .isBase64()
+      .withMessage('Image is not base64'),
+  ],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req)
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          errors: errors.array().map((error) => {
+            Reflect.deleteProperty(error, 'value')
+            return error
+          }),
+        })
+      }
 
-    if (!isBase64(image, { mime: true })) {
+      const { id, sku, image } = req.body
+      const filename = `${shortid.generate()}${Date.now()}`
+      // Upload image to S3
+      const key = `${req._user.username}/${filename}.jpeg`
+      const buffer = Buffer.from(
+        image.replace(/^data:image\/\w+;base64,/, ''),
+        'base64'
+      )
+
+      await s3
+        .putObject({
+          Bucket: BUCKET_NAME,
+          Key: key,
+          Body: buffer,
+          ACL: 'public-read',
+          ContentEncoding: 'base64',
+          ContentType: 'image/jpeg',
+        })
+        .promise()
+      // Put the image to the toIndex on User
+      const indexedImage = {
+        name: filename,
+        id,
+        sku,
+        key,
+      }
+      await User.findOneAndUpdate(
+        { username: req._user.username },
+        { $push: { toIndex: indexedImage } }
+      ).exec()
+
+      // Then return response from internal server
+      return res.status(200).json({ success: true, message: 'Batched image' })
+    } catch (error) {
+      console.error('Could not batch image', error)
       return res
-        .status(400)
-        .json({ message: 'Malformed request', error: 'Image is not base64' })
+        .status(500)
+        .json({ error: { message: 'Could not batch image' } })
     }
-    const filename = `${shortid.generate()}${Date.now()}`
-    // Upload image to S3
-    const key = `${req._user.username}/${filename}.jpeg`
-    const buffer = Buffer.from(
-      image.replace(/^data:image\/\w+;base64,/, ''),
-      'base64'
-    )
-
-    await s3
-      .putObject({
-        Bucket: BUCKET_NAME,
-        Key: key,
-        Body: buffer,
-        ACL: 'public-read',
-        ContentEncoding: 'base64',
-        ContentType: 'image/jpeg',
-      })
-      .promise()
-    // Put the image to the toIndex on User
-    const indexedImage = {
-      name: filename,
-      id,
-      sku,
-      key,
-    }
-    await User.findOneAndUpdate(
-      { username: req._user.username },
-      { $push: { toIndex: indexedImage } }
-    ).exec()
-
-    // Then return response from internal server
-    return res.status(200).json({ success: true, message: 'Batched image' })
-  } catch (error) {
-    console.error('Could not batch image', error)
-    return res.status(500).json({ error: { message: 'Could not batch image' } })
   }
-})
+)
 
 // Delete image from the indexed images
 router.route('/images/:id').delete(async (req, res) => {

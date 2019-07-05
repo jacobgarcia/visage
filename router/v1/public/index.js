@@ -183,7 +183,7 @@ router.route('/images/search').post(async (req, res) => {
 router.route('/images/index').post(
   [
     check('id').isNumeric(),
-    check('sku').isAlphanumeric(),
+    check('sku').exists(),
     check('image')
       .isBase64()
       .withMessage('Image is not base64'),

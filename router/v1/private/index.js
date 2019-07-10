@@ -271,7 +271,7 @@ router.route('/images/index/:username').post(async (req, res) => {
     return res.status(500).json({ message: 'User Error', error })
   }
 
-  await asyncForEach(
+  asyncForEach(
     user.toIndex,
     async () => {
       await User.findOneAndUpdate(
@@ -366,7 +366,12 @@ router.route('/images/index/:username').post(async (req, res) => {
       .status(410)
       .json({ message: 'An error occured while indexing', error })
   })
-  return res.status(200).json({ success: true, count })
+  return res
+    .status(200)
+    .json({
+      success: true,
+      message: 'Index process is running in the background',
+    })
 })
 
 // Index images for all users that has pending images to index

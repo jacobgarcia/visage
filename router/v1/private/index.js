@@ -8,6 +8,8 @@ const bcrypt = require('bcryptjs')
 const mongoose = require('mongoose')
 const nev = require('email-verification')(mongoose)
 const rp = require('request-promise')
+const aws = require('aws-sdk')
+const base64Img = require('base64-img')
 const Json2csvParser = require('json2csv').Parser
 
 const router = new express.Router()
@@ -33,7 +35,16 @@ const {
   DEFAULT_ADMIN_PASSWORD,
   AWS_SECRET_KEY,
   AWS_ACCESS_KEY,
+  BUCKET_NAME,
 } = process.env
+
+aws.config.update({
+  accessKeyId: AWS_ACCESS_KEY,
+  secretAccessKey: AWS_SECRET_KEY,
+  region: 'us-east-1',
+})
+
+const s3 = new aws.S3()
 
 const serviceUrl = ENGINE_URL
 
@@ -252,7 +263,6 @@ router.post('/forgot', async (req, res) => {
 router.route('/images/index/:username').post(async (req, res) => {
   // Specific username to index images at the moment of petition
   const { username } = req.params
-  let count = 0
   let user = ''
   let response = ''
   try {
@@ -271,7 +281,7 @@ router.route('/images/index/:username').post(async (req, res) => {
     return res.status(500).json({ message: 'User Error', error })
   }
 
-  asyncForEach(
+  await asyncForEach(
     user.toIndex,
     async () => {
       await User.findOneAndUpdate(
@@ -283,95 +293,99 @@ router.route('/images/index/:username').post(async (req, res) => {
     },
     async (image) => {
       const { id, sku, key } = image
+
       const path =
         process.env.PWD +
         '/static/uploads/temp/' +
         key.substr(key.lastIndexOf('/') + 1)
-
-      // Create formData object to send to the service
-      const formData = {
-        id,
-        sku,
-        image: {
-          value: fs.createReadStream(path),
-          options: {
-            filename: image.filename,
-          },
-        },
-        username,
-      }
-      try {
-        // Call internal Flask service to process petition
-        response = await rp.post({
-          url: serviceUrl + '/v1/images/index',
-          formData,
-          resolveWithFullResponse: true,
-        })
-        if (response.statusCode === 200) {
-          fs.unlink(path, (err) => {
-            return Promise.reject(err)
-          })
-          count += 1
-          // Build response object
-          response = {
-            success: JSON.parse(response.body).success,
-            status: response.statusCode,
-            features: JSON.parse(response.body).features,
+      const file = fs.createWriteStream(path)
+      await s3
+        .getObject({ Bucket: BUCKET_NAME, Key: key })
+        .createReadStream()
+        .pipe(file)
+        .on('close', async () => {
+          // Create formData object to send to the service
+          const formData = {
+            id,
+            sku,
+            username,
+            image: {
+              value: fs.createReadStream(path),
+              options: {
+                filename: image.name,
+              },
+            },
           }
 
-          // After getting response from internal server service, create a new Indexing Object
-          // First create the request custom Object
-          const request = {
-            route: req.route,
-            files: req.files,
-            token: req._token,
-            headers: req.headers,
-          }
+          try {
+            // Call internal Flask service to process petition
+            response = await rp.post({
+              url: serviceUrl + '/v1/images/index',
+              formData,
+              resolveWithFullResponse: true,
+            })
+            if (response.statusCode === 200) {
+              fs.unlink(path, (err) => {
+                return Promise.reject(err)
+              })
+              // Build response object
+              response = {
+                success: JSON.parse(response.body).success,
+                status: response.statusCode,
+                features: JSON.parse(response.body).features,
+              }
 
-          // Create new Searching object
-          const indexObject = await new Indexing({
-            response,
-            request,
-            user,
-          })
+              // After getting response from internal server service, create a new Indexing Object
+              // First create the request custom Object
+              const request = {
+                route: req.route,
+                files: req.files,
+                token: req._token,
+                headers: req.headers,
+              }
 
-          await indexObject.save()
-          // Add Indexing object to User and move toIndex object to IndexedImages
-          // Remove item form the toIndex batch
-          await User.findOneAndUpdate(
-            { username },
-            {
-              $pull: { toIndex: image },
-              $push: { indexings: indexObject._id },
+              // Create new Searching object
+              const indexObject = await new Indexing({
+                response,
+                request,
+                user,
+              })
+
+              await indexObject.save()
+              // Add Indexing object to User and move toIndex object to IndexedImages
+              // Remove item form the toIndex batch
+              await User.findOneAndUpdate(
+                { username },
+                {
+                  $pull: { toIndex: image },
+                  $push: { indexings: indexObject._id },
+                }
+              )
+              let index = 0
+              for (index; index < user.indexRates.length; index += 1) {
+                if (user.indexings.length <= user.indexRates[index].max) break
+              }
+              user.indexCost += user.indexRates[index].cost
+              await user.save()
+              return Promise.resolve()
             }
-          )
-          let index = 0
-          for (index; index < user.indexRates.length; index += 1) {
-            if (user.indexings.length <= user.indexRates[index].max) break
+          } catch (error) {
+            console.error('Could not index image', error)
           }
-          user.indexCost += user.indexRates[index].cost
-          await user.save()
-          return Promise.resolve()
-        }
-      } catch (error) {
-        console.error('Could not index image', error)
-        return res.status(500).json({ message: 'Server error ', error })
-      }
-      return Promise.reject(
-        new Error('Engine is not working correctly' + response.statusCode)
-      )
+          return Promise.reject(
+            new Error('Engine is not working correctly' + response.statusCode)
+          )
+        })
     }
   ).catch((error) => {
     return res
       .status(410)
       .json({ message: 'An error occured while indexing', error })
   })
-  return res
-    .status(200)
-    .json({
-      success: true,
-      message: 'Index process is running in the background',
-    })
+  return res.status(200).json({
+    success: true,
+    message: 'Index process is running in the background',
+  })
 })
 
 // Index images for all users that has pending images to index

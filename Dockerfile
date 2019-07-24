@@ -3,6 +3,8 @@ FROM node:8-jessie
 RUN mkdir /usr/share/app
 
 WORKDIR /usr/share/app
+# Create temp uploads directory
+RUN mkdir -p /static/uploads/temp
 
 COPY package*.json ./
 RUN npm i

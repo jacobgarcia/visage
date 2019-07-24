@@ -12,7 +12,6 @@ const aws = require('aws-sdk')
 const cors = require('cors')
 const base64Img = require('base64-img')
 const shortid = require('shortid')
-const isBase64 = require('is-base64')
 const { check, validationResult } = require('express-validator')
 
 const decodeImage = promisify(base64Img.img)
@@ -87,18 +86,24 @@ router.use((req, res, next) => {
 })
 
 // Search an image using the engine
-router.route('/images/search').post(async (req, res) => {
-  // Have to use thus syntax  because of multer callback handling
-  // Upload the image to server for temporal processing using multer
+router.route('/images/search').post([
+    check('image')
+      .isBase64()
+      .withMessage('Image is not base64'),
+  ], async (req, res) => {
   try {
-    const { image } = req.body
-    if (!isBase64(image, { mime: true })) {
-      return res
-        .status(400)
-        .json({ message: 'Malformed request', error: 'Image is not base64' })
+    const errors = validationResult(req)
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        errors: errors.array().map((error) => {
+          Reflect.deleteProperty(error, 'value')
+          return error
+        }),
+      })
     }
+    const { image } = req.body
     const filename = `${shortid.generate()}${Date.now()}`
-    const path = await decodeImage(image, STATIC_FOLDER, filename)
+    const path = await decodeImage(`data:image/png;base64,${image}`, STATIC_FOLDER, filename)
 
     // Call internal Flask service to process petition
     const formData = {

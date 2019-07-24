@@ -4,7 +4,7 @@ RUN mkdir /usr/share/app
 
 WORKDIR /usr/share/app
 # Create temp uploads directory
-RUN mkdir -p /static/uploads/temp
+RUN mkdir -p /usr/share/app/static/uploads/temp
 
 COPY package*.json ./
 RUN npm i

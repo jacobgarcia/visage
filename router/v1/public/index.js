@@ -5,7 +5,6 @@ const { promisify } = require('util')
 const path = require('path')
 const express = require('express')
 const winston = require('winston')
-const multer = require('multer')
 const jwt = require('jsonwebtoken')
 const rp = require('request-promise')
 const aws = require('aws-sdk')
@@ -104,7 +103,6 @@ router.route('/images/search').post([
     const { image } = req.body
     const filename = `${shortid.generate()}${Date.now()}`
     const path = await decodeImage(`data:image/png;base64,${image}`, STATIC_FOLDER, filename)
-
     // Call internal Flask service to process petition
     const formData = {
       image: {
@@ -121,6 +119,7 @@ router.route('/images/search').post([
       timeout: 200000,
       json: true,
     })
+
     // Image items
     const items = []
 
@@ -128,7 +127,7 @@ router.route('/images/search').post([
       item.im_src = `https://${BUCKET_NAME}.s3.amazonaws.com/${
         req._user.username
       }${item.im_src.substr(item.im_src.lastIndexOf('/'))}`
-      item.score > ENGINE_THRESHOLD ? items.push(item) : {}
+      item.score >= ENGINE_THRESHOLD ? items.push(item) : {}
     })
 
     // Build the response object
@@ -172,11 +171,6 @@ router.route('/images/search').post([
     // Then return response from internal server
     return res.status(200).json(response)
   } catch (error) {
-    if (error instanceof multer.MulterError) {
-      return res
-        .status(500)
-        .json({ error: { message: 'Error uploading file', error } })
-    }
     console.error('Could not search image', error)
     return res
       .status(500)
